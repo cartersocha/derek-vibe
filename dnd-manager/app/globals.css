@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a1f;
+  --foreground: #ededed;
+  --cyber-cyan: #00ffff;
+  --cyber-pink: #ff00ff;
+  --cyber-purple: #1a1a3e;
+  --cyber-dark: #0f0f23;
 }
 
 @theme inline {
@@ -12,15 +16,208 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-mono), monospace;
+}
+
+/* Glitch text effect */
+.glitch {
+  position: relative;
+  color: var(--cyber-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  animation: glitch-skew 1s infinite linear alternate-reverse;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch::before {
+  left: 2px;
+  text-shadow: -2px 0 #ff00ff;
+  clip: rect(44px, 450px, 56px, 0);
+  animation: glitch-anim 5s infinite linear alternate-reverse;
+}
+
+.glitch::after {
+  left: -2px;
+  text-shadow: -2px 0 #00ffff, 2px 2px #ff00ff;
+  animation: glitch-anim2 1s infinite linear alternate-reverse;
+}
+
+/* Subtle glitch for sidebar - less intense */
+.glitch-subtle {
+  position: relative;
+  color: var(--cyber-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.glitch-subtle::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  left: 2px;
+  text-shadow: -2px 0 rgba(255, 0, 255, 0.6);
+  clip: rect(44px, 450px, 56px, 0);
+  animation: glitch-anim-subtle 5s infinite linear alternate-reverse;
+}
+
+.glitch-subtle::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  left: -1px;
+  text-shadow: -1px 0 rgba(0, 255, 255, 0.4);
+  animation: glitch-anim-subtle2 3s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+  0% {
+    clip: rect(31px, 9999px, 94px, 0);
+    transform: skew(0.18deg);
+  }
+  20% {
+    clip: rect(54px, 9999px, 33px, 0);
+    transform: skew(0.5deg);
+  }
+  40% {
+    clip: rect(28px, 9999px, 87px, 0);
+    transform: skew(0.68deg);
+  }
+  60% {
+    clip: rect(45px, 9999px, 12px, 0);
+    transform: skew(0.21deg);
+  }
+  80% {
+    clip: rect(76px, 9999px, 44px, 0);
+    transform: skew(0.35deg);
+  }
+  100% {
+    clip: rect(19px, 9999px, 65px, 0);
+    transform: skew(0.78deg);
+  }
+}
+
+@keyframes glitch-anim2 {
+  0% {
+    clip: rect(65px, 9999px, 23px, 0);
+    transform: skew(0.45deg);
+  }
+  20% {
+    clip: rect(12px, 9999px, 78px, 0);
+    transform: skew(0.12deg);
+  }
+  40% {
+    clip: rect(87px, 9999px, 34px, 0);
+    transform: skew(0.93deg);
+  }
+  60% {
+    clip: rect(43px, 9999px, 56px, 0);
+    transform: skew(0.31deg);
+  }
+  80% {
+    clip: rect(21px, 9999px, 89px, 0);
+    transform: skew(0.67deg);
+  }
+  100% {
+    clip: rect(54px, 9999px, 15px, 0);
+    transform: skew(0.22deg);
+  }
+}
+
+@keyframes glitch-skew {
+  0% {
+    transform: skew(0deg);
+  }
+  10% {
+    transform: skew(-2deg);
+  }
+  20% {
+    transform: skew(1deg);
+  }
+  30% {
+    transform: skew(-1deg);
+  }
+  40% {
+    transform: skew(2deg);
+  }
+  50% {
+    transform: skew(-2deg);
+  }
+  60% {
+    transform: skew(0deg);
+  }
+  70% {
+    transform: skew(1deg);
+  }
+  80% {
+    transform: skew(-1deg);
+  }
+  90% {
+    transform: skew(2deg);
+  }
+  100% {
+    transform: skew(0deg);
+  }
+}
+
+@keyframes glitch-anim-subtle {
+  0% {
+    clip: rect(31px, 9999px, 94px, 0);
+    transform: skew(0.1deg);
+  }
+  20% {
+    clip: rect(54px, 9999px, 33px, 0);
+    transform: skew(0.3deg);
+  }
+  40% {
+    clip: rect(28px, 9999px, 87px, 0);
+    transform: skew(0.2deg);
+  }
+  60% {
+    clip: rect(45px, 9999px, 12px, 0);
+    transform: skew(0.15deg);
+  }
+  80% {
+    clip: rect(76px, 9999px, 44px, 0);
+    transform: skew(0.25deg);
+  }
+  100% {
+    clip: rect(19px, 9999px, 65px, 0);
+    transform: skew(0.1deg);
+  }
+}
+
+@keyframes glitch-anim-subtle2 {
+  0% {
+    clip: rect(42px, 9999px, 15px, 0);
+  }
+  25% {
+    clip: rect(68px, 9999px, 48px, 0);
+  }
+  50% {
+    clip: rect(12px, 9999px, 73px, 0);
+  }
+  75% {
+    clip: rect(55px, 9999px, 28px, 0);
+  }
+  100% {
+    clip: rect(35px, 9999px, 62px, 0);
+  }
 }

@@ -1,16 +1,14 @@
-import Navbar from '@/components/layout/navbar'
+import Navbar from "@/components/layout/navbar";
 
 export default function ProtectedLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <>
+    <div className="flex h-screen bg-[#0a0a1f]">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
-    </>
-  )
+      <main className="flex-1 overflow-y-auto p-8">{children}</main>
+    </div>
+  );
 }
