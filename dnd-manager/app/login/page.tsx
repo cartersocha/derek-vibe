@@ -1,27 +1,33 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { login } from '@/lib/auth/actions'
+import { useState } from "react";
+import { login } from "@/lib/auth/actions";
 
 export default function LoginPage() {
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
-      const result = await login(password)
+      const result = await login(password);
       if (result?.error) {
-        setError(result.error)
+        setError(result.error);
+        setLoading(false);
       }
-    } catch {
-      setError('An error occurred. Please try again.')
-    } finally {
-      setLoading(false)
+      // If no error, redirect will happen automatically
+    } catch (error) {
+      // Check if this is a redirect error (which is expected)
+      if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
+        // Let Next.js handle the redirect
+        throw error;
+      }
+      setError("An error occurred. Please try again.");
+      setLoading(false);
     }
   }
 
@@ -64,11 +70,11 @@ export default function LoginPage() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? "Signing in..." : "Sign in"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }
