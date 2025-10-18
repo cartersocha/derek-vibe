@@ -727,6 +727,75 @@ export interface CharacterWithSessions extends Character {
 - Run TypeScript check
 ---
 
+## Phase 5: Organization Management Rollout
+
+### Step 5.1: Database Migration for Organizations
+**Goal**: Introduce first-class organization support with Supabase migrations
+
+**Tasks**:
+- Author `supabase/migrations/` scripts that create `organizations`, `organization_members`, and linking FKs to campaigns.
+- Ensure triggers mirror the existing `update_updated_at_column` pattern for organization tables.
+- Backfill existing campaigns with a default organization to preserve current routing semantics.
+
+**Files Touched**:
+- `supabase/migrations/20XXYYZZ_add_organizations.sql`
+
+---
+
+### Step 5.2: Backend Integration & Server Actions
+**Goal**: Wire organization workflows into server-side logic
+
+**Tasks**:
+- Add `lib/actions/organizations.ts` with CRUD handlers that reuse `sanitizeText` and `sanitizeNullableText` from `lib/security/sanitize.ts`.
+- Extend `lib/mention-utils.ts` to expose organization targets, keeping the shared mention parsing behavior intact.
+- Create validation schema in `lib/validations/organization.ts` aligned with existing Zod patterns.
+- Update campaign, session, and character actions to accept organization context IDs while preserving mention hydration logic.
+
+**Files Touched**:
+- `lib/actions/organizations.ts`
+- `lib/validations/organization.ts`
+- `lib/mention-utils.ts`
+- `lib/actions/{campaigns,sessions,characters}.ts`
+
+---
+
+### Step 5.3: UI Construction in App Router
+**Goal**: Deliver end-to-end organization management screens
+
+**Tasks**:
+- Scaffold `app/(protected)/organizations/` routes (list, new, detail, members) using existing `Synthwave` UI primitives.
+- Add `app/organizations/layout.tsx` that parallels campaigns layout with responsive sidebar hooks and feeds shared params into the protected subtree.
+- Introduce `components/organizations/` for cards, forms, and member chips, reusing `MentionableTextarea` for description fields to leverage shared mention rendering.
+- Ensure client components pull sanitized content and display mention highlights via `renderNotesWithMentions`.
+
+**Files Touched**:
+- `app/(protected)/organizations/page.tsx`
+- `app/(protected)/organizations/new/page.tsx`
+- `app/(protected)/organizations/[id]/page.tsx`
+- `app/(protected)/organizations/[id]/members/page.tsx`
+- `app/(protected)/organizations/layout.tsx`
+- `components/organizations/*`
+
+---
+
+### Step 5.4: QA, Permissions, and Launch Readiness
+**Goal**: Validate organization feature set before release
+
+**Tasks**:
+- Verify migrations against Supabase preview databases and production shadow copies.
+- Exercise server actions with organization scoping, ensuring mention dropdowns reference organizations alongside characters and sessions.
+- Confirm sanitization removes unsafe markup in organization descriptions, matching campaign/session behavior.
+- Run manual regression across `app/organizations` flows, invitations, and membership removal.
+- Capture QA notes for reuse in future multi-tenant enhancements.
+
+**Files Referenced**:
+- `app/(protected)/organizations/*`
+- `lib/actions/organizations.ts`
+- `lib/security/sanitize.ts`
+- `lib/mention-utils.ts`
+
+---
+
 ## Summary
 
 ### ✅ All Core Features Implemented
