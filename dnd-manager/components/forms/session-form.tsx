@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import Link from 'next/link'
 import ImageUpload from '@/components/ui/image-upload'
 import AutoResizeTextarea from '@/components/ui/auto-resize-textarea'
@@ -62,8 +62,10 @@ export default function SessionForm({
     return initialSet
   })
   const [characterSearch, setCharacterSearch] = useState('')
+  const deferredCharacterSearch = useDeferredValue(characterSearch)
   const saveTimeoutRef = useRef<number | null>(null)
   const hasLoadedDraftRef = useRef(false)
+  const isNavigatingRef = useRef(false)
 
   useEffect(() => {
     hasLoadedDraftRef.current = false
@@ -157,6 +159,7 @@ export default function SessionForm({
     if (!draftStorageKey) {
       return
     }
+    isNavigatingRef.current = true
     window.localStorage.removeItem(draftStorageKey)
   }, [draftStorageKey])
 
@@ -173,7 +176,7 @@ export default function SessionForm({
   }, [])
 
   const filteredCharacters = useMemo(() => {
-    const term = characterSearch.trim().toLowerCase()
+    const term = deferredCharacterSearch.trim().toLowerCase()
     if (!term) {
       return characters
     }
@@ -182,7 +185,7 @@ export default function SessionForm({
       const parts = [character.name, character.race ?? '', character.class ?? '']
       return parts.some((part) => part.toLowerCase().includes(term))
     })
-  }, [characterSearch, characters])
+  }, [deferredCharacterSearch, characters])
 
   const hiddenSelectedCharacterIds = useMemo(() => {
     const visibleIds = new Set(filteredCharacters.map((character) => character.id))
@@ -192,6 +195,40 @@ export default function SessionForm({
   const handleCharacterSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setCharacterSearch(event.target.value)
   }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const handleVisibilityChange = () => {
+      if (!draftStorageKey || isNavigatingRef.current) {
+        return
+      }
+
+      if (document.visibilityState === 'hidden') {
+        window.localStorage.removeItem(draftStorageKey)
+        setNotesDraft(initialNotes)
+      }
+    }
+
+    const handlePageHide = () => {
+      if (!draftStorageKey || isNavigatingRef.current) {
+        return
+      }
+
+      window.localStorage.removeItem(draftStorageKey)
+      setNotesDraft(initialNotes)
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pagehide', handlePageHide)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pagehide', handlePageHide)
+    }
+  }, [draftStorageKey, initialNotes])
 
   return (
     <form

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
 import { sessionSchema } from '@/lib/validations/schemas'
+import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
 
 const SESSION_BUCKET = 'session-images' as const
 
@@ -202,18 +203,17 @@ export async function deleteSession(id: string): Promise<void> {
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key)
-  return typeof value === 'string' ? value : ''
+  if (typeof value !== 'string') {
+    return ''
+  }
+
+  return sanitizeText(value).trim()
 }
 
 function getStringOrNull(formData: FormData, key: string): string | null {
   const value = formData.get(key)
 
-  if (typeof value !== 'string') {
-    return null
-  }
-
-  const trimmed = value.trim()
-  return trimmed.length > 0 ? trimmed : null
+  return sanitizeNullableText(value)
 }
 
 function getFile(formData: FormData, key: string): File | null {

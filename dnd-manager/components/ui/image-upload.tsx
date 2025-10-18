@@ -26,12 +26,26 @@ export default function ImageUpload({
   const [fileName, setFileName] = useState<string | null>(null);
   const [isRemoved, setIsRemoved] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const objectUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
     setPreview(currentImage ?? null);
     setFileName(null);
     setIsRemoved(false);
   }, [currentImage]);
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+    };
+  }, []);
 
   const handleFile = useCallback(
     (file: File | null) => {
@@ -54,24 +68,30 @@ export default function ImageUpload({
       setFileName(file.name);
       setIsRemoved(false);
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+
+      const previewUrl = URL.createObjectURL(file);
+      objectUrlRef.current = previewUrl;
+      setPreview(previewUrl);
     },
     [maxSize]
   );
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      return;
-    }
-    handleFile(file);
-  };
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) {
+        return;
+      }
+      handleFile(file);
+    },
+    [handleFile]
+  );
 
-  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -83,31 +103,38 @@ export default function ImageUpload({
     if (e.type === "dragleave") {
       setDragActive(false);
     }
-  };
+  }, []);
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
 
-    const file = e.dataTransfer.files?.[0];
-    if (file && inputRef.current) {
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      inputRef.current.files = dataTransfer.files;
-      handleFile(file);
-    }
-  };
+      const file = e.dataTransfer.files?.[0];
+      if (file && inputRef.current) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        inputRef.current.files = dataTransfer.files;
+        handleFile(file);
+      }
+    },
+    [handleFile]
+  );
 
-  const handleRemove = () => {
+  const handleRemove = useCallback(() => {
     if (inputRef.current) {
       inputRef.current.value = "";
+    }
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
     }
     setPreview(null);
     setFileName(null);
     setError(null);
     setIsRemoved(true);
-  };
+  }, []);
 
   return (
     <div className={className}>

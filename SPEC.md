@@ -116,21 +116,24 @@ app/
 
 #### Layout Components
 
-- `Navbar` - Top navigation with logo and logout button
+- `Navbar` - Collapsible sidebar navigation with icon mode and hover tooltips
   - Location: `components/layout/navbar.tsx`
-  - Client component for interactive logout
+  - Client component with drag-to-resize handling, width persistence, and mobile menu
 
 #### Form Components
 
-- `CharacterEditForm` - Edit existing character
+- `CharacterEditForm` - Edit existing character with auto-resizing text areas
   - Location: `components/forms/character-edit-form.tsx`
   - Client component with form state management
-- `SessionForm` - Create/edit session with character selection
+- `SessionForm` - Create/edit session with character selection and draft auto-save
   - Location: `components/forms/session-form.tsx`
-  - Client component with multi-select for characters
+  - Client component with search, hidden selection syncing, and redirect-aware character creation
 
 #### UI Components
 
+- `AutoResizeTextarea` - Textarea that grows with content for long-form inputs
+  - Location: `components/ui/auto-resize-textarea.tsx`
+  - Client component shared by character and session forms for backstory and notes
 - `ImageUpload` - File upload with preview and remove functionality
   - Location: `components/ui/image-upload.tsx`
   - Client component with drag-and-drop support
@@ -154,7 +157,7 @@ app/
 - Session-based authentication using iron-session
 - Cookie-based session management with encryption
 - Protected routes via Next.js middleware
-- Logout functionality clears session and redirects to login
+- Logout endpoint remains available for manual use, but the UI omits a logout control per UX guidance
 - No user accounts or registration needed
 - Session persists across browser sessions
 
@@ -175,16 +178,18 @@ app/
 - Create, read, update, delete sessions
 - Assign to campaign (optional)
 - Set session date
-- Plain text notes field
+- Plain text notes field with auto-resizing textarea and localStorage draft auto-save
 - Upload and display header image (stored in Supabase Storage)
 - Attach multiple characters to a session
 - View/edit character list within session
+- Character picker supports search, preserves hidden selections, and links to create-new flow that returns with the new character preselected
+- Session date defaults to the current day on creation while respecting existing values during edits
 - Display list of characters that participated
 - Session detail view shows:
   - Header image (if uploaded)
   - Campaign association
   - Session date
-  - Notes
+  - Notes presented in a styled panel with preserved line breaks
   - List of participating characters with links
 
 ### Characters
@@ -197,11 +202,12 @@ app/
   - Class
   - Level (1-20)
   - Backstory/notes (long text)
+- Character selection lists render race and class with a separator dot instead of parentheses for clarity
 - View all sessions character has participated in
 - Character detail view shows:
   - Portrait image (if uploaded)
   - Race, class, and level
-  - Backstory
+  - Backstory & Notes section with preserved line breaks that wraps around the infobox for readability
   - List of sessions they participated in with links
 - **Note**: Ability scores (STR, DEX, CON, INT, WIS, CHA) have been removed from the system
 
@@ -262,6 +268,8 @@ app/
 
 > **Note (2025-10-17):** Completed a mobile responsiveness pass that adds a collapsible mobile navigation, stacks action bars on small screens, and widens primary controls for better touch targets.
 
+> **Note (2025-10-18):** Landed sidebar performance improvements, session form draft preservation, auto-resizing text areas, and refreshed character metadata formatting.
+
 
 ### Form Handling
 
@@ -271,6 +279,8 @@ app/
 - Error handling via try/catch in Server Actions
 - Client-side validation with HTML5 attributes
 - File uploads handled through FormData
+- Session notes auto-save to `localStorage` with a debounce and clear on successful submission
+- Auto-resizing textarea component keeps long-form inputs visible without manual resizing
 
 ### Environment Variables
 
@@ -331,6 +341,7 @@ dnd-manager/
 │           └── page.tsx              # New character
 ├── components/                       # React components
 │   ├── ui/                          # Reusable UI components
+│   │   ├── auto-resize-textarea.tsx # Auto-growing textarea component
 │   │   ├── image-upload.tsx         # Image upload component
 │   │   ├── delete-character-button.tsx
 │   │   ├── delete-session-button.tsx

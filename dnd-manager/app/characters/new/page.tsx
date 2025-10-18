@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from "react";
 import { createCharacter } from "@/lib/actions/characters";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -7,8 +8,16 @@ import ImageUpload from "@/components/ui/image-upload";
 import AutoResizeTextarea from "@/components/ui/auto-resize-textarea";
 
 export default function NewCharacterPage() {
-  const searchParams = useSearchParams()
-  const redirectTo = searchParams.get('redirectTo')
+  return (
+    <Suspense fallback={null}>
+      <NewCharacterForm />
+    </Suspense>
+  );
+}
+
+function NewCharacterForm() {
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo");
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
