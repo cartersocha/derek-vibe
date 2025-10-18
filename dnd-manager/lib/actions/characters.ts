@@ -10,6 +10,7 @@ import {
   uploadImage,
 } from "@/lib/supabase/storage";
 import { characterSchema } from "@/lib/validations/schemas";
+import { sanitizeNullableText, sanitizeText } from "@/lib/security/sanitize";
 
 const CHARACTER_BUCKET = "character-images" as const;
 
@@ -60,7 +61,23 @@ export async function createCharacter(formData: FormData): Promise<void> {
     throw new Error(error.message);
   }
 
+  const redirectToRaw = formData.get("redirect_to");
+
   revalidatePath("/characters");
+
+  if (typeof redirectToRaw === "string") {
+    const trimmed = redirectToRaw.trim();
+    if (trimmed.startsWith("/")) {
+      const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+      const targetUrl = new URL(trimmed, origin);
+      targetUrl.searchParams.set("newCharacterId", characterId);
+      revalidatePath(targetUrl.pathname);
+      redirect(
+        `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`
+      );
+    }
+  }
+
   redirect("/characters");
 }
 
@@ -237,18 +254,17 @@ export async function updateCharacterSessions(
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key);
-  return typeof value === "string" ? value : "";
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return sanitizeText(value).trim();
 }
 
 function getStringOrNull(formData: FormData, key: string): string | null {
   const value = formData.get(key);
 
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
+  return sanitizeNullableText(value);
 }
 
 function getNumberOrNull(formData: FormData, key: string): number | null {

@@ -6,6 +6,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+const NAV_LINKS = [
+  { href: "/campaigns", label: "Campaigns", symbol: "⚔" },
+  { href: "/sessions", label: "Sessions", symbol: "✎" },
+  { href: "/characters", label: "Characters", symbol: "♞" },
+];
+
 const DEFAULT_WIDTH = 208;
 const COLLAPSED_WIDTH = 72;
 const COLLAPSE_THRESHOLD = 120;
@@ -33,8 +39,30 @@ export default function Navbar() {
   const [isDragging, setIsDragging] = useState(false);
   const dragState = useRef({ startX: 0, startWidth: DEFAULT_WIDTH });
   const isDraggingRef = useRef(false);
+  const widthFrameRef = useRef<number | null>(null);
 
   const clampWidth = useCallback((value: number) => clampSidebarWidth(value), []);
+
+  const updateWidth = useCallback(
+    (value: number) => {
+      const clamped = clampWidth(value);
+
+      if (typeof window === "undefined") {
+        setWidth(clamped);
+        return;
+      }
+
+      if (widthFrameRef.current !== null) {
+        cancelAnimationFrame(widthFrameRef.current);
+      }
+
+      widthFrameRef.current = window.requestAnimationFrame(() => {
+        widthFrameRef.current = null;
+        setWidth(clamped);
+      });
+    },
+    [clampWidth]
+  );
 
   const isCollapsed = width <= COLLAPSE_THRESHOLD;
 
@@ -42,10 +70,10 @@ export default function Navbar() {
     (event: PointerEvent) => {
       if (!isDraggingRef.current) return;
       const delta = event.clientX - dragState.current.startX;
-      const nextWidth = clampWidth(dragState.current.startWidth + delta);
-      setWidth(nextWidth);
+      const nextWidth = dragState.current.startWidth + delta;
+      updateWidth(nextWidth);
     },
-    [clampWidth]
+    [updateWidth]
   );
 
   const handlePointerUp = useCallback(() => {
@@ -54,6 +82,10 @@ export default function Navbar() {
     setIsDragging(false);
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
+    if (widthFrameRef.current !== null) {
+      cancelAnimationFrame(widthFrameRef.current);
+      widthFrameRef.current = null;
+    }
     setWidth((prev) => (prev <= COLLAPSE_THRESHOLD ? COLLAPSED_WIDTH : clampWidth(prev)));
   }, [clampWidth, handlePointerMove]);
 
@@ -87,14 +119,12 @@ export default function Navbar() {
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
+      if (widthFrameRef.current !== null) {
+        cancelAnimationFrame(widthFrameRef.current);
+        widthFrameRef.current = null;
+      }
     };
   }, [handlePointerMove, handlePointerUp]);
-
-  const navLinks = [
-    { href: "/campaigns", label: "Campaigns", symbol: "⚔" },
-    { href: "/sessions", label: "Sessions", symbol: "✎" },
-    { href: "/characters", label: "Characters", symbol: "♞" },
-  ];
 
   const sidebarStyles = {
     "--sidebar-width": `${Math.round(width)}px`,
@@ -147,7 +177,7 @@ export default function Navbar() {
             isMobileMenuOpen ? "block" : "hidden"
           )}
         >
-          {navLinks.map((link) => {
+          {NAV_LINKS.map((link) => {
             const isActive = pathname.startsWith(link.href);
             return (
               <Link
@@ -205,7 +235,7 @@ export default function Navbar() {
             isCollapsed ? "px-2" : "px-4"
           )}
         >
-          {navLinks.map((link) => {
+          {NAV_LINKS.map((link) => {
             const isActive = pathname.startsWith(link.href);
             return (
               <Link

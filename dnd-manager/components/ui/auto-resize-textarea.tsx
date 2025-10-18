@@ -3,6 +3,7 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
   type ChangeEventHandler,
@@ -26,18 +27,54 @@ const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeTextareaPro
       }
     }
 
-    const resize = useCallback((textarea: HTMLTextAreaElement | null) => {
-      if (!textarea) return
+    const frameRef = useRef<number | null>(null)
+
+    const resizeImmediately = useCallback((textarea: HTMLTextAreaElement) => {
       textarea.style.height = "auto"
-      textarea.style.height = `${textarea.scrollHeight}px`
+      const nextHeight = `${textarea.scrollHeight}px`
+      textarea.style.height = nextHeight
     }, [])
 
+    const scheduleResize = useCallback(
+      (textarea: HTMLTextAreaElement | null) => {
+        if (!textarea) return
+
+        const perform = () => {
+          resizeImmediately(textarea)
+        }
+
+        if (typeof window === "undefined") {
+          perform()
+          return
+        }
+
+        if (frameRef.current !== null) {
+          cancelAnimationFrame(frameRef.current)
+        }
+
+        frameRef.current = window.requestAnimationFrame(() => {
+          frameRef.current = null
+          perform()
+        })
+      },
+      [resizeImmediately]
+    )
+
     useLayoutEffect(() => {
-      resize(innerRef.current)
-    }, [resize, rest.value, rest.defaultValue])
+      scheduleResize(innerRef.current)
+    }, [scheduleResize, rest.value, rest.defaultValue])
+
+    useEffect(() => {
+      return () => {
+        if (frameRef.current !== null) {
+          cancelAnimationFrame(frameRef.current)
+          frameRef.current = null
+        }
+      }
+    }, [])
 
     const handleInput: FormEventHandler<HTMLTextAreaElement> = (event) => {
-      resize(event.currentTarget)
+      scheduleResize(event.currentTarget)
       onInput?.(event)
     }
 

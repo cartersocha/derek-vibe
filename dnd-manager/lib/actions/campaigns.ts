@@ -4,13 +4,15 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { campaignSchema } from '@/lib/validations/schemas'
+import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
 
 export async function createCampaign(formData: FormData): Promise<void> {
   const supabase = await createClient()
 
+  const rawName = formData.get('name')
   const data = {
-    name: formData.get('name') as string,
-    description: formData.get('description') as string || null,
+    name: typeof rawName === 'string' ? sanitizeText(rawName).trim() : '',
+    description: sanitizeNullableText(formData.get('description')),
   }
 
   const result = campaignSchema.safeParse(data)
@@ -33,9 +35,10 @@ export async function createCampaign(formData: FormData): Promise<void> {
 export async function updateCampaign(id: string, formData: FormData): Promise<void> {
   const supabase = await createClient()
 
+  const rawName = formData.get('name')
   const data = {
-    name: formData.get('name') as string,
-    description: formData.get('description') as string || null,
+    name: typeof rawName === 'string' ? sanitizeText(rawName).trim() : '',
+    description: sanitizeNullableText(formData.get('description')),
   }
 
   const result = campaignSchema.safeParse(data)

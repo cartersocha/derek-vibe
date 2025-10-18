@@ -4,8 +4,15 @@ import { createClient } from '@/lib/supabase/server'
 import { updateSession } from '@/lib/actions/sessions'
 import SessionForm from '@/components/forms/session-form'
 
-export default async function SessionEditPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function SessionEditPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
   const { id } = await params
+  const query = await searchParams
   const supabase = await createClient()
 
   const { data: session } = await supabase
@@ -37,6 +44,23 @@ export default async function SessionEditPage({ params }: { params: Promise<{ id
 
   const updateSessionWithId = updateSession.bind(null, id)
 
+  const newCharacterId = typeof query?.newCharacterId === 'string' ? query.newCharacterId : undefined
+
+  const sessionQuery = new URLSearchParams()
+  if (query) {
+    Object.entries(query).forEach(([key, value]) => {
+      if (key === 'newCharacterId') {
+        return
+      }
+      if (typeof value === 'string') {
+        sessionQuery.set(key, value)
+      }
+    })
+  }
+
+  const sessionPath = `/sessions/${id}/edit${sessionQuery.toString() ? `?${sessionQuery.toString()}` : ''}`
+  const newCharacterHref = `/characters/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -62,6 +86,8 @@ export default async function SessionEditPage({ params }: { params: Promise<{ id
         submitLabel="Save Changes"
         cancelHref={`/sessions/${id}`}
         draftKey={`session-notes:${id}`}
+        newCharacterHref={newCharacterHref}
+        preselectedCharacterIds={newCharacterId ? [newCharacterId] : undefined}
       />
     </div>
   )

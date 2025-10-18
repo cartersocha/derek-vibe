@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import Link from 'next/link'
 import ImageUpload from '@/components/ui/image-upload'
 import AutoResizeTextarea from '@/components/ui/auto-resize-textarea'
@@ -36,6 +36,8 @@ interface SessionFormProps {
   submitLabel?: string
   cancelHref?: string
   draftKey?: string
+  newCharacterHref?: string
+  preselectedCharacterIds?: string[]
 }
 
 export default function SessionForm({
@@ -46,16 +48,24 @@ export default function SessionForm({
   defaultCampaignId,
   submitLabel = 'Create Session',
   cancelHref = '/sessions',
-  draftKey
+  draftKey,
+  newCharacterHref,
+  preselectedCharacterIds,
 }: SessionFormProps) {
   const draftStorageKey = draftKey ?? DEFAULT_DRAFT_KEY
   const initialNotes = initialData?.notes ?? ''
+  const today = useMemo(() => new Date().toISOString().split('T')[0], [])
   const [notesDraft, setNotesDraft] = useState(initialNotes)
-  const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(() =>
-    new Set(initialData?.characterIds || [])
-  )
+  const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(() => {
+    const initialSet = new Set(initialData?.characterIds || [])
+    preselectedCharacterIds?.forEach((id) => initialSet.add(id))
+    return initialSet
+  })
+  const [characterSearch, setCharacterSearch] = useState('')
+  const deferredCharacterSearch = useDeferredValue(characterSearch)
   const saveTimeoutRef = useRef<number | null>(null)
   const hasLoadedDraftRef = useRef(false)
+  const isNavigatingRef = useRef(false)
 
   useEffect(() => {
     hasLoadedDraftRef.current = false
@@ -117,6 +127,24 @@ export default function SessionForm({
     }
   }, [])
 
+  useEffect(() => {
+    if (!preselectedCharacterIds?.length) {
+      return
+    }
+
+    setSelectedCharacters((prev) => {
+      const next = new Set(prev)
+      let changed = false
+      preselectedCharacterIds.forEach((id) => {
+        if (!next.has(id)) {
+          next.add(id)
+          changed = true
+        }
+      })
+      return changed ? next : prev
+    })
+  }, [preselectedCharacterIds])
+
   const handleNotesChange = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
     setNotesDraft(event.target.value)
   }, [])
@@ -131,6 +159,7 @@ export default function SessionForm({
     if (!draftStorageKey) {
       return
     }
+    isNavigatingRef.current = true
     window.localStorage.removeItem(draftStorageKey)
   }, [draftStorageKey])
 
@@ -145,6 +174,61 @@ export default function SessionForm({
       return newSet
     })
   }, [])
+
+  const filteredCharacters = useMemo(() => {
+    const term = deferredCharacterSearch.trim().toLowerCase()
+    if (!term) {
+      return characters
+    }
+
+    return characters.filter((character) => {
+      const parts = [character.name, character.race ?? '', character.class ?? '']
+      return parts.some((part) => part.toLowerCase().includes(term))
+    })
+  }, [deferredCharacterSearch, characters])
+
+  const hiddenSelectedCharacterIds = useMemo(() => {
+    const visibleIds = new Set(filteredCharacters.map((character) => character.id))
+    return Array.from(selectedCharacters).filter((id) => !visibleIds.has(id))
+  }, [filteredCharacters, selectedCharacters])
+
+  const handleCharacterSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setCharacterSearch(event.target.value)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const handleVisibilityChange = () => {
+      if (!draftStorageKey || isNavigatingRef.current) {
+        return
+      }
+
+      if (document.visibilityState === 'hidden') {
+        window.localStorage.removeItem(draftStorageKey)
+        setNotesDraft(initialNotes)
+      }
+    }
+
+    const handlePageHide = () => {
+      if (!draftStorageKey || isNavigatingRef.current) {
+        return
+      }
+
+      window.localStorage.removeItem(draftStorageKey)
+      setNotesDraft(initialNotes)
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pagehide', handlePageHide)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pagehide', handlePageHide)
+    }
+  }, [draftStorageKey, initialNotes])
 
   return (
     <form
@@ -206,7 +290,7 @@ export default function SessionForm({
           type="date"
           id="session_date"
           name="session_date"
-          defaultValue={initialData?.session_date || ''}
+          defaultValue={initialData?.session_date || today}
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
         />
       </div>
@@ -227,36 +311,66 @@ export default function SessionForm({
         />
       </div>
 
+          {hiddenSelectedCharacterIds.map((id) => (
+            <input key={`selected-hidden-${id}`} type="hidden" name="character_ids" value={id} />
+          ))}
+
       {/* Characters Present */}
-      {characters && characters.length > 0 && (
-        <div>
-          <label className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
-            Characters Present
-          </label>
-          <div className="space-y-2 max-h-64 overflow-y-auto border border-[#00ffff] border-opacity-30 rounded p-4 bg-[#0f0f23]">
-            {characters.map((character) => (
-              <label key={character.id} className="flex items-center space-x-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  name="character_ids"
-                  value={character.id}
-                  checked={selectedCharacters.has(character.id)}
-                  onChange={() => toggleCharacter(character.id)}
-                  className="rounded border-[#00ffff] border-opacity-30 text-[#ff00ff] focus:ring-[#ff00ff] bg-[#0f0f23]"
-                />
-                <span className="text-[#00ffff] font-mono group-hover:text-[#ff00ff] transition-colors">
-                  {character.name}
-                  {character.race && character.class && (
-                    <span className="text-gray-500 text-sm ml-2">
-                      ({character.race} {character.class})
-                    </span>
-                  )}
-                </span>
+          <div className="space-y-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <label className="text-sm font-bold text-[#00ffff] uppercase tracking-wider">
+                Characters Present
               </label>
-            ))}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <input
+                  type="search"
+                  value={characterSearch}
+                  onChange={handleCharacterSearchChange}
+                  placeholder="Search characters"
+                  className="w-full sm:w-64 rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] px-3 py-2 text-sm font-mono text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00ffff]"
+                />
+                {newCharacterHref && (
+                  <Link
+                    href={newCharacterHref}
+                    className="inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-30 px-3 py-2 text-xs font-bold uppercase tracking-[0.25em] text-[#00ffff] transition-colors duration-200 hover:border-[#ff00ff] hover:text-[#ff00ff]"
+                  >
+                    New Character
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2 max-h-64 overflow-y-auto border border-[#00ffff] border-opacity-30 rounded p-4 bg-[#0f0f23]">
+              {filteredCharacters.length === 0 ? (
+                <p className="text-xs uppercase tracking-wider text-gray-500 font-mono text-center">
+                  {characters.length === 0
+                    ? 'No characters yet. Create one to get started.'
+                    : 'No characters match your search'}
+                </p>
+              ) : (
+                filteredCharacters.map((character) => (
+                  <label key={character.id} className="flex items-center space-x-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      name="character_ids"
+                      value={character.id}
+                      checked={selectedCharacters.has(character.id)}
+                      onChange={() => toggleCharacter(character.id)}
+                      className="rounded border-[#00ffff] border-opacity-30 text-[#ff00ff] focus:ring-[#ff00ff] bg-[#0f0f23]"
+                    />
+                    <span className="text-[#00ffff] font-mono group-hover:text-[#ff00ff] transition-colors">
+                      {character.name}
+                      {(character.race || character.class) && (
+                        <span className="text-gray-500 text-sm ml-2">
+                          {[character.race, character.class].filter(Boolean).join(' • ')}
+                        </span>
+                      )}
+                    </span>
+                  </label>
+                ))
+              )}
+            </div>
           </div>
-        </div>
-      )}
 
       {/* Action Buttons */}
       <div className="flex flex-col gap-4 sm:flex-row">
