@@ -1055,6 +1055,7 @@ export default function SessionForm({
             aria-controls={isMentionMenuOpen ? mentionListId : undefined}
             className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
             placeholder="What happened in this session..."
+            spellCheck
           />
           {isMentionMenuOpen && (
             <div

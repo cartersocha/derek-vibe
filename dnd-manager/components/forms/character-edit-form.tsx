@@ -219,6 +219,7 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
           initialValue={character.backstory || ''}
           mentionTargets={mentionTargets}
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+          spellCheck
         />
         <p className="mt-2 text-xs text-gray-500 font-mono uppercase tracking-wider">
           Use @ to mention characters or sessions. Mentioned sessions are linked automatically.

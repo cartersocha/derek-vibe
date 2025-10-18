@@ -14,6 +14,7 @@ import {
 import { characterSchema } from "@/lib/validations/schemas";
 import { sanitizeNullableText, sanitizeText } from "@/lib/security/sanitize";
 import { CharacterStatus, PlayerType } from "@/lib/characters/constants";
+import { toTitleCase } from "@/lib/utils";
 
 const CHARACTER_BUCKET = "character-images" as const;
 
@@ -38,8 +39,10 @@ export async function createCharacter(formData: FormData): Promise<void> {
     imageUrl = url;
   }
 
+  const normalizedName = toTitleCase(getString(formData, "name"));
+
   const data = {
-    name: getString(formData, "name"),
+    name: normalizedName,
     race: getStringOrNull(formData, "race"),
     class: getStringOrNull(formData, "class"),
     level: getStringOrNull(formData, "level"),
@@ -114,7 +117,8 @@ export async function createCharacterInline(name: string): Promise<{
     throw new Error("Character name is required");
   }
 
-  const truncated = sanitized.slice(0, 100);
+  const normalized = toTitleCase(sanitized);
+  const truncated = normalized.slice(0, 100);
   const characterId = randomUUID();
   const { error } = await supabase.from("characters").insert({
     id: characterId,
@@ -193,8 +197,10 @@ export async function updateCharacter(
     imageUrl = null;
   }
 
+  const normalizedName = toTitleCase(getString(formData, "name"));
+
   const data = {
-    name: getString(formData, "name"),
+    name: normalizedName,
     race: getStringOrNull(formData, "race"),
     class: getStringOrNull(formData, "class"),
     level: getStringOrNull(formData, "level"),

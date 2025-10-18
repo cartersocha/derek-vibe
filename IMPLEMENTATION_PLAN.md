@@ -20,6 +20,8 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-19, afternoon):** Introduced a global auto-capitalization provider that uppercases the first alphabetical character in text inputs while allowing opt-outs via a data attribute.
 
+> **Note (2025-10-19, evening):** Synced character backstory mention menus with the session experience (inline creation, widened dropdown, caret anchoring), normalized saved session and character names to title case, and enabled spellcheck for long-form drafting fields.
+
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
 ## Recent Enhancements (2025-10-18)
@@ -41,6 +43,7 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Session header image controls on the edit form drop redundant labels, keeping the remove action aligned to the right for a cleaner presentation.
 - Text inputs across the app now auto-capitalize their first alphabetical character on blur, applied through a global provider with a data attribute escape hatch for special cases.
 - Dropdowns across character and session flows now share the `SynthwaveDropdown` component, replacing legacy native selects and enabling inline campaign creation from a consistent synthwave-themed popover.
+- Character backstory editors now reuse the caret-anchored mention dropdown (including inline creation and wider menus), saved session/character names are normalized to title case, and spellcheck is enabled across long-form drafting fields to catch typos early.
 
 ## Project Overview
 

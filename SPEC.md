@@ -197,6 +197,7 @@ app/
 - Unsaved session note drafts persist locally across navigation and are cleared after a successful submission to prevent data loss
 - Session notes support inline `@Character` mentions that hyperlink to character sheets; the mention menu appears at the caret, filters matches by name, and offers inline character creation when no match exists (automatically linking the newly created character to the session)
 - Mentioned characters are auto-selected for the session’s attendee list to keep relationships in sync
+- Session names are normalized to title case when saved so campaign and dashboard views stay consistent even if inputs vary
 
 #### Sessions Index
 
@@ -224,6 +225,7 @@ app/
 - **Note**: Ability scores (STR, DEX, CON, INT, WIS, CHA) have been removed from the system
 - Characters index includes a compact inline search field beside the create button and renders results in a responsive five-card-wide grid with graceful empty states when no matches are found
 - Characters can also be created on-the-fly from session notes mentions; the inline creation path captures only the required name and routes the user back to their in-progress draft with the new character linked
+- Character backstory editors reuse the caret-anchored mention dropdown (including inline character creation) so relationships stay in sync while drafting, and saved names are normalized to title case for consistent display across the app
 
 ### Image Management
 
@@ -255,6 +257,7 @@ app/
 - Form submissions use Server Actions
 - No client-side state management library needed
 - Client-visible form inputs are sanitized server-side with `sanitize-html` before validation or persistence
+- Long-form textareas (session notes, campaign descriptions, and character backstories) enable browser spellcheck to catch typos during drafting
 
 ### Data Fetching
 
@@ -284,6 +287,8 @@ app/
 > **Note (2025-10-18, evening):** Added campaign-aware session numbering across list and detail views, tightened related character grids to fit five cards, introduced a compact character search bar with responsive results, and refined the sidebar to auto-clamp to label width with double-click toggles.
 
 > **Note (2025-10-19):** Delivered caret-anchored session mention menus with inline character creation, cross-page mention rendering utilities, and streamlined session header image controls.
+
+> **Note (2025-10-19, later):** Brought the character backstory mention dropdown up to the session experience (caret anchoring, inline creation, widened menu), normalized saved session and character names to title case, and enabled browser spellcheck for all long-form editors.
 
 
 ### Form Handling
