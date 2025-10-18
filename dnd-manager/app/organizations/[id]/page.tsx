@@ -40,14 +40,15 @@ interface CharacterSummary {
 export default async function OrganizationDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("organizations")
     .select("id, name, description, logo_url, created_at")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error) {
@@ -71,7 +72,7 @@ export default async function OrganizationDetailPage({
     supabase
       .from("organization_campaigns")
       .select("campaign:campaigns (id, name, created_at)")
-      .eq("organization_id", organization.id)
+  .eq("organization_id", organization.id)
       .order("created_at", { ascending: false }),
     supabase
       .from("organization_sessions")
@@ -131,7 +132,7 @@ export default async function OrganizationDetailPage({
 
   async function handleDelete() {
     "use server";
-    await deleteOrganization(params.id);
+    await deleteOrganization(id);
   }
 
   return (

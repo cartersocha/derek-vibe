@@ -7,14 +7,15 @@ import { createClient } from "@/lib/supabase/server";
 export default async function EditOrganizationPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("organizations")
     .select("id, name, description, logo_url")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error) {
@@ -32,12 +33,12 @@ export default async function EditOrganizationPage({
 
   async function handleUpdate(formData: FormData) {
     "use server";
-    await updateOrganization(params.id, formData);
+    await updateOrganization(id, formData);
   }
 
   async function handleDelete() {
     "use server";
-    await deleteOrganization(params.id);
+    await deleteOrganization(id);
   }
 
   return (
@@ -53,7 +54,7 @@ export default async function EditOrganizationPage({
 
       <OrganizationForm
         action={handleUpdate}
-        cancelHref={`/organizations/${params.id}`}
+  cancelHref={`/organizations/${id}`}
         defaultValues={{ name: organization.name, description: organization.description }}
         logoUrl={organization.logo_url}
         showLogoRemove
