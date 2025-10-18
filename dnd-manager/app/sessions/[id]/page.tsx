@@ -22,6 +22,26 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     notFound()
   }
 
+  const sessionNumberMap = new Map<string, number>()
+
+  if (session.campaign_id) {
+    const { data: sessionsForCampaign } = await supabase
+      .from('sessions')
+      .select('id, name, session_date')
+      .eq('campaign_id', session.campaign_id)
+      .order('session_date', { ascending: true, nullsFirst: true })
+
+    if (sessionsForCampaign) {
+      let counter = 1
+      for (const campaignSession of sessionsForCampaign) {
+        if (campaignSession.session_date) {
+          sessionNumberMap.set(campaignSession.id, counter)
+          counter += 1
+        }
+      }
+    }
+  }
+
   // Fetch characters for this session
   const { data: sessionCharacters } = await supabase
     .from('session_characters')
@@ -48,6 +68,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   }
 
   const deleteSessionWithId = deleteSession.bind(null, id)
+
+  const campaignSessionNumber = sessionNumberMap.get(session.id)
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -84,7 +106,14 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
         {/* Session Name and Info */}
         <div>
-          <h1 className="text-4xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider">{session.name}</h1>
+          <h1 className="text-4xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+            {session.name}
+            {campaignSessionNumber !== undefined && (
+              <span className="ml-3 text-base font-mono uppercase tracking-widest text-[#ff00ff]">
+                Session #{campaignSessionNumber}
+              </span>
+            )}
+          </h1>
           <div className="flex flex-wrap gap-4 text-sm">
             {session.campaign && (
               <Link 
@@ -119,17 +148,17 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         {/* Characters Present */}
         {sessionChars.length > 0 && (
           <div>
-            <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Characters Present</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Characters</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               {sessionChars.map((character) => (
                 <Link
                   key={character.id}
                   href={`/characters/${character.id}`}
-                  className="p-4 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                  className="p-3 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
                 >
-                  <h4 className="font-medium text-[#00ffff] font-mono">{character.name}</h4>
+                  <h4 className="font-medium text-[#00ffff] font-mono text-sm sm:text-base">{character.name}</h4>
                   {character.race && character.class && (
-                    <p className="text-sm text-gray-400 font-mono">
+                    <p className="text-xs text-gray-400 font-mono sm:text-sm">
                       {character.race} {character.class}
                       {character.level && ` (Level ${character.level})`}
                     </p>

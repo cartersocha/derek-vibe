@@ -26,6 +26,30 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     .order('session_date', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
 
+  const sessionNumberMap = new Map<string, number>()
+
+  if (sessions) {
+    const ordered = [...sessions].sort((a, b) => {
+      const aDate = a.session_date ? new Date(a.session_date).getTime() : Number.POSITIVE_INFINITY
+      const bDate = b.session_date ? new Date(b.session_date).getTime() : Number.POSITIVE_INFINITY
+      if (aDate === bDate) {
+        const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0
+        const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0
+        return aCreated - bCreated
+      }
+      return aDate - bDate
+    })
+
+    let counter = 1
+    for (const session of ordered) {
+      if (!session.session_date) {
+        continue
+      }
+      sessionNumberMap.set(session.id, counter)
+      counter += 1
+    }
+  }
+
   const deleteCampaignWithId = deleteCampaign.bind(null, id)
 
   return (
@@ -118,7 +142,14 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex-1">
-                      <h3 className="font-medium text-[#00ffff] font-mono mb-1">{session.name}</h3>
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <h3 className="font-medium text-[#00ffff] font-mono">{session.name}</h3>
+                        {sessionNumberMap.has(session.id) && (
+                          <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
+                            Session #{sessionNumberMap.get(session.id)}
+                          </span>
+                        )}
+                      </div>
                       {session.notes && (
                         <p className="text-sm text-gray-400 line-clamp-2 font-mono">{session.notes}</p>
                       )}

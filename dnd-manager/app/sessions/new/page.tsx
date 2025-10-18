@@ -15,8 +15,12 @@ export default async function NewSessionPage({
     supabase.from('characters').select('id, name, race, class').order('name'),
   ])
 
-  const draftKey = params.campaign_id
-    ? `session-notes:new:${params.campaign_id}`
+  const campaignList = campaigns ?? []
+  const campaignFromParams = typeof params.campaign_id === 'string' ? params.campaign_id.trim() : ''
+  const defaultCampaignId = campaignFromParams || campaignList[0]?.id
+
+  const draftKey = defaultCampaignId
+    ? `session-notes:new:${defaultCampaignId}`
     : 'session-notes:new'
 
   const newCharacterId = params.newCharacterId
@@ -32,6 +36,10 @@ export default async function NewSessionPage({
     sessionQuery.set(key, value)
   })
 
+  if (!campaignFromParams && defaultCampaignId) {
+    sessionQuery.set('campaign_id', defaultCampaignId)
+  }
+
   const sessionPath = `/sessions/new${sessionQuery.toString() ? `?${sessionQuery.toString()}` : ''}`
   const newCharacterHref = `/characters/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
 
@@ -46,7 +54,7 @@ export default async function NewSessionPage({
         action={createSession}
         campaigns={campaigns || []}
         characters={characters || []}
-        defaultCampaignId={params.campaign_id}
+  defaultCampaignId={defaultCampaignId || undefined}
         submitLabel="Create Session"
         cancelHref="/sessions"
         draftKey={draftKey}

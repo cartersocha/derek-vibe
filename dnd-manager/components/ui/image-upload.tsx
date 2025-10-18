@@ -10,6 +10,11 @@ interface ImageUploadProps {
   maxSize?: number;
   required?: boolean;
   className?: string;
+  initialCachedFile?: {
+    dataUrl: string;
+    name?: string | null;
+  };
+  onFileChange?: (file: File | null, dataUrl: string | null) => void;
 }
 
 export default function ImageUpload({
@@ -19,6 +24,8 @@ export default function ImageUpload({
   maxSize = 5,
   required = false,
   className = "",
+  initialCachedFile,
+  onFileChange,
 }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(currentImage ?? null);
   const [dragActive, setDragActive] = useState(false);
@@ -27,6 +34,7 @@ export default function ImageUpload({
   const [isRemoved, setIsRemoved] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const objectUrlRef = useRef<string | null>(null);
+  const restoredFromCacheRef = useRef(false);
 
   useEffect(() => {
     if (objectUrlRef.current) {
@@ -36,6 +44,7 @@ export default function ImageUpload({
     setPreview(currentImage ?? null);
     setFileName(null);
     setIsRemoved(false);
+    restoredFromCacheRef.current = false;
   }, [currentImage]);
 
   useEffect(() => {
@@ -48,8 +57,9 @@ export default function ImageUpload({
   }, []);
 
   const handleFile = useCallback(
-    (file: File | null) => {
+    (file: File | null, options?: { dataUrl?: string; fileNameOverride?: string | null }) => {
       if (!file) {
+        onFileChange?.(null, null);
         return;
       }
 
@@ -65,7 +75,7 @@ export default function ImageUpload({
       }
 
       setError(null);
-      setFileName(file.name);
+      setFileName(options?.fileNameOverride ?? file.name);
       setIsRemoved(false);
 
       if (objectUrlRef.current) {
@@ -76,8 +86,23 @@ export default function ImageUpload({
       const previewUrl = URL.createObjectURL(file);
       objectUrlRef.current = previewUrl;
       setPreview(previewUrl);
+
+      const notifyParent = (dataUrl: string | null) => {
+        onFileChange?.(file, dataUrl);
+      };
+
+      if (options?.dataUrl) {
+        notifyParent(options.dataUrl);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        notifyParent(typeof reader.result === "string" ? reader.result : null);
+      };
+      reader.readAsDataURL(file);
     },
-    [maxSize]
+    [maxSize, onFileChange]
   );
 
   const handleChange = useCallback(
@@ -134,7 +159,44 @@ export default function ImageUpload({
     setFileName(null);
     setError(null);
     setIsRemoved(true);
-  }, []);
+    restoredFromCacheRef.current = false;
+    onFileChange?.(null, null);
+  }, [onFileChange]);
+
+  useEffect(() => {
+    if (!initialCachedFile?.dataUrl || restoredFromCacheRef.current) {
+      return;
+    }
+
+    restoredFromCacheRef.current = true;
+
+    const restore = async () => {
+      try {
+        const response = await fetch(initialCachedFile.dataUrl);
+        const blob = await response.blob();
+        const fileNameFromCache = initialCachedFile.name || "session-header";
+        const restoredFile = new File([blob], fileNameFromCache, {
+          type: blob.type || "image/png",
+        });
+
+        if (inputRef.current) {
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(restoredFile);
+          inputRef.current.files = dataTransfer.files;
+        }
+
+        handleFile(restoredFile, {
+          dataUrl: initialCachedFile.dataUrl,
+          fileNameOverride: fileNameFromCache,
+        });
+      } catch (error) {
+        console.error("Failed to restore cached image", error);
+        restoredFromCacheRef.current = false;
+      }
+    };
+
+    restore();
+  }, [handleFile, initialCachedFile]);
 
   return (
     <div className={className}>

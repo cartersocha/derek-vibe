@@ -7,6 +7,9 @@ import AutoResizeTextarea from '@/components/ui/auto-resize-textarea'
 
 const AUTO_SAVE_DELAY_MS = 2000
 const DEFAULT_DRAFT_KEY = 'session-notes:draft'
+const CHARACTER_SELECTION_SUFFIX = ':characters'
+const NAME_SUFFIX = ':name'
+const HEADER_IMAGE_SUFFIX = ':header-image'
 
 interface Campaign {
   id: string
@@ -53,9 +56,12 @@ export default function SessionForm({
   preselectedCharacterIds,
 }: SessionFormProps) {
   const draftStorageKey = draftKey ?? DEFAULT_DRAFT_KEY
+  const initialName = initialData?.name ?? ''
   const initialNotes = initialData?.notes ?? ''
   const today = useMemo(() => new Date().toISOString().split('T')[0], [])
+  const [nameDraft, setNameDraft] = useState(initialName)
   const [notesDraft, setNotesDraft] = useState(initialNotes)
+  const [headerImageDraft, setHeaderImageDraft] = useState<{ dataUrl: string; name?: string | null } | null>(null)
   const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(() => {
     const initialSet = new Set(initialData?.characterIds || [])
     preselectedCharacterIds?.forEach((id) => initialSet.add(id))
@@ -64,7 +70,14 @@ export default function SessionForm({
   const [characterSearch, setCharacterSearch] = useState('')
   const deferredCharacterSearch = useDeferredValue(characterSearch)
   const saveTimeoutRef = useRef<number | null>(null)
+  const characterSaveTimeoutRef = useRef<number | null>(null)
+  const nameSaveTimeoutRef = useRef<number | null>(null)
+  const headerSaveTimeoutRef = useRef<number | null>(null)
   const hasLoadedDraftRef = useRef(false)
+  const hasLoadedCharactersRef = useRef(false)
+  const charactersStorageKey = `${draftStorageKey}${CHARACTER_SELECTION_SUFFIX}`
+  const nameStorageKey = `${draftStorageKey}${NAME_SUFFIX}`
+  const headerImageStorageKey = `${draftStorageKey}${HEADER_IMAGE_SUFFIX}`
   const isNavigatingRef = useRef(false)
 
   useEffect(() => {
@@ -88,6 +101,92 @@ export default function SessionForm({
     }
     hasLoadedDraftRef.current = true
   }, [draftStorageKey, initialNotes])
+
+  useEffect(() => {
+    if (nameSaveTimeoutRef.current) {
+      clearTimeout(nameSaveTimeoutRef.current)
+      nameSaveTimeoutRef.current = null
+    }
+
+    if (typeof window === 'undefined') {
+      setNameDraft(initialName)
+      return
+    }
+
+    const stored = window.localStorage.getItem(nameStorageKey)
+    if (stored !== null) {
+      setNameDraft(stored)
+    } else {
+      setNameDraft(initialName)
+    }
+  }, [initialName, nameStorageKey])
+
+  useEffect(() => {
+    hasLoadedCharactersRef.current = false
+    if (characterSaveTimeoutRef.current) {
+      clearTimeout(characterSaveTimeoutRef.current)
+      characterSaveTimeoutRef.current = null
+    }
+
+    if (typeof window === 'undefined') {
+      hasLoadedCharactersRef.current = true
+      return
+    }
+
+    try {
+      const stored = window.localStorage.getItem(charactersStorageKey)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed)) {
+          const validIds = new Set(
+            parsed.filter((value): value is string => typeof value === 'string')
+          )
+          if (validIds.size > 0) {
+            setSelectedCharacters((prev) => {
+              const next = new Set(prev)
+              validIds.forEach((id) => next.add(id))
+              return next
+            })
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to parse stored character selections', error)
+      window.localStorage.removeItem(charactersStorageKey)
+    }
+
+    hasLoadedCharactersRef.current = true
+  }, [charactersStorageKey])
+
+  useEffect(() => {
+    if (headerSaveTimeoutRef.current) {
+      clearTimeout(headerSaveTimeoutRef.current)
+      headerSaveTimeoutRef.current = null
+    }
+
+    if (typeof window === 'undefined') {
+      setHeaderImageDraft(null)
+      return
+    }
+
+    try {
+      const stored = window.localStorage.getItem(headerImageStorageKey)
+      if (stored) {
+        const parsed = JSON.parse(stored) as { dataUrl?: string; name?: string | null }
+        if (parsed?.dataUrl) {
+          setHeaderImageDraft({ dataUrl: parsed.dataUrl, name: parsed.name })
+        } else {
+          setHeaderImageDraft(null)
+        }
+      } else {
+        setHeaderImageDraft(null)
+      }
+    } catch (error) {
+      console.error('Failed to parse stored header image draft', error)
+      window.localStorage.removeItem(headerImageStorageKey)
+      setHeaderImageDraft(null)
+    }
+  }, [headerImageStorageKey])
 
   useEffect(() => {
     if (!hasLoadedDraftRef.current) {
@@ -119,10 +218,52 @@ export default function SessionForm({
   }, [notesDraft, draftStorageKey])
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    if (nameSaveTimeoutRef.current) {
+      clearTimeout(nameSaveTimeoutRef.current)
+    }
+
+    nameSaveTimeoutRef.current = window.setTimeout(() => {
+      if (!nameDraft) {
+        window.localStorage.removeItem(nameStorageKey)
+      } else {
+        try {
+          window.localStorage.setItem(nameStorageKey, nameDraft)
+        } catch (error) {
+          console.error('Failed to persist session name draft', error)
+        }
+      }
+      nameSaveTimeoutRef.current = null
+    }, AUTO_SAVE_DELAY_MS)
+
+    return () => {
+      if (nameSaveTimeoutRef.current) {
+        clearTimeout(nameSaveTimeoutRef.current)
+        nameSaveTimeoutRef.current = null
+      }
+    }
+  }, [nameDraft, nameStorageKey])
+
+  useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current)
         saveTimeoutRef.current = null
+      }
+      if (characterSaveTimeoutRef.current) {
+        clearTimeout(characterSaveTimeoutRef.current)
+        characterSaveTimeoutRef.current = null
+      }
+      if (nameSaveTimeoutRef.current) {
+        clearTimeout(nameSaveTimeoutRef.current)
+        nameSaveTimeoutRef.current = null
+      }
+      if (headerSaveTimeoutRef.current) {
+        clearTimeout(headerSaveTimeoutRef.current)
+        headerSaveTimeoutRef.current = null
       }
     }
   }, [])
@@ -149,9 +290,28 @@ export default function SessionForm({
     setNotesDraft(event.target.value)
   }, [])
 
+  const handleNameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setNameDraft(event.target.value)
+  }, [])
+
+  const handleHeaderImageChange = useCallback(
+    (file: File | null, dataUrl: string | null) => {
+      if (!file || !dataUrl) {
+        setHeaderImageDraft(null)
+        return
+      }
+
+      setHeaderImageDraft({ dataUrl, name: file.name })
+    },
+    []
+  )
+
   const handleFormSubmit = useCallback(() => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current)
+    }
+    if (characterSaveTimeoutRef.current) {
+      clearTimeout(characterSaveTimeoutRef.current)
     }
     if (typeof window === 'undefined') {
       return
@@ -161,7 +321,10 @@ export default function SessionForm({
     }
     isNavigatingRef.current = true
     window.localStorage.removeItem(draftStorageKey)
-  }, [draftStorageKey])
+    window.localStorage.removeItem(charactersStorageKey)
+    window.localStorage.removeItem(nameStorageKey)
+    window.localStorage.removeItem(headerImageStorageKey)
+  }, [charactersStorageKey, draftStorageKey, headerImageStorageKey, nameStorageKey])
 
   const toggleCharacter = useCallback((characterId: string) => {
     setSelectedCharacters((prev) => {
@@ -197,38 +360,67 @@ export default function SessionForm({
   }, [])
 
   useEffect(() => {
+    if (!hasLoadedCharactersRef.current) {
+      return
+    }
     if (typeof window === 'undefined') {
       return
     }
 
-    const handleVisibilityChange = () => {
-      if (!draftStorageKey || isNavigatingRef.current) {
-        return
-      }
-
-      if (document.visibilityState === 'hidden') {
-        window.localStorage.removeItem(draftStorageKey)
-        setNotesDraft(initialNotes)
-      }
+    if (characterSaveTimeoutRef.current) {
+      clearTimeout(characterSaveTimeoutRef.current)
     }
 
-    const handlePageHide = () => {
-      if (!draftStorageKey || isNavigatingRef.current) {
-        return
+    characterSaveTimeoutRef.current = window.setTimeout(() => {
+      const values = Array.from(selectedCharacters)
+      if (values.length === 0) {
+        window.localStorage.removeItem(charactersStorageKey)
+      } else {
+        window.localStorage.setItem(charactersStorageKey, JSON.stringify(values))
       }
-
-      window.localStorage.removeItem(draftStorageKey)
-      setNotesDraft(initialNotes)
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('pagehide', handlePageHide)
+      characterSaveTimeoutRef.current = null
+    }, AUTO_SAVE_DELAY_MS)
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('pagehide', handlePageHide)
+      if (characterSaveTimeoutRef.current) {
+        clearTimeout(characterSaveTimeoutRef.current)
+        characterSaveTimeoutRef.current = null
+      }
     }
-  }, [draftStorageKey, initialNotes])
+  }, [selectedCharacters, charactersStorageKey])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    if (headerSaveTimeoutRef.current) {
+      clearTimeout(headerSaveTimeoutRef.current)
+    }
+
+    headerSaveTimeoutRef.current = window.setTimeout(() => {
+      if (!headerImageDraft) {
+        window.localStorage.removeItem(headerImageStorageKey)
+      } else {
+        try {
+          window.localStorage.setItem(
+            headerImageStorageKey,
+            JSON.stringify(headerImageDraft)
+          )
+        } catch (error) {
+          console.error('Failed to persist session header image draft', error)
+        }
+      }
+      headerSaveTimeoutRef.current = null
+    }, AUTO_SAVE_DELAY_MS)
+
+    return () => {
+      if (headerSaveTimeoutRef.current) {
+        clearTimeout(headerSaveTimeoutRef.current)
+        headerSaveTimeoutRef.current = null
+      }
+    }
+  }, [headerImageDraft, headerImageStorageKey])
 
   return (
     <form
@@ -243,6 +435,8 @@ export default function SessionForm({
         label="Session Header Image"
         currentImage={initialData?.header_image_url}
         maxSize={5}
+        initialCachedFile={headerImageDraft ?? undefined}
+        onFileChange={handleHeaderImageChange}
       />
 
       {/* Session Name */}
@@ -255,7 +449,8 @@ export default function SessionForm({
           id="name"
           name="name"
           required
-          defaultValue={initialData?.name}
+          value={nameDraft}
+          onChange={handleNameChange}
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           placeholder="Enter session name"
         />
@@ -264,7 +459,7 @@ export default function SessionForm({
       {/* Campaign Selection */}
       <div>
         <label htmlFor="campaign_id" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
-          Campaign (Optional)
+          Campaign
         </label>
         <select
           id="campaign_id"
@@ -319,7 +514,7 @@ export default function SessionForm({
           <div className="space-y-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <label className="text-sm font-bold text-[#00ffff] uppercase tracking-wider">
-                Characters Present
+                Related Characters
               </label>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <input

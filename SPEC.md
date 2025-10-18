@@ -183,7 +183,10 @@ app/
 - Attach multiple characters to a session
 - View/edit character list within session
 - Character picker supports search, preserves hidden selections, and links to create-new flow that returns with the new character preselected
+- Character selections auto-save locally during session creation so chosen attendees persist while drafting
+- Session name and header image selections are cached locally and restored when returning to an in-progress draft
 - Session date defaults to the current day on creation while respecting existing values during edits
+- The first available campaign is preselected during session creation when no campaign query parameter is provided
 - Display list of characters that participated
 - Session detail view shows:
   - Header image (if uploaded)
@@ -191,7 +194,7 @@ app/
   - Session date
   - Notes presented in a styled panel with preserved line breaks
   - List of participating characters with links
-- Unsaved session note drafts are stored locally while the user is active and cleared when the tab closes without submitting to prevent stale data
+- Unsaved session note drafts persist locally across navigation and are cleared after a successful submission to prevent data loss
 
 ### Characters
 

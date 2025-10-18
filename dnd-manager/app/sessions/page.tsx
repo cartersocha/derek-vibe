@@ -13,6 +13,44 @@ export default async function SessionsPage() {
     .order('session_date', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
 
+  const sessionNumberMap = new Map<string, number>()
+
+  if (sessions) {
+    // Group sessions by campaign so we can assign per-campaign sequence numbers
+    const sessionsByCampaign = new Map<string, any[]>()
+
+    for (const session of sessions) {
+      if (!session.campaign_id) {
+        continue
+      }
+      const bucket = sessionsByCampaign.get(session.campaign_id) ?? []
+      bucket.push(session)
+      sessionsByCampaign.set(session.campaign_id, bucket)
+    }
+
+    for (const [, campaignSessions] of sessionsByCampaign) {
+      campaignSessions.sort((a, b) => {
+        const aDate = a.session_date ? new Date(a.session_date).getTime() : Number.POSITIVE_INFINITY
+        const bDate = b.session_date ? new Date(b.session_date).getTime() : Number.POSITIVE_INFINITY
+        if (aDate === bDate) {
+          const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0
+          const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0
+          return aCreated - bCreated
+        }
+        return aDate - bDate
+      })
+
+      let counter = 1
+      for (const campaignSession of campaignSessions) {
+        if (!campaignSession.session_date) {
+          continue
+        }
+        sessionNumberMap.set(campaignSession.id, counter)
+        counter += 1
+      }
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -46,7 +84,16 @@ export default async function SessionsPage() {
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider group-hover:text-[#ff00ff] transition-colors">{session.name}</h3>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider group-hover:text-[#ff00ff] transition-colors">
+                      {session.name}
+                    </h3>
+                    {sessionNumberMap.has(session.id) && (
+                      <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
+                        Session #{sessionNumberMap.get(session.id)}
+                      </span>
+                    )}
+                  </div>
                   {session.campaign && (
                     <p className="text-sm text-[#ff00ff] mb-2 font-mono">
                       Campaign: {session.campaign.name}
