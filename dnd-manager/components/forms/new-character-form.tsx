@@ -63,7 +63,6 @@ export function NewCharacterForm({ redirectTo, mentionTargets }: NewCharacterFor
   return (
     <form
       action={createCharacter}
-      encType="multipart/form-data"
       className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-8"
     >
       {redirectTo ? <input type="hidden" name="redirect_to" value={redirectTo} /> : null}

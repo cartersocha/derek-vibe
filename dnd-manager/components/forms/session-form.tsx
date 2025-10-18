@@ -113,7 +113,7 @@ export default function SessionForm({
     }
     const timeouts = draftTimeoutsRef.current
     const existing = timeouts.get(key)
-    if (existing) {
+    if (existing !== undefined) {
       window.clearTimeout(existing)
       timeouts.delete(key)
     }
