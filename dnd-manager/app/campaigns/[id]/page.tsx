@@ -30,14 +30,14 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <Link href="/campaigns" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
           ← Back to Campaigns
         </Link>
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Link
             href={`/campaigns/${id}/edit`}
-            className="bg-[#ff00ff] text-black px-4 py-2 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
           >
             Edit Campaign
           </Link>
@@ -59,7 +59,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         </div>
 
         {/* Campaign Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Sessions</div>
             <div className="text-3xl font-bold text-[#00ffff]">{sessions?.length || 0}</div>
@@ -88,11 +88,11 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
 
         {/* Sessions */}
         <div>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <h2 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h2>
             <Link
               href={`/sessions/new?campaign_id=${id}`}
-              className="bg-[#ff00ff] text-black px-4 py-2 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 text-sm shadow-lg shadow-[#ff00ff]/50"
+              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 text-sm shadow-lg shadow-[#ff00ff]/50 text-center"
             >
               + Add Session
             </Link>
@@ -103,7 +103,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
               <p className="text-gray-400 font-mono mb-4">No sessions yet for this campaign</p>
               <Link
                 href={`/sessions/new?campaign_id=${id}`}
-                className="inline-block bg-[#ff00ff] text-black px-6 py-3 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+                className="inline-block w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
               >
                 Create First Session
               </Link>
@@ -116,7 +116,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                   href={`/sessions/${session.id}`}
                   className="block p-4 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
                 >
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex-1">
                       <h3 className="font-medium text-[#00ffff] font-mono mb-1">{session.name}</h3>
                       {session.notes && (
@@ -124,7 +124,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                       )}
                     </div>
                     {session.session_date && (
-                      <span className="text-sm text-gray-400 font-mono uppercase tracking-wider ml-4">
+                      <span className="text-sm text-gray-400 font-mono uppercase tracking-wider sm:ml-4">
                         {new Date(session.session_date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',

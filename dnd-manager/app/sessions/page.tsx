@@ -15,11 +15,11 @@ export default async function SessionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h1>
         <Link
           href="/sessions/new"
-          className="bg-[#ff00ff] text-black px-6 py-3 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+          className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
         >
           + New Session
         </Link>
@@ -31,7 +31,7 @@ export default async function SessionsPage() {
           <p className="text-gray-400 mb-6 font-mono">Create your first session to get started</p>
           <Link
             href="/sessions/new"
-            className="inline-block bg-[#ff00ff] text-black px-6 py-3 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+            className="inline-block w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
           >
             Create Session
           </Link>
@@ -44,7 +44,7 @@ export default async function SessionsPage() {
               href={`/sessions/${session.id}`}
               className="block bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50 transition-all duration-200 group"
             >
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider group-hover:text-[#ff00ff] transition-colors">{session.name}</h3>
                   {session.campaign && (
@@ -56,7 +56,7 @@ export default async function SessionsPage() {
                     <p className="text-gray-400 line-clamp-2 font-mono text-sm">{session.notes}</p>
                   )}
                 </div>
-                <div className="text-right text-xs text-gray-500 ml-4 font-mono uppercase tracking-wider">
+                <div className="text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">
                   {session.session_date ? (
                     <div>{new Date(session.session_date).toLocaleDateString()}</div>
                   ) : (

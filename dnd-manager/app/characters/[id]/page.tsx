@@ -84,14 +84,14 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <Link href="/characters" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
           ← Back to Characters
         </Link>
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Link
             href={`/characters/${id}/edit`}
-            className="bg-[#ff00ff] text-black px-4 py-2 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
           >
             Edit Character
           </Link>
@@ -150,10 +150,10 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
           </aside>
 
           {/* Backstory text now wraps around the infobox */}
-          <section className="text-gray-300 font-mono leading-relaxed space-y-4">
+          <section className="text-gray-300 font-mono leading-relaxed space-y-4 text-base sm:text-lg">
             <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Backstory & Notes</h3>
             {character.backstory ? (
-              <p className="whitespace-pre-wrap">{character.backstory}</p>
+              <p className="whitespace-pre-wrap leading-relaxed">{character.backstory}</p>
             ) : (
               <p className="text-gray-500 italic">No backstory provided yet.</p>
             )}

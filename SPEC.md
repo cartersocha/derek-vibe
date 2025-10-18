@@ -259,6 +259,10 @@ app/
 - Backdrop blur effects for modern glassmorphism
 - Custom fonts: Space Grotesk (headings), Fira Code (monospace)
 
+
+> **Note (2025-10-17):** Completed a mobile responsiveness pass that adds a collapsible mobile navigation, stacks action bars on small screens, and widens primary controls for better touch targets.
+
+
 ### Form Handling
 
 - Native HTML forms with Server Actions
@@ -440,6 +444,7 @@ interface Character {
 ```
 
 **Key Points**:
+
 - Uses Vercel Blob Storage (@vercel/blob) for image uploads
 - Includes Vercel Analytics (@vercel/analytics) for tracking
 - Forms use native HTML with Server Actions (no React Hook Form)

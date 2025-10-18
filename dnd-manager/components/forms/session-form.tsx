@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import ImageUpload from '@/components/ui/image-upload'
+import AutoResizeTextarea from '@/components/ui/auto-resize-textarea'
 
 interface Campaign {
   id: string
@@ -125,7 +126,7 @@ export default function SessionForm({
         <label htmlFor="notes" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
           Session Notes
         </label>
-        <textarea
+        <AutoResizeTextarea
           id="notes"
           name="notes"
           rows={8}
@@ -167,16 +168,16 @@ export default function SessionForm({
       )}
 
       {/* Action Buttons */}
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row">
         <button
           type="submit"
-          className="flex-1 bg-[#ff00ff] text-black px-4 py-3 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+          className="flex-1 bg-[#ff00ff] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
         >
           {submitLabel}
         </button>
         <Link
           href={cancelHref}
-          className="flex-1 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] px-4 py-3 rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-all duration-200 text-center font-bold uppercase tracking-wider"
+          className="flex-1 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-all duration-200 text-center font-bold uppercase tracking-wider"
         >
           Cancel
         </Link>

@@ -92,7 +92,7 @@ export default async function DashboardPage() {
                 href={`/sessions/${session.id}`}
                 className="block p-3 rounded border border-[#00ffff] border-opacity-20 hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
               >
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <h3 className="font-medium text-[#00ffff] font-mono">{session.name}</h3>
                   <span className="text-sm text-gray-400 font-mono uppercase tracking-wider">
                     {session.session_date 
