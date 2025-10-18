@@ -2,10 +2,13 @@
 
 import { createCharacter } from "@/lib/actions/characters";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import ImageUpload from "@/components/ui/image-upload";
 import AutoResizeTextarea from "@/components/ui/auto-resize-textarea";
 
 export default function NewCharacterPage() {
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirectTo')
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
@@ -18,6 +21,9 @@ export default function NewCharacterPage() {
         encType="multipart/form-data"
         className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-8"
       >
+        {redirectTo && (
+          <input type="hidden" name="redirect_to" value={redirectTo} />
+        )}
         {/* Character Portrait */}
         <ImageUpload
           name="image"

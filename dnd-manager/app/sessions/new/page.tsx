@@ -5,7 +5,7 @@ import SessionForm from '@/components/forms/session-form'
 export default async function NewSessionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ campaign_id?: string }>
+  searchParams: Promise<{ campaign_id?: string; newCharacterId?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -18,6 +18,22 @@ export default async function NewSessionPage({
   const draftKey = params.campaign_id
     ? `session-notes:new:${params.campaign_id}`
     : 'session-notes:new'
+
+  const newCharacterId = params.newCharacterId
+
+  const sessionQuery = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (typeof value !== 'string') {
+      return
+    }
+    if (key === 'newCharacterId') {
+      return
+    }
+    sessionQuery.set(key, value)
+  })
+
+  const sessionPath = `/sessions/new${sessionQuery.toString() ? `?${sessionQuery.toString()}` : ''}`
+  const newCharacterHref = `/characters/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -34,6 +50,8 @@ export default async function NewSessionPage({
         submitLabel="Create Session"
         cancelHref="/sessions"
         draftKey={draftKey}
+        newCharacterHref={newCharacterHref}
+        preselectedCharacterIds={newCharacterId ? [newCharacterId] : undefined}
       />
     </div>
   )

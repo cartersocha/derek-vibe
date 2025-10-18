@@ -60,7 +60,23 @@ export async function createCharacter(formData: FormData): Promise<void> {
     throw new Error(error.message);
   }
 
+  const redirectToRaw = formData.get("redirect_to");
+
   revalidatePath("/characters");
+
+  if (typeof redirectToRaw === "string") {
+    const trimmed = redirectToRaw.trim();
+    if (trimmed.startsWith("/")) {
+      const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+      const targetUrl = new URL(trimmed, origin);
+      targetUrl.searchParams.set("newCharacterId", characterId);
+      revalidatePath(targetUrl.pathname);
+      redirect(
+        `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`
+      );
+    }
+  }
+
   redirect("/characters");
 }
 
