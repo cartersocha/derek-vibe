@@ -2,11 +2,12 @@ import { createClient } from '@/lib/supabase/server'
 import { NewCharacterForm } from '@/components/forms/new-character-form'
 
 type NewCharacterPageProps = {
-  searchParams: Record<string, string | string[] | undefined>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
 export default async function NewCharacterPage({ searchParams }: NewCharacterPageProps) {
   const supabase = await createClient()
+  const params = await searchParams
 
   const [{ data: allCharacters }, { data: allSessions }] = await Promise.all([
     supabase.from('characters').select('id, name').order('name'),
@@ -32,7 +33,7 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
       })),
   ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 
-  const redirectValue = searchParams?.redirectTo
+  const redirectValue = params?.redirectTo
   const redirectTo = Array.isArray(redirectValue) ? redirectValue[0] ?? null : redirectValue ?? null
 
   return (
