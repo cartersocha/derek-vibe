@@ -4,6 +4,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, ty
 import Link from 'next/link'
 import ImageUpload from '@/components/ui/image-upload'
 import AutoResizeTextarea from '@/components/ui/auto-resize-textarea'
+import SynthwaveSelect from '@/components/ui/synthwave-select'
 import { isMentionBoundary } from '@/lib/mention-utils'
 import { createCharacterInline } from '@/lib/actions/characters'
 
@@ -850,11 +851,10 @@ export default function SessionForm({
         <label htmlFor="campaign_id" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
           Campaign
         </label>
-        <select
+        <SynthwaveSelect
           id="campaign_id"
           name="campaign_id"
           defaultValue={initialData?.campaign_id || defaultCampaignId || ''}
-          className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
         >
           <option value="">No campaign</option>
           {campaigns?.map((campaign) => (
@@ -862,7 +862,7 @@ export default function SessionForm({
               {campaign.name}
             </option>
           ))}
-        </select>
+        </SynthwaveSelect>
       </div>
 
       {/* Session Date */}

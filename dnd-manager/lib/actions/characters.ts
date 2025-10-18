@@ -11,6 +11,7 @@ import {
 } from "@/lib/supabase/storage";
 import { characterSchema } from "@/lib/validations/schemas";
 import { sanitizeNullableText, sanitizeText } from "@/lib/security/sanitize";
+import { PlayerType } from "@/lib/characters/constants";
 
 const CHARACTER_BUCKET = "character-images" as const;
 
@@ -39,9 +40,11 @@ export async function createCharacter(formData: FormData): Promise<void> {
     name: getString(formData, "name"),
     race: getStringOrNull(formData, "race"),
     class: getStringOrNull(formData, "class"),
-    level: getNumberOrNull(formData, "level"),
+    level: getStringOrNull(formData, "level"),
     backstory: getStringOrNull(formData, "backstory"),
     image_url: imageUrl,
+    player_type: (getString(formData, "player_type") || "npc") as PlayerType,
+    last_known_location: getStringOrNull(formData, "last_known_location"),
   };
 
   const result = characterSchema.safeParse(data);
@@ -98,6 +101,7 @@ export async function createCharacterInline(name: string): Promise<{
   const { error } = await supabase.from("characters").insert({
     id: characterId,
     name: truncated,
+    player_type: "npc",
   });
 
   if (error) {
@@ -174,9 +178,11 @@ export async function updateCharacter(
     name: getString(formData, "name"),
     race: getStringOrNull(formData, "race"),
     class: getStringOrNull(formData, "class"),
-    level: getNumberOrNull(formData, "level"),
+    level: getStringOrNull(formData, "level"),
     backstory: getStringOrNull(formData, "backstory"),
     image_url: imageUrl,
+    player_type: (getString(formData, "player_type") || "npc") as PlayerType,
+    last_known_location: getStringOrNull(formData, "last_known_location"),
   };
 
   const result = characterSchema.safeParse(data);
@@ -296,22 +302,6 @@ function getStringOrNull(formData: FormData, key: string): string | null {
   const value = formData.get(key);
 
   return sanitizeNullableText(value);
-}
-
-function getNumberOrNull(formData: FormData, key: string): number | null {
-  const value = formData.get(key);
-
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  const parsed = parseInt(trimmed, 10);
-  return Number.isNaN(parsed) ? null : parsed;
 }
 
 function getFile(formData: FormData, key: string): File | null {

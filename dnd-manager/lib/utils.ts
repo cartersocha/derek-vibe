@@ -10,7 +10,8 @@ export type PlayerSummary = {
   name: string
   class: string | null
   race: string | null
-  level: number | null
+  level: string | null
+  player_type: "npc" | "player" | null
 }
 
 export type SessionCharacterRelation = {
@@ -43,6 +44,7 @@ export function extractPlayerSummaries(
       class: character.class ?? null,
       race: character.race ?? null,
       level: character.level ?? null,
+      player_type: (character as { player_type?: "npc" | "player" | null })?.player_type ?? null,
     })
   }
 

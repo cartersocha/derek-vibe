@@ -45,6 +45,11 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     notFound()
   }
 
+  const playerTypeLabel = character.player_type === 'player' ? 'Player Character' : 'NPC'
+  const locationLabel = character.last_known_location || 'Unknown'
+  const levelLabel = character.player_type === 'player' ? 'Level' : 'Challenge Rating'
+  const levelValue = character.level || '—'
+
   // Get sessions this character was in
   const { data: sessionCharacters } = await supabase
     .from('session_characters')
@@ -62,7 +67,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
       session_date,
       campaign:campaigns(id, name),
       session_characters:session_characters(
-        character:characters(id, name, class, race, level)
+        character:characters(id, name, class, race, level, player_type)
       )
     `)
     .order('session_date', { ascending: false })
@@ -156,6 +161,10 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                 </div>
                 <dl className="space-y-2">
                   <div className="flex justify-between gap-3">
+                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Type</dt>
+                    <dd className="text-right text-[#f0f0ff]">{playerTypeLabel}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
                     <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Race</dt>
                     <dd className="text-right text-[#f0f0ff]">{character.race || 'Unknown'}</dd>
                   </div>
@@ -164,8 +173,12 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                     <dd className="text-right text-[#f0f0ff]">{character.class || 'Untrained'}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Level</dt>
-                    <dd className="text-right text-[#f0f0ff]">{character.level ?? '—'}</dd>
+                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">{levelLabel}</dt>
+                    <dd className="text-right text-[#f0f0ff]">{levelValue}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Last Seen</dt>
+                    <dd className="text-right text-[#f0f0ff]">{locationLabel}</dd>
                   </div>
                 </dl>
               </div>

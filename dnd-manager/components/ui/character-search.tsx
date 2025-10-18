@@ -14,13 +14,20 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
   const filtered = useMemo(() => {
     const trimmed = query.trim();
     if (!trimmed) {
-      return characters;
+  return characters;
     }
 
     const lowerQuery = trimmed.toLowerCase();
 
     return characters.filter((character) => {
-      const haystack = [character.name, character.race, character.class]
+      const haystack = [
+        character.name,
+        character.race,
+        character.class,
+        character.level,
+        character.last_known_location,
+        character.player_type,
+      ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -83,10 +90,23 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                 {character.name}
               </h3>
               <div className="space-y-1 text-xs sm:text-sm">
-                {character.race && character.class && (
+                <p className="text-gray-400 font-mono">
+                  {character.player_type === "player" ? "Player Character" : "NPC"}
+                </p>
+                {(() => {
+                  const lineage = [character.race, character.class].filter(Boolean).join(" ");
+                  return lineage ? (
+                    <p className="text-gray-400 font-mono">{lineage}</p>
+                  ) : null;
+                })()}
+                {character.level && (
                   <p className="text-gray-400 font-mono">
-                    {character.race} {character.class}
-                    {character.level && ` (Level ${character.level})`}
+                    {character.player_type === "player" ? `Level ${character.level}` : `CR ${character.level}`}
+                  </p>
+                )}
+                {character.last_known_location && (
+                  <p className="text-gray-500 font-mono text-[11px] uppercase tracking-wider">
+                    Last seen: {character.last_known_location}
                   </p>
                 )}
                 {character.backstory && (

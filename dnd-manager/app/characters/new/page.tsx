@@ -1,11 +1,19 @@
 'use client'
 
-import { Suspense } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { createCharacter } from "@/lib/actions/characters";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ImageUpload from "@/components/ui/image-upload";
 import AutoResizeTextarea from "@/components/ui/auto-resize-textarea";
+import CreatableSelect from "@/components/ui/creatable-select";
+import SynthwaveSelect from "@/components/ui/synthwave-select";
+import {
+  CLASS_OPTIONS,
+  LOCATION_SUGGESTIONS,
+  PLAYER_TYPE_OPTIONS,
+  RACE_OPTIONS,
+} from "@/lib/characters/constants";
 
 export default function NewCharacterPage() {
   return (
@@ -15,9 +23,42 @@ export default function NewCharacterPage() {
   );
 }
 
+const RACE_STORAGE_KEY = "character-race-options";
+const CLASS_STORAGE_KEY = "character-class-options";
+
 function NewCharacterForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo");
+  const [playerType, setPlayerType] = useState<"npc" | "player">("npc");
+  const [race, setRace] = useState("");
+  const [characterClass, setCharacterClass] = useState("");
+
+  const toTitleCase = useCallback((value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return "";
+    }
+
+    return trimmed
+      .split(/\s+/)
+      .map((word) =>
+        word
+          .split(/([-'])/)
+          .map((segment) => {
+            if (segment === "-" || segment === "'") {
+              return segment;
+            }
+            if (!segment) {
+              return segment;
+            }
+            return segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase();
+          })
+          .join("")
+      )
+      .join(" ");
+  }, []);
+
+  const levelLabel = playerType === "player" ? "Level" : "Challenge Rating";
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
@@ -30,17 +71,12 @@ function NewCharacterForm() {
         encType="multipart/form-data"
         className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-8"
       >
-        {redirectTo && (
+        {redirectTo ? (
           <input type="hidden" name="redirect_to" value={redirectTo} />
-        )}
-        {/* Character Portrait */}
-        <ImageUpload
-          name="image"
-          label="Character Portrait"
-          maxSize={5}
-        />
+        ) : null}
 
-        {/* Basic Info */}
+        <ImageUpload name="image" label="Character Portrait" maxSize={5} />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label
@@ -55,31 +91,9 @@ function NewCharacterForm() {
               name="name"
               required
               className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-              placeholder="Enter character name"
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="level"
-              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
-            >
-              Level
-            </label>
-            <input
-              type="number"
-              id="level"
-              name="level"
-              min="1"
-              max="20"
-              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-              placeholder="1-20"
-            />
-          </div>
-        </div>
-
-        {/* Race & Class */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label
               htmlFor="race"
@@ -87,24 +101,20 @@ function NewCharacterForm() {
             >
               Race
             </label>
-            <select
+            <CreatableSelect
               id="race"
               name="race"
-              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-            >
-              <option value="">Select a Race</option>
-              <option value="Human">Human</option>
-              <option value="Elf">Elf</option>
-              <option value="Dwarf">Dwarf</option>
-              <option value="Halfling">Halfling</option>
-              <option value="Dragonborn">Dragonborn</option>
-              <option value="Gnome">Gnome</option>
-              <option value="Half-Elf">Half-Elf</option>
-              <option value="Half-Orc">Half-Orc</option>
-              <option value="Tiefling">Tiefling</option>
-            </select>
+              value={race}
+              onChange={(next) => setRace(next ? toTitleCase(next) : "")}
+              options={RACE_OPTIONS}
+              placeholder="Select or create a race"
+              storageKey={RACE_STORAGE_KEY}
+              normalizeOption={toTitleCase}
+            />
           </div>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label
               htmlFor="class"
@@ -112,25 +122,76 @@ function NewCharacterForm() {
             >
               Class
             </label>
-            <select
+            <CreatableSelect
               id="class"
               name="class"
-              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+              value={characterClass}
+              onChange={(next) => setCharacterClass(next ? toTitleCase(next) : "")}
+              options={CLASS_OPTIONS}
+              placeholder="Select or create a class"
+              storageKey={CLASS_STORAGE_KEY}
+              normalizeOption={toTitleCase}
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="player_type"
+              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
             >
-              <option value="">Select a Class</option>
-              <option value="Barbarian">Barbarian</option>
-              <option value="Bard">Bard</option>
-              <option value="Cleric">Cleric</option>
-              <option value="Druid">Druid</option>
-              <option value="Fighter">Fighter</option>
-              <option value="Monk">Monk</option>
-              <option value="Paladin">Paladin</option>
-              <option value="Ranger">Ranger</option>
-              <option value="Rogue">Rogue</option>
-              <option value="Sorcerer">Sorcerer</option>
-              <option value="Warlock">Warlock</option>
-              <option value="Wizard">Wizard</option>
-            </select>
+              Player Type
+            </label>
+            <SynthwaveSelect
+              id="player_type"
+              name="player_type"
+              value={playerType}
+              onChange={(event) => setPlayerType(event.target.value as "npc" | "player")}
+            >
+              {PLAYER_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </SynthwaveSelect>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label
+              htmlFor="level"
+              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
+            >
+              {levelLabel}
+            </label>
+            <input
+              type="text"
+              id="level"
+              name="level"
+              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="last_known_location"
+              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
+            >
+              Last Known Location
+            </label>
+            <input
+              type="text"
+              id="last_known_location"
+              name="last_known_location"
+              list="last-known-location-options"
+              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+              placeholder="Where were they last seen?"
+            />
+            <datalist id="last-known-location-options">
+              {LOCATION_SUGGESTIONS.map((location) => (
+                <option key={location} value={location} />
+              ))}
+            </datalist>
           </div>
         </div>
 
