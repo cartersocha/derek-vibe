@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { deleteCampaign } from '@/lib/actions/campaigns'
+import { DeleteCampaignButton } from '@/components/ui/delete-campaign-button'
 
 export default async function CampaignPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -41,17 +42,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
             Edit Campaign
           </Link>
           <form action={deleteCampaignWithId}>
-            <button
-              type="submit"
-              className="bg-[#0f0f23] border border-red-500 border-opacity-50 text-red-500 px-4 py-2 rounded font-bold uppercase tracking-wider hover:bg-red-500 hover:text-black transition-all duration-200"
-              onClick={(e) => {
-                if (!confirm('Are you sure you want to delete this campaign? This will not delete associated sessions.')) {
-                  e.preventDefault()
-                }
-              }}
-            >
-              Delete
-            </button>
+            <DeleteCampaignButton />
           </form>
         </div>
       </div>

@@ -38,12 +38,6 @@
 - `level` (integer)
 - `backstory` (text)
 - `image_url` (text, nullable)
-- `strength` (integer)
-- `dexterity` (integer)
-- `constitution` (integer)
-- `intelligence` (integer)
-- `wisdom` (integer)
-- `charisma` (integer)
 - `created_at` (timestamp)
 - `updated_at` (timestamp)
 

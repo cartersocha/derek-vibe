@@ -118,32 +118,6 @@ export default function NewCharacterPage() {
           </div>
         </div>
 
-        {/* Ability Scores */}
-        <div>
-          <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Ability Scores</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'].map((ability) => (
-              <div key={ability}>
-                <label
-                  htmlFor={ability}
-                  className="block text-xs font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
-                >
-                  {ability.substring(0, 3)}
-                </label>
-                <input
-                  type="number"
-                  id={ability}
-                  name={ability}
-                  min="1"
-                  max="30"
-                  placeholder="10"
-                  className="w-full px-3 py-2 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono text-center"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Backstory */}
         <div>
           <label

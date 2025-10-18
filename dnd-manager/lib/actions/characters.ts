@@ -40,12 +40,6 @@ export async function createCharacter(formData: FormData): Promise<void> {
     class: getStringOrNull(formData, "class"),
     level: getNumberOrNull(formData, "level"),
     backstory: getStringOrNull(formData, "backstory"),
-    strength: getNumberOrNull(formData, "strength"),
-    dexterity: getNumberOrNull(formData, "dexterity"),
-    constitution: getNumberOrNull(formData, "constitution"),
-    intelligence: getNumberOrNull(formData, "intelligence"),
-    wisdom: getNumberOrNull(formData, "wisdom"),
-    charisma: getNumberOrNull(formData, "charisma"),
     image_url: imageUrl,
   };
 
@@ -134,12 +128,6 @@ export async function updateCharacter(
     class: getStringOrNull(formData, "class"),
     level: getNumberOrNull(formData, "level"),
     backstory: getStringOrNull(formData, "backstory"),
-    strength: getNumberOrNull(formData, "strength"),
-    dexterity: getNumberOrNull(formData, "dexterity"),
-    constitution: getNumberOrNull(formData, "constitution"),
-    intelligence: getNumberOrNull(formData, "intelligence"),
-    wisdom: getNumberOrNull(formData, "wisdom"),
-    charisma: getNumberOrNull(formData, "charisma"),
     image_url: imageUrl,
   };
 

@@ -45,12 +45,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
   const deleteCharacterWithId = deleteCharacter.bind(null, id)
 
-  const getModifier = (score: number | null) => {
-    if (!score) return '+0'
-    const modifier = Math.floor((score - 10) / 2)
-    return modifier >= 0 ? `+${modifier}` : `${modifier}`
-  }
-
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-center">
@@ -94,32 +88,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             </p>
           )}
         </div>
-
-        {/* Ability Scores */}
-        {(character.strength || character.dexterity || character.constitution || 
-          character.intelligence || character.wisdom || character.charisma) && (
-          <div>
-            <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Ability Scores</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {[
-                { name: 'STR', value: character.strength },
-                { name: 'DEX', value: character.dexterity },
-                { name: 'CON', value: character.constitution },
-                { name: 'INT', value: character.intelligence },
-                { name: 'WIS', value: character.wisdom },
-                { name: 'CHA', value: character.charisma }
-              ].map(({ name, value }) => (
-                <div key={name} className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4 text-center">
-                  <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{name}</div>
-                  <div className="text-3xl font-bold text-[#00ffff]">{value || '-'}</div>
-                  {value && (
-                    <div className="text-sm text-[#ff00ff] font-mono">{getModifier(value)}</div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Backstory */}
         {character.backstory && (

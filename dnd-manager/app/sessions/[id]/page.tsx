@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { deleteSession } from '@/lib/actions/sessions'
+import { DeleteSessionButton } from '@/components/ui/delete-session-button'
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -62,17 +63,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             Edit Session
           </Link>
           <form action={deleteSessionWithId}>
-            <button
-              type="submit"
-              className="bg-[#0f0f23] border border-red-500 border-opacity-50 text-red-500 px-4 py-2 rounded font-bold uppercase tracking-wider hover:bg-red-500 hover:text-black transition-all duration-200"
-              onClick={(e) => {
-                if (!confirm('Are you sure you want to delete this session?')) {
-                  e.preventDefault()
-                }
-              }}
-            >
-              Delete
-            </button>
+            <DeleteSessionButton />
           </form>
         </div>
       </div>

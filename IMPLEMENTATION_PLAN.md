@@ -131,12 +131,6 @@ CREATE TABLE characters (
   level INTEGER,
   backstory TEXT,
   image_url TEXT,
-  strength INTEGER,
-  dexterity INTEGER,
-  constitution INTEGER,
-  intelligence INTEGER,
-  wisdom INTEGER,
-  charisma INTEGER,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -239,12 +233,6 @@ export interface Character {
   level: number | null;
   backstory: string | null;
   image_url: string | null;
-  strength: number | null;
-  dexterity: number | null;
-  constitution: number | null;
-  intelligence: number | null;
-  wisdom: number | null;
-  charisma: number | null;
   created_at: string;
   updated_at: string;
 }

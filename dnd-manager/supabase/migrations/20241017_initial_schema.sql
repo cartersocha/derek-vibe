@@ -28,12 +28,6 @@ CREATE TABLE characters (
   level INTEGER,
   backstory TEXT,
   image_url TEXT,
-  strength INTEGER,
-  dexterity INTEGER,
-  constitution INTEGER,
-  intelligence INTEGER,
-  wisdom INTEGER,
-  charisma INTEGER,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

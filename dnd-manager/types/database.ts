@@ -27,12 +27,6 @@ export interface Character {
   level: number | null
   backstory: string | null
   image_url: string | null
-  strength: number | null
-  dexterity: number | null
-  constitution: number | null
-  intelligence: number | null
-  wisdom: number | null
-  charisma: number | null
   created_at: string
   updated_at: string
   sessions?: Session[]
