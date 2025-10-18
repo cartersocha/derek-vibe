@@ -90,31 +90,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6">
-        <h2 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Link
-            href="/campaigns/new"
-            className="flex items-center justify-center px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-all duration-200 font-mono uppercase tracking-wider"
-          >
-            + New Campaign
-          </Link>
-          <Link
-            href="/sessions/new"
-            className="flex items-center justify-center px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-all duration-200 font-mono uppercase tracking-wider"
-          >
-            + New Session
-          </Link>
-          <Link
-            href="/characters/new"
-            className="flex items-center justify-center px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-all duration-200 font-mono uppercase tracking-wider"
-          >
-            + New Character
-          </Link>
-        </div>
-      </div>
-
       {/* Recent Sessions */}
       {recentSessions && recentSessions.length > 0 && (
         <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6">
