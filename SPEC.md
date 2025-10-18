@@ -196,6 +196,7 @@ app/
 - Campaign-specific ordering assigns a session number based on ascending session date; numbering appears on the sessions list, campaign detail cards, and session detail header when a campaign provides dated entries
 - Unsaved session note drafts persist locally across navigation and are cleared after a successful submission to prevent data loss
 - Session notes support inline `@Character` mentions that hyperlink to character sheets; the mention menu appears at the caret, filters matches by name, and offers inline character creation when no match exists (automatically linking the newly created character to the session)
+- Mention hyperlinks and dropdown badges are color-coded by target type (character vs session) to keep references scannable in both drafting and rendered views
 - Mentioned characters are auto-selected for the session’s attendee list to keep relationships in sync
 - Session names are normalized to title case when saved so campaign and dashboard views stay consistent even if inputs vary
 
@@ -291,6 +292,8 @@ app/
 > **Note (2025-10-19, later):** Brought the character backstory mention dropdown up to the session experience (caret anchoring, inline creation, widened menu), normalized saved session and character names to title case, and enabled browser spellcheck for all long-form editors.
 
 > **Note (2025-10-20):** Consolidated session draft autosave timers into a shared idle-aware scheduler to reduce overlapping timeouts and tightened draft cleanup while continuing the mobile/performance sweep.
+
+> **Note (2025-10-20, evening):** Tinted mention hyperlinks and drafting dropdown badges so character and session references stay color-coded everywhere they render.
 
 
 ### Form Handling
