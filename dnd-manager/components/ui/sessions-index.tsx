@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { getVisiblePlayers, type PlayerSummary } from "@/lib/utils";
+import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 
 type CampaignInfo = {
   name: string | null;
@@ -124,9 +125,12 @@ export function SessionsIndex({ sessions }: SessionsIndexProps) {
                       </p>
                     )}
                     {session.notes && (
-                      <p className="text-gray-400 line-clamp-2 font-mono text-sm">
-                        {session.notes}
-                      </p>
+                      <div className="text-gray-400 line-clamp-2 font-mono text-sm whitespace-pre-line break-words">
+                        {renderNotesWithMentions(session.notes, session.players.map<MentionTarget>((player) => ({
+                          id: player.id,
+                          name: player.name,
+                        })))}
+                      </div>
                     )}
                     {session.players.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
