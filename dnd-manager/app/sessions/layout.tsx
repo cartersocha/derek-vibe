@@ -6,9 +6,11 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen bg-[#0a0a1f]">
+    <div className="min-h-screen bg-[#0a0a1f] flex flex-col md:flex-row">
       <Navbar />
-      <main className="flex-1 overflow-y-auto p-8">{children}</main>
+      <main className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-6 md:p-8">
+        {children}
+      </main>
     </div>
   );
 }

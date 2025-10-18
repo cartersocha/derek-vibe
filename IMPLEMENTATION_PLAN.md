@@ -6,6 +6,10 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 ---
 
+> **Note (2025-10-17):** Completed a mobile responsiveness pass that adds a collapsible mobile navigation, stacks action bars on small screens, and widens primary controls for better touch targets.
+
+<!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
+
 ## Project Overview
 
 **Framework**: Next.js 15.5.6 (App Router)  
@@ -735,4 +739,6 @@ SESSION_SECRET=
 ## Development Complete
 
 This implementation successfully delivers a fully functional D&D Campaign Manager with all planned core features. The application follows Next.js 15 best practices with proper Server/Client Component separation and uses modern patterns like Server Actions for data mutations.
+
+<!-- markdownlint-enable MD022 MD031 MD032 MD034 MD040 -->
 

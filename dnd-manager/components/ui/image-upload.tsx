@@ -134,7 +134,7 @@ export default function ImageUpload({
 
       {preview ? (
         <div className="relative">
-          <div className="relative w-full h-64 rounded border-2 border-[#00ffff] border-opacity-30 overflow-hidden bg-[#0f0f23]">
+          <div className="relative w-full h-48 sm:h-64 rounded border-2 border-[#00ffff] border-opacity-30 overflow-hidden bg-[#0f0f23]">
             <Image
               src={preview}
               alt="Preview"
@@ -163,7 +163,7 @@ export default function ImageUpload({
           onDragOver={handleDrag}
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
-          className={`relative w-full h-64 rounded border-2 border-dashed cursor-pointer transition-all duration-200 ${
+          className={`relative w-full h-48 sm:h-64 rounded border-2 border-dashed cursor-pointer transition-all duration-200 ${
             dragActive
               ? "border-[#ff00ff] bg-[#1a1a3e]"
               : "border-[#00ffff] border-opacity-30 hover:border-opacity-60 hover:bg-[#0f0f23]"

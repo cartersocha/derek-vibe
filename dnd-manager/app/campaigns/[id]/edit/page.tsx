@@ -21,7 +21,7 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Link href={`/campaigns/${id}`} className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
           ← Back to Campaign
         </Link>
@@ -58,16 +58,16 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
           />
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row">
           <button
             type="submit"
-            className="flex-1 bg-[#ff00ff] text-black px-4 py-3 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+            className="flex-1 bg-[#ff00ff] text-black px-4 py-2 text-sm sm:px-5 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
           >
             Save Changes
           </button>
           <Link
             href={`/campaigns/${id}`}
-            className="flex-1 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] px-4 py-3 rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-all duration-200 text-center font-bold uppercase tracking-wider"
+            className="flex-1 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] px-4 py-2 text-sm sm:px-5 sm:py-3 sm:text-base rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-all duration-200 text-center font-bold uppercase tracking-wider"
           >
             Cancel
           </Link>

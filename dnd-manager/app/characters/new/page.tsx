@@ -3,6 +3,7 @@
 import { createCharacter } from "@/lib/actions/characters";
 import Link from "next/link";
 import ImageUpload from "@/components/ui/image-upload";
+import AutoResizeTextarea from "@/components/ui/auto-resize-textarea";
 
 export default function NewCharacterPage() {
   return (
@@ -126,26 +127,26 @@ export default function NewCharacterPage() {
           >
             Backstory & Notes
           </label>
-          <textarea
+          <AutoResizeTextarea
             id="backstory"
             name="backstory"
             rows={6}
-            className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono resize-none"
+            className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
             placeholder="Character background, personality, goals..."
           />
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 pt-4">
+        <div className="flex flex-col gap-4 pt-4 sm:flex-row">
           <button
             type="submit"
-            className="flex-1 py-3 px-6 text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-[#ff00ff] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50"
+            className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-[#ff00ff] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50"
           >
             Create Character
           </button>
           <Link
             href="/characters"
-            className="flex-1 py-3 px-6 text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
+            className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
           >
             Cancel
           </Link>
