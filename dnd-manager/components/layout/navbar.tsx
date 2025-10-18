@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,14 +15,16 @@ const NAV_LINKS = [
 const DEFAULT_WIDTH = 208;
 const COLLAPSED_WIDTH = 72;
 const COLLAPSE_THRESHOLD = 120;
-const MAX_WIDTH = 320;
+const INITIAL_MAX_WIDTH = 320;
 
-const clampSidebarWidth = (value: number) => {
-  return Math.min(Math.max(value, COLLAPSED_WIDTH), MAX_WIDTH);
+const clampWithMax = (value: number, maxWidth: number) => {
+  return Math.min(Math.max(value, COLLAPSED_WIDTH), maxWidth);
 };
 
 export default function Navbar() {
   const pathname = usePathname();
+  const measurementRef = useRef<HTMLDivElement | null>(null);
+  const [maxWidth, setMaxWidth] = useState(INITIAL_MAX_WIDTH);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [width, setWidth] = useState(() => {
     if (typeof window !== "undefined") {
@@ -30,7 +32,7 @@ export default function Navbar() {
       if (stored) {
         const parsed = Number(stored);
         if (!Number.isNaN(parsed)) {
-          return clampSidebarWidth(parsed);
+          return clampWithMax(parsed, INITIAL_MAX_WIDTH);
         }
       }
     }
@@ -41,7 +43,7 @@ export default function Navbar() {
   const isDraggingRef = useRef(false);
   const widthFrameRef = useRef<number | null>(null);
 
-  const clampWidth = useCallback((value: number) => clampSidebarWidth(value), []);
+  const clampWidth = useCallback((value: number) => clampWithMax(value, maxWidth), [maxWidth]);
 
   const updateWidth = useCallback(
     (value: number) => {
@@ -106,6 +108,15 @@ export default function Navbar() {
     setWidth((prev) => (prev <= COLLAPSE_THRESHOLD ? DEFAULT_WIDTH : COLLAPSED_WIDTH));
   }, []);
 
+  const measureSidebarWidth = useCallback(() => {
+    const measureNode = measurementRef.current;
+    if (!measureNode) return;
+    const measured = Math.ceil(measureNode.scrollWidth + 16);
+    const nextMax = Math.max(measured, DEFAULT_WIDTH);
+    setMaxWidth(nextMax);
+    setWidth((prev) => clampWithMax(prev, nextMax));
+  }, []);
+
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
@@ -126,6 +137,19 @@ export default function Navbar() {
     };
   }, [handlePointerMove, handlePointerUp]);
 
+  useLayoutEffect(() => {
+    measureSidebarWidth();
+  }, [measureSidebarWidth]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      window.requestAnimationFrame(measureSidebarWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [measureSidebarWidth]);
+
   const sidebarStyles = {
     "--sidebar-width": `${Math.round(width)}px`,
   } as CSSProperties;
@@ -133,7 +157,7 @@ export default function Navbar() {
   return (
     <div
       className={cn(
-        "relative w-full md:flex md:flex-col md:bg-[#0f0f23] md:border-r md:border-[#00ffff] md:border-opacity-20 md:[width:var(--sidebar-width)]",
+        "relative w-full md:flex md:flex-col md:bg-[#0f0f23] md:border-r md:border-[#00ffff] md:border-opacity-20 md:[width:var(--sidebar-width)] md:[max-width:calc(max-content+1.5rem)]",
         isDragging ? "md:transition-none" : "transition-[width] duration-300 ease-in-out"
       )}
       style={sidebarStyles}
@@ -198,7 +222,14 @@ export default function Navbar() {
       </div>
 
       {/* Desktop sidebar */}
-      <aside className={cn("hidden md:flex md:flex-1 md:flex-col", isCollapsed && "items-center")}>        
+      <aside
+        onDoubleClick={toggleCollapse}
+        className={cn(
+          "hidden md:flex md:flex-1 md:flex-col md:overflow-hidden",
+          isCollapsed && "items-center"
+        )}
+        role="presentation"
+      >
         <div
           className={cn(
             "w-full border-b border-[#00ffff] border-opacity-10",
@@ -314,12 +345,53 @@ export default function Navbar() {
         aria-orientation="vertical"
         aria-label="Resize sidebar"
         onPointerDown={handlePointerDown}
+        onDoubleClick={(event) => {
+          event.preventDefault();
+          toggleCollapse();
+        }}
         className={cn(
           "hidden md:block absolute top-0 right-0 h-full w-2 cursor-col-resize select-none",
           isDragging ? "bg-[#ff00ff]/30" : "bg-transparent hover:bg-[#00ffff]/20"
         )}
       >
         <span className="sr-only">Drag to resize navigation</span>
+      </div>
+
+      {/* Hidden measurement node ensures max width tracks the farthest text */}
+      <div
+        ref={measurementRef}
+        className="pointer-events-none fixed left-[-9999px] top-[-9999px] hidden opacity-0 md:block"
+      >
+        <div className="flex w-max flex-col border border-[#00ffff] border-opacity-20 bg-[#0f0f23]">
+          <div className="w-full border-b border-[#00ffff] border-opacity-10 p-6">
+            <div className="flex items-center justify-between">
+              <span className="text-2xl font-bold uppercase tracking-[0.15em] text-[#00ffff]">
+                TYRANNY
+                <br />
+                OF
+                <br />
+                DRAGONS
+              </span>
+            </div>
+          </div>
+          <div className="px-4 py-6">
+            <div className="space-y-2">
+              {NAV_LINKS.map((link) => (
+                <div
+                  key={link.href}
+                  className="px-4 py-3 text-lg font-bold uppercase tracking-wider text-[#00ffff]"
+                >
+                  {link.label}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-3 border-t border-[#00ffff] border-opacity-10 px-4 py-4">
+            <span className="inline-flex gap-2 px-3 py-2 text-xs font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+              Collapse
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

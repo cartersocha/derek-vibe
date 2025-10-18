@@ -71,37 +71,26 @@
 
 ```typescript
 app/
-├── page.tsx                          # Home page (redirects to /dashboard)
-├── layout.tsx                        # Root layout with Analytics
 ├── globals.css                       # Tailwind imports and custom styles
 ├── login/
 │   └── page.tsx                      # Password login page
 ├── dashboard/
-│   ├── layout.tsx                    # Dashboard layout
-│   └── page.tsx                      # Dashboard overview with stats
-├── campaigns/
+  - List of participating characters with links laid out in a 1/3/5 responsive grid to surface more attendees at a glance
+  - Character roster chips reused across dashboards, campaign lists, and character histories with capped visible badges and a "+N more" indicator for overflow
 │   ├── layout.tsx                    # Campaigns layout with nav
 │   ├── page.tsx                      # Campaigns list
 │   ├── [id]/
-│   │   ├── page.tsx                  # Campaign detail view
-│   │   └── edit/
-│   │       └── page.tsx              # Campaign edit page
 │   └── new/
 │       └── page.tsx                  # New campaign form
-├── sessions/
 │   ├── layout.tsx                    # Sessions layout with nav
 │   ├── page.tsx                      # Sessions list
 │   ├── [id]/
-│   │   ├── page.tsx                  # Session detail view
-│   │   └── edit/
-│   │       └── page.tsx              # Session edit page
+  - 6 most recent sessions with dates, campaign-aware session numbers, player badge chips (with overflow counter), and note previews
 │   └── new/
 │       └── page.tsx                  # New session form
 └── characters/
     ├── layout.tsx                    # Characters layout with nav
     ├── page.tsx                      # Characters list
-    ├── [id]/
-    │   ├── page.tsx                  # Character detail view
     │   └── edit/
     │       └── page.tsx              # Character edit page
     └── new/
@@ -116,9 +105,9 @@ app/
 
 #### Layout Components
 
-- `Navbar` - Collapsible sidebar navigation with icon mode, hover tooltips, and throttled drag resizing
+- `Navbar` - Collapsible sidebar navigation with icon mode, hover tooltips, throttled drag resizing, and intelligent width clamping
   - Location: `components/layout/navbar.tsx`
-  - Client component with requestAnimationFrame throttled resizing, width persistence, and mobile menu
+  - Client component with requestAnimationFrame throttled resizing, width persistence, mobile menu, dynamic max-width measurement that hugs the longest label, and double-click toggles on both the panel and resize handle
 
 #### Form Components
 
@@ -134,6 +123,9 @@ app/
 - `AutoResizeTextarea` - Textarea that grows with content for long-form inputs using animation frame throttling
   - Location: `components/ui/auto-resize-textarea.tsx`
   - Client component shared by character and session forms for backstory and notes
+- `CharacterSearch` - Characters index wrapper with inline search and responsive card grid
+  - Location: `components/ui/character-search.tsx`
+  - Client component providing compact search input, empty-state messaging, and a five-column responsive layout for character cards
 - `ImageUpload` - File upload with preview and remove functionality
   - Location: `components/ui/image-upload.tsx`
   - Client component with drag-and-drop support
@@ -183,15 +175,26 @@ app/
 - Attach multiple characters to a session
 - View/edit character list within session
 - Character picker supports search, preserves hidden selections, and links to create-new flow that returns with the new character preselected
+- Character selections auto-save locally during session creation so chosen attendees persist while drafting
+- Session name and header image selections are cached locally and restored when returning to an in-progress draft
 - Session date defaults to the current day on creation while respecting existing values during edits
+- The first available campaign is preselected during session creation when no campaign query parameter is provided
 - Display list of characters that participated
 - Session detail view shows:
   - Header image (if uploaded)
   - Campaign association
   - Session date
   - Notes presented in a styled panel with preserved line breaks
-  - List of participating characters with links
-- Unsaved session note drafts are stored locally while the user is active and cleared when the tab closes without submitting to prevent stale data
+  - List of participating characters with links laid out in a 1/3/5 responsive grid to surface more attendees at a glance
+  - Player chips reused across dashboard, campaigns, and character detail pages with overflow condensed into a `+N more` badge
+- Campaign-specific ordering assigns a session number based on ascending session date; numbering appears on the sessions list, campaign detail cards, and session detail header when a campaign provides dated entries
+- Unsaved session note drafts persist locally across navigation and are cleared after a successful submission to prevent data loss
+
+#### Sessions Index
+
+- Inline search input styled consistently with the character tab, filtering by session name, campaign name, notes, and attendee names
+- Player chips on each card are capped at four visible entries with a `+N more` overflow indicator for dense parties
+- Search control automatically disables when no sessions exist to avoid unnecessary input handling
 
 ### Characters
 
@@ -204,13 +207,14 @@ app/
   - Level (1-20)
   - Backstory/notes (long text)
 - Character selection lists render race and class with a separator dot instead of parentheses for clarity
-- View all sessions character has participated in
+- View all sessions character has participated in with inline player chips showing fellow attendees (capped at four visible with overflow indicator)
 - Character detail view shows:
   - Portrait image (if uploaded)
   - Race, class, and level
   - Backstory & Notes section with preserved line breaks that wraps around the infobox for readability
   - List of sessions they participated in with links
 - **Note**: Ability scores (STR, DEX, CON, INT, WIS, CHA) have been removed from the system
+- Characters index includes a compact inline search field beside the create button and renders results in a responsive five-card-wide grid with graceful empty states when no matches are found
 
 ### Image Management
 
@@ -229,11 +233,7 @@ app/
   - Total sessions count
   - Total characters count
 - Recent activity:
-  - 5 most recent sessions with dates
-- Quick action links:
-  - Create new campaign
-  - Create new session
-  - Create new character
+  - Up to 6 most recent sessions with campaign-aware session numbers, scheduled dates, note previews, and attendee chips with overflow indicators
 - Cyberpunk-themed UI with neon accents
 
 ## 6. Technical Implementation Details
@@ -271,6 +271,8 @@ app/
 > **Note (2025-10-17):** Completed a mobile responsiveness pass that adds a collapsible mobile navigation, stacks action bars on small screens, and widens primary controls for better touch targets.
 
 > **Note (2025-10-18):** Landed sidebar performance improvements, session form draft preservation, auto-resizing text areas, and refreshed character metadata formatting.
+
+> **Note (2025-10-18, evening):** Added campaign-aware session numbering across list and detail views, tightened related character grids to fit five cards, introduced a compact character search bar with responsive results, and refined the sidebar to auto-clamp to label width with double-click toggles.
 
 
 ### Form Handling

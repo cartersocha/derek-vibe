@@ -3,6 +3,20 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { deleteCampaign } from '@/lib/actions/campaigns'
 import { DeleteCampaignButton } from '@/components/ui/delete-campaign-button'
+import {
+  extractPlayerSummaries,
+  getVisiblePlayers,
+  type SessionCharacterRelation,
+} from '@/lib/utils'
+
+type SessionRow = {
+  id: string
+  name: string
+  notes: string | null
+  session_date: string | null
+  created_at: string | null
+  session_characters: SessionCharacterRelation[] | null
+}
 
 export default async function CampaignPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -21,10 +35,51 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   // Fetch sessions for this campaign
   const { data: sessions } = await supabase
     .from('sessions')
-    .select('*')
+    .select(`
+      *,
+      session_characters:session_characters(
+        character:characters(id, name, class, race, level)
+      )
+    `)
     .eq('campaign_id', id)
     .order('session_date', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
+    .returns<SessionRow[]>()
+
+  const sessionNumberMap = new Map<string, number>()
+
+  const rawSessions = sessions ?? []
+
+  if (rawSessions.length > 0) {
+    const ordered = [...rawSessions].sort((a, b) => {
+      const aDate = a.session_date ? new Date(a.session_date).getTime() : Number.POSITIVE_INFINITY
+      const bDate = b.session_date ? new Date(b.session_date).getTime() : Number.POSITIVE_INFINITY
+      if (aDate === bDate) {
+        const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0
+        const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0
+        return aCreated - bCreated
+      }
+      return aDate - bDate
+    })
+
+    let counter = 1
+    for (const session of ordered) {
+      if (!session.session_date) {
+        continue
+      }
+      sessionNumberMap.set(session.id, counter)
+      counter += 1
+    }
+  }
+
+  const sessionsWithPlayers = rawSessions.map((session) => {
+    const players = extractPlayerSummaries(session.session_characters)
+
+    return {
+      ...session,
+      players,
+    }
+  })
 
   const deleteCampaignWithId = deleteCampaign.bind(null, id)
 
@@ -62,7 +117,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Sessions</div>
-            <div className="text-3xl font-bold text-[#00ffff]">{sessions?.length || 0}</div>
+            <div className="text-3xl font-bold text-[#00ffff]">{rawSessions.length}</div>
           </div>
           <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Created</div>
@@ -98,7 +153,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
             </Link>
           </div>
 
-          {!sessions || sessions.length === 0 ? (
+          {rawSessions.length === 0 ? (
             <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-8 text-center">
               <p className="text-gray-400 font-mono mb-4">No sessions yet for this campaign</p>
               <Link
@@ -110,31 +165,59 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
             </div>
           ) : (
             <div className="space-y-3">
-              {sessions.map((session) => (
-                <Link
-                  key={session.id}
-                  href={`/sessions/${session.id}`}
-                  className="block p-4 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-[#00ffff] font-mono mb-1">{session.name}</h3>
-                      {session.notes && (
-                        <p className="text-sm text-gray-400 line-clamp-2 font-mono">{session.notes}</p>
+              {sessionsWithPlayers.map((session) => {
+                const { visible: visiblePlayers, hiddenCount } = getVisiblePlayers(session.players, 4)
+
+                return (
+                  <Link
+                    key={session.id}
+                    href={`/sessions/${session.id}`}
+                    className="block p-4 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <h3 className="font-medium text-[#00ffff] font-mono">{session.name}</h3>
+                          {sessionNumberMap.has(session.id) && (
+                            <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
+                              Session #{sessionNumberMap.get(session.id)}
+                            </span>
+                          )}
+                        </div>
+                        {session.notes && (
+                          <p className="text-sm text-gray-400 line-clamp-2 font-mono">{session.notes}</p>
+                        )}
+                        {session.players.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
+                            {visiblePlayers.map((player) => (
+                              <span
+                                key={`${session.id}-${player.id}`}
+                                className="rounded border border-[#00ffff] border-opacity-25 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]"
+                              >
+                                {player.name}
+                              </span>
+                            ))}
+                            {hiddenCount > 0 && (
+                              <span className="rounded border border-dashed border-[#00ffff]/40 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]/70">
+                                +{hiddenCount} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {session.session_date && (
+                        <span className="text-sm text-gray-400 font-mono uppercase tracking-wider sm:ml-4">
+                          {new Date(session.session_date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </span>
                       )}
                     </div>
-                    {session.session_date && (
-                      <span className="text-sm text-gray-400 font-mono uppercase tracking-wider sm:ml-4">
-                        {new Date(session.session_date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                )
+              })}
             </div>
           )}
         </div>

@@ -10,7 +10,11 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-18):** Implemented a performance-focused sidebar overhaul, session form draft auto-save with auto-resizing text areas, redirect-aware character creation, defaulted session dates, and refreshed character metadata presentation.
 
-> **Note (2025-10-18, later):** Hardened text inputs with HTML sanitization, throttled interactive UI resizing, deferred character searches, cleaned image preview URLs, and discard abandoned session drafts.
+> **Note (2025-10-18, later):** Hardened text inputs with HTML sanitization, throttled interactive UI resizing, deferred character searches, and cleaned image preview URLs while expanding draft persistence safeguards.
+
+> **Note (2025-10-18, evening):** Rolled out campaign-aware session numbering, five-across character grids, compact inline search on the characters tab, and sidebar refinements that double-click collapse and auto-limit width to content.
+
+> **Note (2025-10-18, late night):** Unified session search and attendee chips across pages, expanded the dashboard's recent sessions feed with richer metadata, removed obsolete quick actions, and capped badge rendering for better mobile performance.
 
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
@@ -18,10 +22,16 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 - Collapsible sidebar now supports drag-to-resize with requestAnimationFrame scheduling, persisted widths, icon-only hover tooltips, and smoother mobile transitions.
 - Session create/edit flow introduces localStorage-backed notes drafts, auto-growing text areas, default session dates, and character search with hidden selection syncing.
-- Autosaved session drafts clear when abandoning the form, preventing stale resumes.
+- Draft caching now keeps session notes, selected characters, name, and header image in sync across navigation until submission.
 - Character creation redirects return users to the in-progress session with the new character automatically selected, accelerating party management.
 - Backstory and session notes layouts preserve whitespace, while character metadata in selection lists uses a `•` separator for quicker scanning.
 - Textarea resizing, character search filtering, and image preview generation were optimized to reduce layout thrash and memory usage, with server-side sanitization applied to all text fields.
+- Session detail, campaign detail, and session list pages now surface campaign-specific session numbers derived from ascending dates and display related characters in a 1/3/5 responsive grid for better density.
+- Session index mirrors the character tab with an inline search bar, attendee chips, and automated empty-state handling while filtering by campaign, notes, and player names.
+- Character, session, campaign, and dashboard views now share a common attendee badge renderer that collapses overflow into a concise `+N more` pill for dense parties.
+- Characters index gained a compact inline search bar colocated with the create button, along with a five-card responsive grid and empty-state messaging.
+- Sidebar resizing enforces an auto-measured maximum width and supports double-click toggles directly from the panel and resize handle for quicker interactions.
+- Dashboard recent sessions panel expanded to six entries, added note previews and attendee chips, and removed the redundant quick action tiles to streamline the layout.
 
 ## Project Overview
 
@@ -493,6 +503,9 @@ export interface CharacterWithSessions extends Character {
 
 > **Enhancement (2025-10-18):** Session form now auto-saves notes drafts to `localStorage`, defaults new session dates to today, exposes a character search with hidden selection syncing, and integrates redirect-aware character creation so new characters return preselected.
 > **Enhancement (2025-10-18, later):** Deferred character search filtering, requestAnimationFrame textarea updates, and abandoned-draft cleanup keep the form responsive and free of stale notes.
+> **Enhancement (2025-10-18, latest):** Session creation preselects the first available campaign when no campaign is specified, aligning drafts and redirects with a consistent default.
+> **Enhancement (2025-10-18, latest+):** Selected characters persist via localStorage alongside notes so attendees remain checked while drafting or returning from related flows.
+> **Enhancement (2025-10-18, latest++):** Session name and header image selections are cached with the draft, restoring captured details and uploads when revisiting the form.
 
 **Files Created/Modified**:
 - `components/sessions/character-selector.tsx`
