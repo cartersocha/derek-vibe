@@ -72,6 +72,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const mentionableCharacters: MentionTarget[] = sessionChars.map((character) => ({
     id: character.id,
     name: character.name,
+    href: `/characters/${character.id}`,
+    kind: 'character',
   }))
 
   const deleteSessionWithId = deleteSession.bind(null, id)

@@ -123,6 +123,9 @@ app/
 - `AutoResizeTextarea` - Textarea that grows with content for long-form inputs using animation frame throttling
   - Location: `components/ui/auto-resize-textarea.tsx`
   - Client component shared by character and session forms for backstory and notes
+- `SynthwaveDropdown` - Popover-driven select that powers all fixed-option dropdowns with synthwave styling and optional search/footers
+  - Location: `components/ui/synthwave-dropdown.tsx`
+  - Client component adopted by character and session forms, supports inline creation footers for workflows like campaign creation
 - `CharacterSearch` - Characters index wrapper with inline search and responsive card grid
   - Location: `components/ui/character-search.tsx`
   - Client component providing compact search input, empty-state messaging, and a five-column responsive layout for character cards

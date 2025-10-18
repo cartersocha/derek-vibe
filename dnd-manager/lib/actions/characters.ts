@@ -3,6 +3,8 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { collectMentionTargets } from "@/lib/mentions";
 import { createClient } from "@/lib/supabase/server";
 import {
   deleteImage,
@@ -63,6 +65,22 @@ export async function createCharacter(formData: FormData): Promise<void> {
       await deleteImage(CHARACTER_BUCKET, path);
     }
     throw new Error(error.message);
+  }
+
+  const newlyLinkedSessions = await ensureMentionedSessionsLinked(
+    supabase,
+    characterId,
+    result.data.backstory ?? null
+  );
+
+  if (newlyLinkedSessions.length > 0) {
+    revalidatePath("/sessions");
+    newlyLinkedSessions.forEach(({ id: sessionId, campaign_id }) => {
+      revalidatePath(`/sessions/${sessionId}`);
+      if (campaign_id) {
+        revalidatePath(`/campaigns/${campaign_id}`);
+      }
+    });
   }
 
   const redirectToRaw = formData.get("redirect_to");
@@ -201,6 +219,22 @@ export async function updateCharacter(
     throw new Error(error.message);
   }
 
+  const newlyLinkedSessions = await ensureMentionedSessionsLinked(
+    supabase,
+    id,
+    result.data.backstory ?? null
+  );
+
+  if (newlyLinkedSessions.length > 0) {
+    revalidatePath("/sessions");
+    newlyLinkedSessions.forEach(({ id: sessionId, campaign_id }) => {
+      revalidatePath(`/sessions/${sessionId}`);
+      if (campaign_id) {
+        revalidatePath(`/campaigns/${campaign_id}`);
+      }
+    });
+  }
+
   revalidatePath("/characters");
   revalidatePath(`/characters/${id}`);
   redirect(`/characters/${id}`);
@@ -289,6 +323,91 @@ export async function updateCharacterSessions(
   sessionsToRevalidate.forEach((sessionId) => {
     revalidatePath(`/sessions/${sessionId}`);
   });
+}
+
+async function ensureMentionedSessionsLinked(
+  supabase: SupabaseClient,
+  characterId: string,
+  backstory: string | null
+): Promise<Array<{ id: string; campaign_id: string | null }>> {
+  const trimmed = backstory?.trim();
+
+  if (!trimmed) {
+    return [];
+  }
+
+  const { data: sessionsData, error: sessionsError } = await supabase
+    .from("sessions")
+    .select("id, name, campaign_id")
+    .returns<Array<{ id: string; name: string; campaign_id: string | null }>>();
+
+  if (sessionsError) {
+    throw new Error(sessionsError.message);
+  }
+
+  if (!sessionsData || sessionsData.length === 0) {
+    return [];
+  }
+
+  const sessionTargets = sessionsData
+    .filter((session) => Boolean(session.name))
+    .map((session) => ({
+      id: session.id,
+      name: session.name,
+      href: `/sessions/${session.id}`,
+      kind: "session" as const,
+    }));
+
+  if (sessionTargets.length === 0) {
+    return [];
+  }
+
+  const mentionedSessions = collectMentionTargets(trimmed, sessionTargets, "session");
+
+  if (mentionedSessions.length === 0) {
+    return [];
+  }
+
+  const { data: existingLinks, error: existingError } = await supabase
+    .from("session_characters")
+    .select("session_id")
+    .eq("character_id", characterId);
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  const existingIds = new Set(existingLinks?.map((link) => link.session_id) ?? []);
+
+  const newSessionIds = mentionedSessions
+    .map((session) => session.id)
+    .filter((sessionId) => !existingIds.has(sessionId));
+
+  if (newSessionIds.length === 0) {
+    return [];
+  }
+
+  const inserts = newSessionIds.map((sessionId) => ({
+    session_id: sessionId,
+    character_id: characterId,
+  }));
+
+  const { error: insertError } = await supabase
+    .from("session_characters")
+    .insert(inserts);
+
+  if (insertError) {
+    throw new Error(insertError.message);
+  }
+
+  const campaignLookup = new Map(
+    sessionsData.map((session) => [session.id, session.campaign_id ?? null])
+  );
+
+  return newSessionIds.map((sessionId) => ({
+    id: sessionId,
+    campaign_id: campaignLookup.get(sessionId) ?? null,
+  }));
 }
 
 function getString(formData: FormData, key: string): string {

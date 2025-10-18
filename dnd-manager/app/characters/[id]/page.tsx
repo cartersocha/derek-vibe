@@ -6,11 +6,12 @@ import { deleteCharacter, updateCharacterSessions } from '@/lib/actions/characte
 import { DeleteCharacterButton } from '@/components/ui/delete-character-button'
 import MultiSelectDropdown from '@/components/ui/multi-select-dropdown'
 import {
+  cn,
   extractPlayerSummaries,
-  getVisiblePlayers,
   type PlayerSummary,
   type SessionCharacterRelation,
 } from '@/lib/utils'
+import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
 
 type SessionSummary = {
   id: string
@@ -44,6 +45,10 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
   if (!character) {
     notFound()
   }
+
+  const { data: mentionCharacters } = await supabase
+    .from('characters')
+    .select('id, name')
 
   const playerTypeLabel = character.player_type === 'player' ? 'Player Character' : 'NPC'
   const statusLabel = (() => {
@@ -100,6 +105,22 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     }
   })
   const linkedSessions = allSessions.filter(session => linkedSessionIds.has(session.id))
+
+  const characterMentionTargets: MentionTarget[] = (mentionCharacters ?? []).map((entry) => ({
+    id: entry.id,
+    name: entry.name,
+    href: `/characters/${entry.id}`,
+    kind: 'character' as const,
+  }))
+
+  const sessionMentionTargets: MentionTarget[] = allSessions.map((session) => ({
+    id: session.id,
+    name: session.name,
+    href: `/sessions/${session.id}`,
+    kind: 'session' as const,
+  }))
+
+  const mentionTargets: MentionTarget[] = [...characterMentionTargets, ...sessionMentionTargets]
 
   const deleteCharacterWithId = deleteCharacter.bind(null, id)
   const updateCharacterSessionsWithId = updateCharacterSessions.bind(null, id)
@@ -204,7 +225,9 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
           <section className="text-gray-300 font-mono leading-relaxed space-y-4 text-base sm:text-lg">
             <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Backstory & Notes</h3>
             {character.backstory ? (
-              <p className="whitespace-pre-wrap leading-relaxed">{character.backstory}</p>
+              <div className="whitespace-pre-wrap leading-relaxed">
+                {renderNotesWithMentions(character.backstory, mentionTargets)}
+              </div>
             ) : (
               <p className="text-gray-500 italic">No backstory provided yet.</p>
             )}
@@ -236,47 +259,60 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
           {linkedSessions.length > 0 ? (
             <div className="space-y-3">
               {linkedSessions.map((session) => {
-                const { visible: visiblePlayers, hiddenCount } = getVisiblePlayers(session.players, 4)
+                const players = session.players
 
                 return (
-                  <Link
+                  <article
                     key={session.id}
-                    href={`/sessions/${session.id}`}
-                    className="block p-4 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                    className="group p-4 border border-[#00ffff] border-opacity-20 rounded transition-all duration-200 hover:border-[#ff00ff] hover:bg-[#0f0f23]"
                   >
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <h4 className="font-medium text-[#00ffff] font-mono text-lg">{session.name}</h4>
+                        <Link
+                          href={`/sessions/${session.id}`}
+                          className="font-medium text-[#00ffff] font-mono text-lg transition-colors hover:text-[#ff00ff] focus:text-[#ff00ff] focus:outline-none pb-1"
+                        >
+                          {session.name}
+                        </Link>
                         {session.campaign?.name && (
-                          <span className="text-xs uppercase tracking-wider text-[#ff00ff] font-semibold">
+                          <span className="mt-1 block text-xs uppercase tracking-wider text-[#ff00ff] font-semibold">
                             {session.campaign.name}
                           </span>
                         )}
-                        {session.players.length > 0 && (
+                        {players.length > 0 && (
                           <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
-                            {visiblePlayers.map((player) => (
-                              <span
+                            {players.map((player) => (
+                              <Link
                                 key={`${session.id}-${player.id}`}
-                                className="rounded border border-[#00ffff] border-opacity-25 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]"
+                                href={`/characters/${player.id}`}
+                                className={cn(
+                                  'rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2',
+                                  player.player_type === 'player'
+                                    ? 'border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
+                                    : 'border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]'
+                                )}
                               >
                                 {player.name}
-                              </span>
+                              </Link>
                             ))}
-                            {hiddenCount > 0 && (
-                              <span className="rounded border border-dashed border-[#00ffff]/40 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]/70">
-                                +{hiddenCount} more
-                              </span>
-                            )}
                           </div>
                         )}
                       </div>
-                      {session.session_date && (
-                        <span className="text-sm text-gray-400 font-mono uppercase tracking-wider text-right">
-                          {new Date(session.session_date).toLocaleDateString()}
-                        </span>
-                      )}
+                      <div className="flex flex-col gap-2 text-sm text-gray-400 font-mono uppercase tracking-wider text-right">
+                        {session.session_date ? (
+                          <span>{new Date(session.session_date).toLocaleDateString()}</span>
+                        ) : (
+                          <span>No date set</span>
+                        )}
+                        <Link
+                          href={`/sessions/${session.id}`}
+                          className="text-[#ff00ff] text-[10px] font-bold uppercase tracking-widest hover:text-[#ff6ad5] focus:text-[#ff6ad5] focus:outline-none"
+                        >
+                          View session →
+                        </Link>
+                      </div>
                     </div>
-                  </Link>
+                  </article>
                 )
               })}
             </div>

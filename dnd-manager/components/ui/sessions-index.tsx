@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { getVisiblePlayers, type PlayerSummary } from "@/lib/utils";
+import { cn, type PlayerSummary } from "@/lib/utils";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 
 type CampaignInfo = {
@@ -99,20 +99,22 @@ export function SessionsIndex({ sessions }: SessionsIndexProps) {
       ) : (
         <div className="space-y-4">
           {filteredSessions.map((session) => {
-            const { visible: visiblePlayers, hiddenCount } = getVisiblePlayers(session.players, 4);
+            const players = session.players;
 
             return (
-              <Link
+              <article
                 key={session.id}
-                href={`/sessions/${session.id}`}
-                className="block bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50 transition-all duration-200 group"
+                className="group bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider group-hover:text-[#ff00ff] transition-colors">
+                      <Link
+                        href={`/sessions/${session.id}`}
+                        className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors hover:text-[#ff00ff] focus:text-[#ff00ff] focus:outline-none"
+                      >
                         {session.name}
-                      </h3>
+                      </Link>
                       {session.sessionNumber !== null && session.sessionNumber !== undefined && (
                         <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
                           Session #{session.sessionNumber}
@@ -126,27 +128,33 @@ export function SessionsIndex({ sessions }: SessionsIndexProps) {
                     )}
                     {session.notes && (
                       <div className="text-gray-400 line-clamp-2 font-mono text-sm whitespace-pre-line break-words">
-                        {renderNotesWithMentions(session.notes, session.players.map<MentionTarget>((player) => ({
-                          id: player.id,
-                          name: player.name,
-                        })))}
+                        {renderNotesWithMentions(
+                          session.notes,
+                          session.players.map<MentionTarget>((player) => ({
+                            id: player.id,
+                            name: player.name,
+                            href: `/characters/${player.id}`,
+                            kind: "character",
+                          }))
+                        )}
                       </div>
                     )}
-                    {session.players.length > 0 && (
+                    {players.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
-                        {visiblePlayers.map((player) => (
-                          <span
+                        {players.map((player) => (
+                          <Link
                             key={`${session.id}-${player.id}`}
-                            className="rounded border border-[#00ffff] border-opacity-25 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]"
+                            href={`/characters/${player.id}`}
+                            className={cn(
+                              "rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2",
+                              player.player_type === "player"
+                                ? "border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]"
+                                : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]"
+                            )}
                           >
                             {player.name}
-                          </span>
+                          </Link>
                         ))}
-                        {hiddenCount > 0 && (
-                          <span className="rounded border border-dashed border-[#00ffff]/40 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]/70">
-                            +{hiddenCount} more
-                          </span>
-                        )}
                       </div>
                     )}
                   </div>
@@ -156,9 +164,15 @@ export function SessionsIndex({ sessions }: SessionsIndexProps) {
                     ) : (
                       <div>No date set</div>
                     )}
+                    <Link
+                      href={`/sessions/${session.id}`}
+                      className="mt-3 inline-flex text-[#ff00ff] text-[10px] uppercase tracking-widest font-bold hover:text-[#ff6ad5] focus:text-[#ff6ad5] focus:outline-none"
+                    >
+                      View session →
+                    </Link>
                   </div>
                 </div>
-              </Link>
+              </article>
             );
           })}
         </div>

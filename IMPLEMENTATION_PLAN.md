@@ -40,6 +40,7 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Mention rendering utilities were centralized so session lists and detail pages share consistent hyperlink behavior for `@Character` references.
 - Session header image controls on the edit form drop redundant labels, keeping the remove action aligned to the right for a cleaner presentation.
 - Text inputs across the app now auto-capitalize their first alphabetical character on blur, applied through a global provider with a data attribute escape hatch for special cases.
+- Dropdowns across character and session flows now share the `SynthwaveDropdown` component, replacing legacy native selects and enabling inline campaign creation from a consistent synthwave-themed popover.
 
 ## Project Overview
 
