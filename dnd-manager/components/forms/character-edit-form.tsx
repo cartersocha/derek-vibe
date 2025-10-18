@@ -5,12 +5,14 @@ import ImageUpload from '@/components/ui/image-upload'
 import Link from 'next/link'
 import AutoResizeTextarea from '@/components/ui/auto-resize-textarea'
 import CreatableSelect from '@/components/ui/creatable-select'
-import SynthwaveSelect from '@/components/ui/synthwave-select'
+import SynthwaveDropdown from '@/components/ui/synthwave-dropdown'
 import {
+  CHARACTER_STATUS_OPTIONS,
   CLASS_OPTIONS,
   LOCATION_SUGGESTIONS,
   PLAYER_TYPE_OPTIONS,
   RACE_OPTIONS,
+  type CharacterStatus,
 } from '@/lib/characters/constants'
 
 interface Character {
@@ -23,6 +25,7 @@ interface Character {
   image_url: string | null
   player_type: 'npc' | 'player'
   last_known_location: string | null
+  status: CharacterStatus
 }
 
 interface CharacterEditFormProps {
@@ -33,6 +36,7 @@ interface CharacterEditFormProps {
 
 const RACE_STORAGE_KEY = 'character-race-options'
 const CLASS_STORAGE_KEY = 'character-class-options'
+const LOCATION_STORAGE_KEY = 'character-location-options'
 
 export default function CharacterEditForm({ action, character, cancelHref }: CharacterEditFormProps) {
   const toTitleCase = useCallback((value: string) => {
@@ -63,6 +67,8 @@ export default function CharacterEditForm({ action, character, cancelHref }: Cha
   const [playerType, setPlayerType] = useState<Character['player_type']>(character.player_type ?? 'npc')
   const [race, setRace] = useState(() => toTitleCase(character.race ?? ''))
   const [characterClass, setCharacterClass] = useState(() => toTitleCase(character.class ?? ''))
+  const [lastKnownLocation, setLastKnownLocation] = useState(() => toTitleCase(character.last_known_location ?? ''))
+  const [status, setStatus] = useState<CharacterStatus>(character.status ?? 'alive')
 
   const handleRaceChange = useCallback((next: string) => {
     setRace(next ? toTitleCase(next) : '')
@@ -70,6 +76,10 @@ export default function CharacterEditForm({ action, character, cancelHref }: Cha
 
   const handleClassChange = useCallback((next: string) => {
     setCharacterClass(next ? toTitleCase(next) : '')
+  }, [toTitleCase])
+
+  const handleLocationChange = useCallback((next: string) => {
+    setLastKnownLocation(next ? toTitleCase(next) : '')
   }, [toTitleCase])
 
   const levelLabel = playerType === 'player' ? 'Level' : 'Challenge Rating'
@@ -140,22 +150,32 @@ export default function CharacterEditForm({ action, character, cancelHref }: Cha
           <label htmlFor="player_type" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
             Player Type
           </label>
-          <SynthwaveSelect
+          <SynthwaveDropdown
             id="player_type"
             name="player_type"
             value={playerType}
-            onChange={(event) => setPlayerType(event.target.value as Character['player_type'])}
-          >
-            {PLAYER_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </SynthwaveSelect>
+            onChange={(next) => setPlayerType(next as Character['player_type'])}
+            options={PLAYER_TYPE_OPTIONS}
+            hideSearch
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="status" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+            Status
+          </label>
+          <SynthwaveDropdown
+            id="status"
+            name="status"
+            value={status}
+            onChange={(next) => setStatus(next as CharacterStatus)}
+            options={CHARACTER_STATUS_OPTIONS}
+            hideSearch
+          />
+        </div>
+
         <div>
           <label htmlFor="level" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
             {levelLabel}
@@ -168,26 +188,22 @@ export default function CharacterEditForm({ action, character, cancelHref }: Cha
             className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           />
         </div>
+      </div>
 
-        <div>
-          <label htmlFor="last_known_location" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
-            Last Known Location
-          </label>
-          <input
-            type="text"
-            id="last_known_location"
-            name="last_known_location"
-            defaultValue={character.last_known_location || ''}
-            list="last-known-location-options"
-            className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-            placeholder="Where were they last seen?"
-          />
-          <datalist id="last-known-location-options">
-            {LOCATION_SUGGESTIONS.map((location) => (
-              <option key={location} value={location} />
-            ))}
-          </datalist>
-        </div>
+      <div>
+        <label htmlFor="last_known_location" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+          Last Known Location
+        </label>
+        <CreatableSelect
+          id="last_known_location"
+          name="last_known_location"
+          value={lastKnownLocation}
+          onChange={handleLocationChange}
+          options={LOCATION_SUGGESTIONS}
+          placeholder="Select or create a location"
+          storageKey={LOCATION_STORAGE_KEY}
+          normalizeOption={toTitleCase}
+        />
       </div>
 
       <div>

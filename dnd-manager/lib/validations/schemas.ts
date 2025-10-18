@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PLAYER_TYPE_VALUES } from "@/lib/characters/constants";
+import { CHARACTER_STATUS_VALUES, PLAYER_TYPE_VALUES } from "@/lib/characters/constants";
 
 export const campaignSchema = z.object({
   name: z.string().min(1, "Campaign name is required").max(200),
@@ -23,6 +23,7 @@ export const characterSchema = z.object({
   image_url: z.string().url().nullable().optional(),
   player_type: z.enum(PLAYER_TYPE_VALUES).default("npc"),
   last_known_location: z.string().max(200).nullable().optional(),
+  status: z.enum(CHARACTER_STATUS_VALUES).default("alive"),
 });
 
 export type CampaignFormData = z.infer<typeof campaignSchema>;

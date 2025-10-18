@@ -294,6 +294,7 @@ app/
 - Session notes auto-save to `localStorage` with a debounce and clear on successful submission
 - Autosaved drafts are purged if the user leaves the form without submitting to avoid stale resumes
 - Auto-resizing textarea component keeps long-form inputs visible without manual resizing
+- Text inputs automatically capitalize their first alphabetical character on blur via a global provider, with an opt-out flag for edge cases
 
 ### Environment Variables
 

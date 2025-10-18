@@ -6,6 +6,15 @@ export const PLAYER_TYPE_OPTIONS: ReadonlyArray<{ value: PlayerType; label: stri
   { value: "player", label: "Player Character" },
 ] as const;
 
+export const CHARACTER_STATUS_VALUES = ["alive", "dead", "unknown"] as const;
+export type CharacterStatus = (typeof CHARACTER_STATUS_VALUES)[number];
+
+export const CHARACTER_STATUS_OPTIONS: ReadonlyArray<{ value: CharacterStatus; label: string }> = [
+  { value: "alive", label: "Alive" },
+  { value: "dead", label: "Dead" },
+  { value: "unknown", label: "Unknown" },
+] as const;
+
 export const RACE_OPTIONS = [
   "Human",
   "Elf",

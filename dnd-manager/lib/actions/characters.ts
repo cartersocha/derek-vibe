@@ -11,7 +11,7 @@ import {
 } from "@/lib/supabase/storage";
 import { characterSchema } from "@/lib/validations/schemas";
 import { sanitizeNullableText, sanitizeText } from "@/lib/security/sanitize";
-import { PlayerType } from "@/lib/characters/constants";
+import { CharacterStatus, PlayerType } from "@/lib/characters/constants";
 
 const CHARACTER_BUCKET = "character-images" as const;
 
@@ -45,6 +45,7 @@ export async function createCharacter(formData: FormData): Promise<void> {
     image_url: imageUrl,
     player_type: (getString(formData, "player_type") || "npc") as PlayerType,
     last_known_location: getStringOrNull(formData, "last_known_location"),
+    status: (getString(formData, "status") || "alive") as CharacterStatus,
   };
 
   const result = characterSchema.safeParse(data);
@@ -97,11 +98,11 @@ export async function createCharacterInline(name: string): Promise<{
 
   const truncated = sanitized.slice(0, 100);
   const characterId = randomUUID();
-
   const { error } = await supabase.from("characters").insert({
     id: characterId,
     name: truncated,
     player_type: "npc",
+    status: "alive",
   });
 
   if (error) {
@@ -183,6 +184,7 @@ export async function updateCharacter(
     image_url: imageUrl,
     player_type: (getString(formData, "player_type") || "npc") as PlayerType,
     last_known_location: getStringOrNull(formData, "last_known_location"),
+    status: (getString(formData, "status") || "alive") as CharacterStatus,
   };
 
   const result = characterSchema.safeParse(data);

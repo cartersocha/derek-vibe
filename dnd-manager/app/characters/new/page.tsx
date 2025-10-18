@@ -7,12 +7,14 @@ import { useSearchParams } from "next/navigation";
 import ImageUpload from "@/components/ui/image-upload";
 import AutoResizeTextarea from "@/components/ui/auto-resize-textarea";
 import CreatableSelect from "@/components/ui/creatable-select";
-import SynthwaveSelect from "@/components/ui/synthwave-select";
+import SynthwaveDropdown from "@/components/ui/synthwave-dropdown";
 import {
+  CHARACTER_STATUS_OPTIONS,
   CLASS_OPTIONS,
   LOCATION_SUGGESTIONS,
   PLAYER_TYPE_OPTIONS,
   RACE_OPTIONS,
+  type CharacterStatus,
 } from "@/lib/characters/constants";
 
 export default function NewCharacterPage() {
@@ -25,6 +27,7 @@ export default function NewCharacterPage() {
 
 const RACE_STORAGE_KEY = "character-race-options";
 const CLASS_STORAGE_KEY = "character-class-options";
+const LOCATION_STORAGE_KEY = "character-location-options";
 
 function NewCharacterForm() {
   const searchParams = useSearchParams();
@@ -32,6 +35,8 @@ function NewCharacterForm() {
   const [playerType, setPlayerType] = useState<"npc" | "player">("npc");
   const [race, setRace] = useState("");
   const [characterClass, setCharacterClass] = useState("");
+  const [lastKnownLocation, setLastKnownLocation] = useState("");
+  const [status, setStatus] = useState<CharacterStatus>("alive");
 
   const toTitleCase = useCallback((value: string) => {
     const trimmed = value.trim();
@@ -141,22 +146,35 @@ function NewCharacterForm() {
             >
               Player Type
             </label>
-            <SynthwaveSelect
+            <SynthwaveDropdown
               id="player_type"
               name="player_type"
               value={playerType}
-              onChange={(event) => setPlayerType(event.target.value as "npc" | "player")}
-            >
-              {PLAYER_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </SynthwaveSelect>
+              onChange={(next) => setPlayerType(next as "npc" | "player")}
+              options={PLAYER_TYPE_OPTIONS}
+              hideSearch
+            />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label
+              htmlFor="status"
+              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
+            >
+              Status
+            </label>
+            <SynthwaveDropdown
+              id="status"
+              name="status"
+              value={status}
+              onChange={(next) => setStatus(next as CharacterStatus)}
+              options={CHARACTER_STATUS_OPTIONS}
+              hideSearch
+            />
+          </div>
+
           <div>
             <label
               htmlFor="level"
@@ -171,28 +189,25 @@ function NewCharacterForm() {
               className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
             />
           </div>
+        </div>
 
-          <div>
-            <label
-              htmlFor="last_known_location"
-              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
-            >
-              Last Known Location
-            </label>
-            <input
-              type="text"
-              id="last_known_location"
-              name="last_known_location"
-              list="last-known-location-options"
-              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-              placeholder="Where were they last seen?"
-            />
-            <datalist id="last-known-location-options">
-              {LOCATION_SUGGESTIONS.map((location) => (
-                <option key={location} value={location} />
-              ))}
-            </datalist>
-          </div>
+        <div>
+          <label
+            htmlFor="last_known_location"
+            className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
+          >
+            Last Known Location
+          </label>
+          <CreatableSelect
+            id="last_known_location"
+            name="last_known_location"
+            value={lastKnownLocation}
+            onChange={(next) => setLastKnownLocation(next ? toTitleCase(next) : "")}
+            options={LOCATION_SUGGESTIONS}
+            placeholder="Select or create a location"
+            storageKey={LOCATION_STORAGE_KEY}
+            normalizeOption={toTitleCase}
+          />
         </div>
 
         {/* Backstory */}

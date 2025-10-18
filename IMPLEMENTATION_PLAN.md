@@ -18,6 +18,8 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-19):** Added caret-anchored session mention menus with inline character creation, reusable mention rendering helpers, and streamlined header image controls on the session edit form.
 
+> **Note (2025-10-19, afternoon):** Introduced a global auto-capitalization provider that uppercases the first alphabetical character in text inputs while allowing opt-outs via a data attribute.
+
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
 ## Recent Enhancements (2025-10-18)
@@ -37,6 +39,7 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Session notes now support caret-positioned `@` mention menus that hyperlink to character sheets, with keyboard navigation, inline creation for new characters, and automatic attendee syncing.
 - Mention rendering utilities were centralized so session lists and detail pages share consistent hyperlink behavior for `@Character` references.
 - Session header image controls on the edit form drop redundant labels, keeping the remove action aligned to the right for a cleaner presentation.
+- Text inputs across the app now auto-capitalize their first alphabetical character on blur, applied through a global provider with a data attribute escape hatch for special cases.
 
 ## Project Overview
 

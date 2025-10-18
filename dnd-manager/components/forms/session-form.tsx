@@ -4,9 +4,10 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, ty
 import Link from 'next/link'
 import ImageUpload from '@/components/ui/image-upload'
 import AutoResizeTextarea from '@/components/ui/auto-resize-textarea'
-import SynthwaveSelect from '@/components/ui/synthwave-select'
+import SynthwaveDropdown from '@/components/ui/synthwave-dropdown'
 import { isMentionBoundary } from '@/lib/mention-utils'
 import { createCharacterInline } from '@/lib/actions/characters'
+import { createCampaignInline } from '@/lib/actions/campaigns'
 
 const AUTO_SAVE_DELAY_MS = 2000
 const DEFAULT_DRAFT_KEY = 'session-notes:draft'
@@ -24,6 +25,10 @@ interface Character {
   name: string
   race: string | null
   class: string | null
+}
+
+function sortCampaignsByName(list: Campaign[]): Campaign[] {
+  return [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 }
 
 interface SessionFormProps {
@@ -68,11 +73,19 @@ export default function SessionForm({
   const pendingCursorRef = useRef<number | null>(null)
   const [headerImageDraft, setHeaderImageDraft] = useState<{ dataUrl: string; name?: string | null } | null>(null)
   const [characterList, setCharacterList] = useState(characters)
+  const [campaignList, setCampaignList] = useState(() => sortCampaignsByName(campaigns))
   const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(() => {
     const initialSet = new Set(initialData?.characterIds || [])
     preselectedCharacterIds?.forEach((id) => initialSet.add(id))
     return initialSet
   })
+  const [campaignId, setCampaignId] = useState(() => initialData?.campaign_id || defaultCampaignId || '')
+  const [campaignDropdownKey, setCampaignDropdownKey] = useState(0)
+  const [isCampaignCreatorOpen, setIsCampaignCreatorOpen] = useState(false)
+  const [newCampaignName, setNewCampaignName] = useState('')
+  const [newCampaignDescription, setNewCampaignDescription] = useState('')
+  const [isCreatingCampaignInline, setIsCreatingCampaignInline] = useState(false)
+  const [campaignCreationError, setCampaignCreationError] = useState<string | null>(null)
   const [characterSearch, setCharacterSearch] = useState('')
   const deferredCharacterSearch = useDeferredValue(characterSearch)
   const saveTimeoutRef = useRef<number | null>(null)
@@ -81,6 +94,7 @@ export default function SessionForm({
   const headerSaveTimeoutRef = useRef<number | null>(null)
   const hasLoadedDraftRef = useRef(false)
   const hasLoadedCharactersRef = useRef(false)
+  const newCampaignNameInputRef = useRef<HTMLInputElement | null>(null)
   const [mentionQuery, setMentionQuery] = useState('')
   const [mentionStart, setMentionStart] = useState<number | null>(null)
   const [isMentionMenuOpen, setIsMentionMenuOpen] = useState(false)
@@ -93,10 +107,30 @@ export default function SessionForm({
   const nameStorageKey = `${draftStorageKey}${NAME_SUFFIX}`
   const headerImageStorageKey = `${draftStorageKey}${HEADER_IMAGE_SUFFIX}`
   const isNavigatingRef = useRef(false)
+  const campaignOptions = useMemo(() => {
+    const base = [{ value: '', label: 'No campaign' }]
+    const mapped = campaignList.map((campaign) => ({ value: campaign.id, label: campaign.name }))
+    return [...base, ...mapped]
+  }, [campaignList])
 
   useEffect(() => {
     setCharacterList(characters)
   }, [characters])
+
+  useEffect(() => {
+    setCampaignList(sortCampaignsByName(campaigns))
+  }, [campaigns])
+
+  useEffect(() => {
+    setCampaignId(initialData?.campaign_id || defaultCampaignId || '')
+  }, [defaultCampaignId, initialData?.campaign_id])
+
+  useEffect(() => {
+    if (!isCampaignCreatorOpen) {
+      return
+    }
+    newCampaignNameInputRef.current?.focus()
+  }, [isCampaignCreatorOpen])
 
   useEffect(() => {
     hasLoadedDraftRef.current = false
@@ -319,6 +353,63 @@ export default function SessionForm({
     },
     []
   )
+
+  const handleCampaignSelectionChange = useCallback((value: string) => {
+    setCampaignId(value)
+    setIsCampaignCreatorOpen(false)
+    setCampaignCreationError(null)
+    setNewCampaignName('')
+    setNewCampaignDescription('')
+  }, [])
+
+  const handleCancelCampaignInline = useCallback(() => {
+    setIsCampaignCreatorOpen(false)
+    setCampaignCreationError(null)
+    setNewCampaignName('')
+    setNewCampaignDescription('')
+  }, [])
+
+  const handleCampaignCreateInline = useCallback(async () => {
+    if (isCreatingCampaignInline) {
+      return
+    }
+
+    const trimmedName = newCampaignName.trim()
+    if (!trimmedName) {
+      setCampaignCreationError('Campaign name is required')
+      return
+    }
+
+    setIsCreatingCampaignInline(true)
+    setCampaignCreationError(null)
+
+    try {
+      const trimmedDescription = newCampaignDescription.trim()
+      const created = await createCampaignInline(trimmedName, trimmedDescription ? trimmedDescription : null)
+      const newCampaign: Campaign = { id: created.id, name: created.name }
+
+      setCampaignList((previous) => {
+        const existingIndex = previous.findIndex((campaign) => campaign.id === newCampaign.id)
+        if (existingIndex !== -1) {
+          const updated = [...previous]
+          updated[existingIndex] = newCampaign
+          return sortCampaignsByName(updated)
+        }
+        return sortCampaignsByName([...previous, newCampaign])
+      })
+
+      setCampaignId(newCampaign.id)
+      setIsCampaignCreatorOpen(false)
+      setNewCampaignName('')
+      setNewCampaignDescription('')
+      setCampaignDropdownKey((prev) => prev + 1)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create campaign'
+      setCampaignCreationError(message)
+    } finally {
+      setIsCreatingCampaignInline(false)
+    }
+  }, [isCreatingCampaignInline, newCampaignDescription, newCampaignName])
 
   const handleFormSubmit = useCallback(() => {
     if (saveTimeoutRef.current) {
@@ -749,6 +840,69 @@ export default function SessionForm({
     setCharacterSearch(event.target.value)
   }, [])
 
+  const disableCampaignCreate = newCampaignName.trim().length === 0 || isCreatingCampaignInline
+
+  const campaignDropdownFooter = (
+    <div className="space-y-2">
+      {isCampaignCreatorOpen ? (
+        <div className="space-y-2">
+          <input
+            ref={newCampaignNameInputRef}
+            type="text"
+            value={newCampaignName}
+            onChange={(event) => setNewCampaignName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                void handleCampaignCreateInline()
+              }
+            }}
+            placeholder="Campaign name"
+            className="w-full rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] px-3 py-2 text-sm font-mono text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+          />
+          <textarea
+            value={newCampaignDescription}
+            onChange={(event) => setNewCampaignDescription(event.target.value)}
+            rows={3}
+            placeholder="Optional description"
+            className="w-full rounded border border-[#00ffff] border-opacity-20 bg-[#0a0a1f] px-3 py-2 text-xs font-mono text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#ff00ff]"
+          />
+          {campaignCreationError ? (
+            <p className="text-xs font-mono text-[#ff6ad5]">{campaignCreationError}</p>
+          ) : null}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => void handleCampaignCreateInline()}
+              disabled={disableCampaignCreate}
+              className="flex-1 rounded border border-[#ff00ff] bg-[#ff00ff] px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-black transition-colors duration-200 hover:bg-[#cc00cc] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isCreatingCampaignInline ? 'Creating…' : 'Save Campaign'}
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelCampaignInline}
+              className="flex-1 rounded border border-[#00ffff] border-opacity-30 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#00ffff] transition-colors duration-200 hover:border-[#ff00ff] hover:text-[#ff00ff]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setIsCampaignCreatorOpen(true)
+            setCampaignCreationError(null)
+          }}
+          className="w-full rounded border border-dashed border-[#00ffff] border-opacity-40 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#00ffff] transition-colors duration-200 hover:border-solid hover:border-[#ff00ff] hover:text-[#ff00ff]"
+        >
+          + New Campaign
+        </button>
+      )}
+    </div>
+  )
+
   useEffect(() => {
     if (!hasLoadedCharactersRef.current) {
       return
@@ -851,18 +1005,17 @@ export default function SessionForm({
         <label htmlFor="campaign_id" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
           Campaign
         </label>
-        <SynthwaveSelect
+        <SynthwaveDropdown
+          key={campaignDropdownKey}
           id="campaign_id"
           name="campaign_id"
-          defaultValue={initialData?.campaign_id || defaultCampaignId || ''}
-        >
-          <option value="">No campaign</option>
-          {campaigns?.map((campaign) => (
-            <option key={campaign.id} value={campaign.id}>
-              {campaign.name}
-            </option>
-          ))}
-        </SynthwaveSelect>
+          value={campaignId}
+          onChange={handleCampaignSelectionChange}
+          options={campaignOptions}
+          placeholder="Select a campaign"
+          hideSearch
+          customFooter={campaignDropdownFooter}
+        />
       </div>
 
       {/* Session Date */}

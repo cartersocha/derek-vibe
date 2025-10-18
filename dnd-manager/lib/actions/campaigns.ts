@@ -6,6 +6,37 @@ import { createClient } from '@/lib/supabase/server'
 import { campaignSchema } from '@/lib/validations/schemas'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
 
+export async function createCampaignInline(name: string, description?: string | null): Promise<{ id: string; name: string }> {
+  const supabase = await createClient()
+
+  const data = {
+    name: sanitizeText(name).trim(),
+    description: sanitizeNullableText(description ?? null),
+  }
+
+  const result = campaignSchema.safeParse(data)
+  if (!result.success) {
+    throw new Error('Validation failed')
+  }
+
+  const { data: created, error } = await supabase
+    .from('campaigns')
+    .insert(result.data)
+    .select('id, name')
+    .single()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  if (!created) {
+    throw new Error('Failed to create campaign')
+  }
+
+  revalidatePath('/campaigns')
+  return created
+}
+
 export async function createCampaign(formData: FormData): Promise<void> {
   const supabase = await createClient()
 

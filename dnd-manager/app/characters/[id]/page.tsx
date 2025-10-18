@@ -46,6 +46,17 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
   }
 
   const playerTypeLabel = character.player_type === 'player' ? 'Player Character' : 'NPC'
+  const statusLabel = (() => {
+    switch (character.status) {
+      case 'dead':
+        return 'Dead'
+      case 'unknown':
+        return 'Unknown'
+      case 'alive':
+      default:
+        return 'Alive'
+    }
+  })()
   const locationLabel = character.last_known_location || 'Unknown'
   const levelLabel = character.player_type === 'player' ? 'Level' : 'Challenge Rating'
   const levelValue = character.level || '—'
@@ -163,6 +174,10 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                   <div className="flex justify-between gap-3">
                     <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Type</dt>
                     <dd className="text-right text-[#f0f0ff]">{playerTypeLabel}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Status</dt>
+                    <dd className="text-right text-[#f0f0ff]">{statusLabel}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
                     <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Race</dt>

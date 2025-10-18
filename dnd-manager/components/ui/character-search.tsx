@@ -25,8 +25,10 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
         character.race,
         character.class,
         character.level,
-        character.last_known_location,
+  character.last_known_location,
+  character.status,
         character.player_type,
+        character.status,
       ]
         .filter(Boolean)
         .join(" ")
@@ -93,6 +95,9 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                 <p className="text-gray-400 font-mono">
                   {character.player_type === "player" ? "Player Character" : "NPC"}
                 </p>
+                <p className="text-gray-400 font-mono">
+                  Status: {character.status === "dead" ? "Dead" : character.status === "unknown" ? "Unknown" : "Alive"}
+                </p>
                 {(() => {
                   const lineage = [character.race, character.class].filter(Boolean).join(" ");
                   return lineage ? (
@@ -104,6 +109,9 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                     {character.player_type === "player" ? `Level ${character.level}` : `CR ${character.level}`}
                   </p>
                 )}
+                <p className="text-gray-400 font-mono">
+                  Status: {character.status.charAt(0).toUpperCase() + character.status.slice(1)}
+                </p>
                 {character.last_known_location && (
                   <p className="text-gray-500 font-mono text-[11px] uppercase tracking-wider">
                     Last seen: {character.last_known_location}
