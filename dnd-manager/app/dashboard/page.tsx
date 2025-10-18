@@ -76,7 +76,6 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-[#00ffff] uppercase tracking-wider glitch-subtle" data-text="DASHBOARD">Dashboard</h1>
-        <p className="mt-2 text-gray-400 font-mono">Welcome back to your D&D Campaign Manager</p>
       </div>
 
       {/* Statistics */}
