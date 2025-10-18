@@ -1,46 +1,60 @@
-import { createClient } from './server'
+import { put, del } from '@vercel/blob'
+
+type StorageBucket = 'character-images' | 'session-images'
 
 export async function uploadImage(
-  bucket: 'character-images' | 'session-images',
+  bucket: StorageBucket,
   file: File,
   path: string
-): Promise<{ url: string | null; error: Error | null }> {
+): Promise<{ url: string | null; path: string | null; error: Error | null }> {
   try {
-    const supabase = await createClient()
+    const pathname = `${bucket}/${path}`
     
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .upload(path, file, {
-        upsert: true,
-      })
+    const blob = await put(pathname, file, {
+      access: 'public',
+      addRandomSuffix: false,
+    })
 
-    if (error) {
-      return { url: null, error }
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(data.path)
-
-    return { url: publicUrl, error: null }
+    return { url: blob.url, path: pathname, error: null }
   } catch (error) {
-    return { url: null, error: error as Error }
+    return { url: null, path: null, error: error as Error }
   }
 }
 
 export async function deleteImage(
-  bucket: 'character-images' | 'session-images',
-  path: string
+  bucket: StorageBucket,
+  path: string | null
 ): Promise<{ error: Error | null }> {
   try {
-    const supabase = await createClient()
-    
-    const { error } = await supabase.storage
-      .from(bucket)
-      .remove([path])
+    if (!path) {
+      return { error: null }
+    }
 
-    return { error }
+    await del(path)
+
+    return { error: null }
   } catch (error) {
     return { error: error as Error }
+  }
+}
+
+export function getStoragePathFromUrl(
+  bucket: StorageBucket,
+  url: string | null
+): string | null {
+  if (!url) {
+    return null
+  }
+
+  try {
+    const parsed = new URL(url)
+    
+    // Vercel Blob URLs look like: https://[hash].public.blob.vercel-storage.com/[path]
+    const pathname = parsed.pathname
+    
+    // Remove leading slash and return the path
+    return pathname.startsWith('/') ? pathname.slice(1) : pathname
+  } catch {
+    return null
   }
 }

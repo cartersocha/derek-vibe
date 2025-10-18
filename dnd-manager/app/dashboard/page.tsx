@@ -25,56 +25,56 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">Welcome back to your D&D Campaign Manager</p>
+        <h1 className="text-3xl font-bold text-[#00ffff] uppercase tracking-wider glitch-subtle" data-text="DASHBOARD">Dashboard</h1>
+        <p className="mt-2 text-gray-400 font-mono">Welcome back to your D&D Campaign Manager</p>
       </div>
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500">Total Campaigns</h3>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{campaignsCount || 0}</p>
-          <Link href="/campaigns" className="mt-4 inline-block text-blue-600 hover:text-blue-700 text-sm">
+        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6">
+          <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Total Campaigns</h3>
+          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{campaignsCount || 0}</p>
+          <Link href="/campaigns" className="mt-4 inline-block text-[#ff00ff] hover:text-[#cc00cc] text-sm font-mono uppercase tracking-wider">
             View all →
           </Link>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500">Total Sessions</h3>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{sessionsCount || 0}</p>
-          <Link href="/sessions" className="mt-4 inline-block text-blue-600 hover:text-blue-700 text-sm">
+        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6">
+          <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Total Sessions</h3>
+          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{sessionsCount || 0}</p>
+          <Link href="/sessions" className="mt-4 inline-block text-[#ff00ff] hover:text-[#cc00cc] text-sm font-mono uppercase tracking-wider">
             View all →
           </Link>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500">Total Characters</h3>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{charactersCount || 0}</p>
-          <Link href="/characters" className="mt-4 inline-block text-blue-600 hover:text-blue-700 text-sm">
+        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6">
+          <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Total Characters</h3>
+          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{charactersCount || 0}</p>
+          <Link href="/characters" className="mt-4 inline-block text-[#ff00ff] hover:text-[#cc00cc] text-sm font-mono uppercase tracking-wider">
             View all →
           </Link>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6">
+        <h2 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link
             href="/campaigns/new"
-            className="flex items-center justify-center px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+            className="flex items-center justify-center px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-all duration-200 font-mono uppercase tracking-wider"
           >
             + New Campaign
           </Link>
           <Link
             href="/sessions/new"
-            className="flex items-center justify-center px-4 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+            className="flex items-center justify-center px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-all duration-200 font-mono uppercase tracking-wider"
           >
             + New Session
           </Link>
           <Link
             href="/characters/new"
-            className="flex items-center justify-center px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+            className="flex items-center justify-center px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-all duration-200 font-mono uppercase tracking-wider"
           >
             + New Character
           </Link>
@@ -83,18 +83,18 @@ export default async function DashboardPage() {
 
       {/* Recent Sessions */}
       {recentSessions && recentSessions.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Sessions</h2>
+        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6">
+          <h2 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Recent Sessions</h2>
           <div className="space-y-3">
             {recentSessions.map((session) => (
               <Link
                 key={session.id}
                 href={`/sessions/${session.id}`}
-                className="block p-3 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                className="block p-3 rounded border border-[#00ffff] border-opacity-20 hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
               >
                 <div className="flex justify-between items-center">
-                  <h3 className="font-medium text-gray-900">{session.name}</h3>
-                  <span className="text-sm text-gray-500">
+                  <h3 className="font-medium text-[#00ffff] font-mono">{session.name}</h3>
+                  <span className="text-sm text-gray-400 font-mono uppercase tracking-wider">
                     {session.session_date 
                       ? new Date(session.session_date).toLocaleDateString()
                       : new Date(session.created_at).toLocaleDateString()}

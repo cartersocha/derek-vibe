@@ -1,0 +1,203 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+
+interface ImageUploadProps {
+  name: string;
+  label: string;
+  currentImage?: string | null;
+  maxSize?: number;
+  required?: boolean;
+  className?: string;
+}
+
+export default function ImageUpload({
+  name,
+  label,
+  currentImage,
+  maxSize = 5,
+  required = false,
+  className = "",
+}: ImageUploadProps) {
+  const [preview, setPreview] = useState<string | null>(currentImage ?? null);
+  const [dragActive, setDragActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [isRemoved, setIsRemoved] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setPreview(currentImage ?? null);
+    setFileName(null);
+    setIsRemoved(false);
+  }, [currentImage]);
+
+  const handleFile = useCallback(
+    (file: File | null) => {
+      if (!file) {
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        setError("Please upload an image file");
+        return;
+      }
+
+      const maxSizeBytes = maxSize * 1024 * 1024;
+      if (file.size > maxSizeBytes) {
+        setError(`File size must be less than ${maxSize}MB`);
+        return;
+      }
+
+      setError(null);
+      setFileName(file.name);
+      setIsRemoved(false);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    },
+    [maxSize]
+  );
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    handleFile(file);
+  };
+
+  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+      return;
+    }
+
+    if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file && inputRef.current) {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      inputRef.current.files = dataTransfer.files;
+      handleFile(file);
+    }
+  };
+
+  const handleRemove = () => {
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+    setPreview(null);
+    setFileName(null);
+    setError(null);
+    setIsRemoved(true);
+  };
+
+  return (
+    <div className={className}>
+      <label className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+        {label} {required && <span className="text-[#ff00ff]">*</span>}
+      </label>
+
+      <input
+        type="hidden"
+        name={`${name}_remove`}
+        value={isRemoved ? "true" : "false"}
+      />
+
+      <input
+        ref={inputRef}
+        type="file"
+        name={name}
+        id={name}
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        onChange={handleChange}
+        required={required && !preview}
+        className="hidden"
+      />
+
+      {preview ? (
+        <div className="relative">
+          <div className="relative w-full h-64 rounded border-2 border-[#00ffff] border-opacity-30 overflow-hidden bg-[#0f0f23]">
+            <Image
+              src={preview}
+              alt="Preview"
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <span className="text-sm text-[#00ffff] font-mono truncate flex-1">
+              {fileName || (currentImage && !isRemoved ? "Current image" : "")}
+            </span>
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="ml-4 px-4 py-2 text-sm font-bold uppercase tracking-wider text-black bg-[#ff00ff] hover:bg-[#cc00cc] rounded transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          onClick={() => inputRef.current?.click()}
+          className={`relative w-full h-64 rounded border-2 border-dashed cursor-pointer transition-all duration-200 ${
+            dragActive
+              ? "border-[#ff00ff] bg-[#1a1a3e]"
+              : "border-[#00ffff] border-opacity-30 hover:border-opacity-60 hover:bg-[#0f0f23]"
+          } flex flex-col items-center justify-center bg-[#0a0a1f]`}
+        >
+          <div className="text-center p-6">
+            <svg
+              className="mx-auto h-12 w-12 text-[#00ffff] opacity-50"
+              stroke="currentColor"
+              fill="none"
+              viewBox="0 0 48 48"
+              aria-hidden="true"
+            >
+              <path
+                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <p className="mt-2 text-sm text-[#00ffff] font-mono">
+              <span className="font-bold text-[#ff00ff]">Click to upload</span>{" "}
+              or drag and drop
+            </p>
+            <p className="mt-1 text-xs text-gray-400 font-mono">
+              PNG, JPG, WebP up to {maxSize}MB
+            </p>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <p className="mt-2 text-sm text-[#ff00ff] font-mono">{error}</p>
+      )}
+    </div>
+  );
+}

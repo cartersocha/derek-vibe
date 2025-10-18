@@ -1,36 +1,37 @@
+'use client'
+
 import { createCharacter } from "@/lib/actions/characters";
 import Link from "next/link";
+import ImageUpload from "@/components/ui/image-upload";
 
 export default function NewCharacterPage() {
   return (
     <div className="max-w-5xl mx-auto">
-      <form action={createCharacter} className="space-y-8">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-[#00ffff] uppercase tracking-wider">Create New Character</h1>
+        <p className="mt-2 text-gray-400 font-mono">Add a new character to your campaign</p>
+      </div>
+
+      <form
+        action={createCharacter}
+        encType="multipart/form-data"
+        className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-8"
+      >
         {/* Character Portrait */}
-        <div>
-          <label
-            htmlFor="image"
-            className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
-          >
-            Character Portrait
-          </label>
-          <input
-            type="file"
-            id="image"
-            name="image"
-            accept="image/*"
-            className="block w-full text-sm text-[#00ffff] file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-[#ff00ff] file:text-black hover:file:bg-[#cc00cc] file:cursor-pointer"
-          />
-          <p className="mt-1 text-xs text-gray-400">No file selected.</p>
-        </div>
+        <ImageUpload
+          name="image"
+          label="Character Portrait"
+          maxSize={5}
+        />
 
         {/* Basic Info */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label
               htmlFor="name"
               className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
             >
-              Character Name
+              Character Name *
             </label>
             <input
               type="text"
@@ -38,45 +39,31 @@ export default function NewCharacterPage() {
               name="name"
               required
               className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+              placeholder="Enter character name"
             />
           </div>
 
           <div>
             <label
-              htmlFor="status"
+              htmlFor="level"
               className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
             >
-              Status
-            </label>
-            <select
-              id="status"
-              name="status"
-              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-            >
-              <option value="alive">Alive</option>
-              <option value="dead">Dead</option>
-              <option value="unknown">Unknown</option>
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="location"
-              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
-            >
-              Last Known Location
+              Level
             </label>
             <input
-              type="text"
-              id="location"
-              name="location"
+              type="number"
+              id="level"
+              name="level"
+              min="1"
+              max="20"
               className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+              placeholder="1-20"
             />
           </div>
         </div>
 
-        {/* Race, Class, Player Type */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Race & Class */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label
               htmlFor="race"
@@ -90,19 +77,16 @@ export default function NewCharacterPage() {
               className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
             >
               <option value="">Select a Race</option>
-              <option value="human">Human</option>
-              <option value="elf">Elf</option>
-              <option value="dwarf">Dwarf</option>
-              <option value="halfling">Halfling</option>
-              <option value="dragonborn">Dragonborn</option>
-              <option value="gnome">Gnome</option>
-              <option value="half-elf">Half-Elf</option>
-              <option value="half-orc">Half-Orc</option>
-              <option value="tiefling">Tiefling</option>
+              <option value="Human">Human</option>
+              <option value="Elf">Elf</option>
+              <option value="Dwarf">Dwarf</option>
+              <option value="Halfling">Halfling</option>
+              <option value="Dragonborn">Dragonborn</option>
+              <option value="Gnome">Gnome</option>
+              <option value="Half-Elf">Half-Elf</option>
+              <option value="Half-Orc">Half-Orc</option>
+              <option value="Tiefling">Tiefling</option>
             </select>
-            <p className="mt-1 text-xs text-gray-400">
-              Please select an item in the list.
-            </p>
           </div>
 
           <div>
@@ -118,36 +102,45 @@ export default function NewCharacterPage() {
               className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
             >
               <option value="">Select a Class</option>
-              <option value="barbarian">Barbarian</option>
-              <option value="bard">Bard</option>
-              <option value="cleric">Cleric</option>
-              <option value="druid">Druid</option>
-              <option value="fighter">Fighter</option>
-              <option value="monk">Monk</option>
-              <option value="paladin">Paladin</option>
-              <option value="ranger">Ranger</option>
-              <option value="rogue">Rogue</option>
-              <option value="sorcerer">Sorcerer</option>
-              <option value="warlock">Warlock</option>
-              <option value="wizard">Wizard</option>
+              <option value="Barbarian">Barbarian</option>
+              <option value="Bard">Bard</option>
+              <option value="Cleric">Cleric</option>
+              <option value="Druid">Druid</option>
+              <option value="Fighter">Fighter</option>
+              <option value="Monk">Monk</option>
+              <option value="Paladin">Paladin</option>
+              <option value="Ranger">Ranger</option>
+              <option value="Rogue">Rogue</option>
+              <option value="Sorcerer">Sorcerer</option>
+              <option value="Warlock">Warlock</option>
+              <option value="Wizard">Wizard</option>
             </select>
           </div>
+        </div>
 
-          <div>
-            <label
-              htmlFor="player_type"
-              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
-            >
-              Player Type
-            </label>
-            <select
-              id="player_type"
-              name="player_type"
-              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-            >
-              <option value="player">Player</option>
-              <option value="npc">NPC</option>
-            </select>
+        {/* Ability Scores */}
+        <div>
+          <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Ability Scores</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'].map((ability) => (
+              <div key={ability}>
+                <label
+                  htmlFor={ability}
+                  className="block text-xs font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
+                >
+                  {ability.substring(0, 3)}
+                </label>
+                <input
+                  type="number"
+                  id={ability}
+                  name={ability}
+                  min="1"
+                  max="30"
+                  placeholder="10"
+                  className="w-full px-3 py-2 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono text-center"
+                />
+              </div>
+            ))}
           </div>
         </div>
 
@@ -162,25 +155,10 @@ export default function NewCharacterPage() {
           <textarea
             id="backstory"
             name="backstory"
-            rows={8}
+            rows={6}
             className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono resize-none"
+            placeholder="Character background, personality, goals..."
           />
-        </div>
-
-        {/* Link to Sessions */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">
-              LINK TO SESSIONS
-            </h3>
-            <button
-              type="button"
-              className="px-4 py-2 text-sm font-bold uppercase tracking-wider text-[#ff00ff] border border-[#ff00ff] rounded hover:bg-[#ff00ff] hover:text-black transition-all duration-200"
-            >
-              + Add to Session
-            </button>
-          </div>
-          <p className="text-gray-400 font-mono">No sessions linked yet.</p>
         </div>
 
         {/* Action Buttons */}
