@@ -1,5 +1,10 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import {
+  extractPlayerSummaries,
+  getVisiblePlayers,
+  type SessionCharacterRelation,
+} from '@/lib/utils'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -18,9 +23,20 @@ export default async function DashboardPage() {
   // Fetch recent sessions
   const { data: recentSessions } = await supabase
     .from('sessions')
-    .select('id, name, session_date, created_at, campaign_id')
+    .select(`
+      id,
+      name,
+      session_date,
+      created_at,
+      campaign_id,
+      notes,
+      campaign:campaigns(id, name),
+      session_characters:session_characters(
+        character:characters(id, name, class, race, level)
+      )
+    `)
     .order('created_at', { ascending: false })
-    .limit(5)
+    .limit(6)
 
   const sessionNumberMap = new Map<string, number>()
 
@@ -92,32 +108,93 @@ export default async function DashboardPage() {
 
       {/* Recent Sessions */}
       {recentSessions && recentSessions.length > 0 && (
-        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6">
-          <h2 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Recent Sessions</h2>
-          <div className="space-y-3">
-            {recentSessions.map((session) => (
-              <Link
-                key={session.id}
-                href={`/sessions/${session.id}`}
-                className="block p-3 rounded border border-[#00ffff] border-opacity-20 hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
-              >
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-medium text-[#00ffff] font-mono">{session.name}</h3>
-                    {sessionNumberMap.has(session.id) && (
-                      <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#ff00ff]">
-                        Session #{sessionNumberMap.get(session.id)}
-                      </span>
+        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Recent Sessions</h2>
+              <p className="text-sm text-gray-400 font-mono">Your latest adventures at a glance</p>
+            </div>
+            <Link
+              href="/sessions"
+              className="text-[#ff00ff] hover:text-[#cc00cc] text-sm font-mono uppercase tracking-wider"
+            >
+              View all sessions →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {recentSessions.map((session) => {
+              const sessionNumber = sessionNumberMap.get(session.id)
+              const scheduledDate = session.session_date
+                ? new Date(session.session_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })
+                : null
+              const campaignRelation = Array.isArray(session.campaign)
+                ? session.campaign[0]
+                : session.campaign
+              const rawLinks = Array.isArray(session.session_characters)
+                ? (session.session_characters as SessionCharacterRelation[])
+                : null
+              const players = extractPlayerSummaries(rawLinks)
+              const { visible: visiblePlayers, hiddenCount } = getVisiblePlayers(players, 4)
+
+              return (
+                <Link
+                  key={session.id}
+                  href={`/sessions/${session.id}`}
+                  className="flex h-full flex-col gap-4 rounded-lg border border-[#00ffff] border-opacity-25 bg-[#0f0f23] p-5 transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[0_0_25px_rgba(255,0,255,0.35)]"
+                >
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg font-semibold text-[#00ffff] font-mono tracking-wider">
+                        {session.name}
+                      </h3>
+                      {sessionNumber !== undefined && sessionNumber !== null && (
+                        <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-[11px] font-mono uppercase tracking-widest text-[#ff00ff]">
+                          Session #{sessionNumber}
+                        </span>
+                      )}
+                    </div>
+                    {campaignRelation?.name && (
+                      <p className="text-xs text-[#ff00ff] font-mono uppercase tracking-widest">
+                        Campaign: {campaignRelation.name}
+                      </p>
+                    )}
+                    {players.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {visiblePlayers.map((player) => (
+                          <span
+                            key={`${session.id}-${player.id}`}
+                            className="rounded border border-[#00ffff] border-opacity-25 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]"
+                          >
+                            {player.name}
+                          </span>
+                        ))}
+                        {hiddenCount > 0 && (
+                          <span className="rounded border border-dashed border-[#00ffff]/40 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]/70">
+                            +{hiddenCount} more
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
-                  <span className="text-sm text-gray-400 font-mono uppercase tracking-wider">
-                    {session.session_date 
-                      ? new Date(session.session_date).toLocaleDateString()
-                      : new Date(session.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </Link>
-            ))}
+                  <div className="flex flex-col gap-1 text-xs text-gray-400 font-mono uppercase tracking-wider">
+                    {scheduledDate ? (
+                      <span>Session Date: {scheduledDate}</span>
+                    ) : (
+                      <span>Session Date: Not set</span>
+                    )}
+                  </div>
+                  {session.notes && (
+                    <p className="text-sm text-gray-300 font-mono line-clamp-3 leading-relaxed">
+                      {session.notes}
+                    </p>
+                  )}
+                </Link>
+              )
+            })}
           </div>
         </div>
       )}

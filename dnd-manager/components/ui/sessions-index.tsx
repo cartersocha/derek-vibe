@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { getVisiblePlayers, type PlayerSummary } from "@/lib/utils";
 
 type CampaignInfo = {
   name: string | null;
@@ -16,6 +17,7 @@ type SessionRecord = {
   campaign_id: string | null;
   campaign: CampaignInfo | null;
   sessionNumber: number | null;
+  players: PlayerSummary[];
 };
 
 type SessionsIndexProps = {
@@ -38,6 +40,7 @@ export function SessionsIndex({ sessions }: SessionsIndexProps) {
         session.name,
         session.campaign?.name ?? "",
         session.notes ?? "",
+        session.players.map((player) => player.name).join(" "),
       ]
         .join(" ")
         .toLowerCase();
@@ -94,45 +97,66 @@ export function SessionsIndex({ sessions }: SessionsIndexProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredSessions.map((session) => (
-            <Link
-              key={session.id}
-              href={`/sessions/${session.id}`}
-              className="block bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50 transition-all duration-200 group"
-            >
-              <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider group-hover:text-[#ff00ff] transition-colors">
-                      {session.name}
-                    </h3>
-                    {session.sessionNumber !== null && session.sessionNumber !== undefined && (
-                      <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
-                        Session #{session.sessionNumber}
-                      </span>
+          {filteredSessions.map((session) => {
+            const { visible: visiblePlayers, hiddenCount } = getVisiblePlayers(session.players, 4);
+
+            return (
+              <Link
+                key={session.id}
+                href={`/sessions/${session.id}`}
+                className="block bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50 transition-all duration-200 group"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider group-hover:text-[#ff00ff] transition-colors">
+                        {session.name}
+                      </h3>
+                      {session.sessionNumber !== null && session.sessionNumber !== undefined && (
+                        <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
+                          Session #{session.sessionNumber}
+                        </span>
+                      )}
+                    </div>
+                    {session.campaign && session.campaign.name && (
+                      <p className="text-sm text-[#ff00ff] mb-2 font-mono">
+                        Campaign: {session.campaign.name}
+                      </p>
+                    )}
+                    {session.notes && (
+                      <p className="text-gray-400 line-clamp-2 font-mono text-sm">
+                        {session.notes}
+                      </p>
+                    )}
+                    {session.players.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
+                        {visiblePlayers.map((player) => (
+                          <span
+                            key={`${session.id}-${player.id}`}
+                            className="rounded border border-[#00ffff] border-opacity-25 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]"
+                          >
+                            {player.name}
+                          </span>
+                        ))}
+                        {hiddenCount > 0 && (
+                          <span className="rounded border border-dashed border-[#00ffff]/40 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]/70">
+                            +{hiddenCount} more
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
-                  {session.campaign && session.campaign.name && (
-                    <p className="text-sm text-[#ff00ff] mb-2 font-mono">
-                      Campaign: {session.campaign.name}
-                    </p>
-                  )}
-                  {session.notes && (
-                    <p className="text-gray-400 line-clamp-2 font-mono text-sm">
-                      {session.notes}
-                    </p>
-                  )}
+                  <div className="text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">
+                    {session.session_date ? (
+                      <div>{new Date(session.session_date).toLocaleDateString()}</div>
+                    ) : (
+                      <div>No date set</div>
+                    )}
+                  </div>
                 </div>
-                <div className="text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">
-                  {session.session_date ? (
-                    <div>{new Date(session.session_date).toLocaleDateString()}</div>
-                  ) : (
-                    <div>No date set</div>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

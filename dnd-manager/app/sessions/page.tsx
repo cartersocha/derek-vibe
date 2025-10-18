@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { SessionsIndex } from '@/components/ui/sessions-index'
+import { extractPlayerSummaries, type SessionCharacterRelation } from '@/lib/utils'
 
 export default async function SessionsPage() {
   const supabase = await createClient()
@@ -8,7 +9,10 @@ export default async function SessionsPage() {
     .from('sessions')
     .select(`
       *,
-      campaign:campaigns(name)
+      campaign:campaigns(name),
+      session_characters:session_characters(
+        character:characters(id, name, class, race, level)
+      )
     `)
     .order('session_date', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
@@ -52,10 +56,18 @@ export default async function SessionsPage() {
     }
   }
 
-  const enrichedSessions = (sessions ?? []).map((session) => ({
-    ...session,
-    sessionNumber: sessionNumberMap.get(session.id) ?? null,
-  }))
+  const enrichedSessions = (sessions ?? []).map((session) => {
+    const rawLinks = Array.isArray(session.session_characters)
+      ? (session.session_characters as SessionCharacterRelation[])
+      : null
+    const players = extractPlayerSummaries(rawLinks)
+
+    return {
+      ...session,
+      sessionNumber: sessionNumberMap.get(session.id) ?? null,
+      players,
+    }
+  })
 
   return <SessionsIndex sessions={enrichedSessions} />
 }

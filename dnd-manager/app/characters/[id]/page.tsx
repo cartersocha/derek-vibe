@@ -5,6 +5,12 @@ import { createClient } from '@/lib/supabase/server'
 import { deleteCharacter, updateCharacterSessions } from '@/lib/actions/characters'
 import { DeleteCharacterButton } from '@/components/ui/delete-character-button'
 import MultiSelectDropdown from '@/components/ui/multi-select-dropdown'
+import {
+  extractPlayerSummaries,
+  getVisiblePlayers,
+  type PlayerSummary,
+  type SessionCharacterRelation,
+} from '@/lib/utils'
 
 type SessionSummary = {
   id: string
@@ -14,6 +20,7 @@ type SessionSummary = {
     id: string
     name: string
   } | null
+  players: PlayerSummary[]
 }
 
 type SessionRow = {
@@ -21,6 +28,7 @@ type SessionRow = {
   name: string
   session_date: string | null
   campaign: { id: string; name: string } | { id: string; name: string }[] | null
+  session_characters: SessionCharacterRelation[] | null
 }
 
 export default async function CharacterPage({ params }: { params: Promise<{ id: string }> }) {
@@ -48,18 +56,33 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
   const { data: allSessionsData } = await supabase
     .from('sessions')
-    .select('id, name, session_date, campaign:campaigns(id, name)')
+    .select(`
+      id,
+      name,
+      session_date,
+      campaign:campaigns(id, name),
+      session_characters:session_characters(
+        character:characters(id, name, class, race, level)
+      )
+    `)
     .order('session_date', { ascending: false })
     .returns<SessionRow[]>()
 
-  const allSessions: SessionSummary[] = (allSessionsData || []).map((session) => ({
-    id: session.id,
-    name: session.name,
-    session_date: session.session_date,
-    campaign: Array.isArray(session.campaign)
+  const allSessions: SessionSummary[] = (allSessionsData || []).map((session) => {
+    const campaign = Array.isArray(session.campaign)
       ? session.campaign[0] ?? null
-      : session.campaign ?? null,
-  }))
+      : session.campaign ?? null
+
+    const players = extractPlayerSummaries(session.session_characters)
+
+    return {
+      id: session.id,
+      name: session.name,
+      session_date: session.session_date,
+      campaign,
+      players,
+    }
+  })
   const linkedSessions = allSessions.filter(session => linkedSessionIds.has(session.id))
 
   const deleteCharacterWithId = deleteCharacter.bind(null, id)
@@ -184,29 +207,50 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
           {linkedSessions.length > 0 ? (
             <div className="space-y-3">
-              {linkedSessions.map((session) => (
-                <Link
-                  key={session.id}
-                  href={`/sessions/${session.id}`}
-                  className="block p-4 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
-                >
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <h4 className="font-medium text-[#00ffff] font-mono text-lg">{session.name}</h4>
-                      {session.campaign?.name && (
-                        <span className="text-xs uppercase tracking-wider text-[#ff00ff] font-semibold">
-                          {session.campaign.name}
+              {linkedSessions.map((session) => {
+                const { visible: visiblePlayers, hiddenCount } = getVisiblePlayers(session.players, 4)
+
+                return (
+                  <Link
+                    key={session.id}
+                    href={`/sessions/${session.id}`}
+                    className="block p-4 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                  >
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <h4 className="font-medium text-[#00ffff] font-mono text-lg">{session.name}</h4>
+                        {session.campaign?.name && (
+                          <span className="text-xs uppercase tracking-wider text-[#ff00ff] font-semibold">
+                            {session.campaign.name}
+                          </span>
+                        )}
+                        {session.players.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
+                            {visiblePlayers.map((player) => (
+                              <span
+                                key={`${session.id}-${player.id}`}
+                                className="rounded border border-[#00ffff] border-opacity-25 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]"
+                              >
+                                {player.name}
+                              </span>
+                            ))}
+                            {hiddenCount > 0 && (
+                              <span className="rounded border border-dashed border-[#00ffff]/40 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]/70">
+                                +{hiddenCount} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {session.session_date && (
+                        <span className="text-sm text-gray-400 font-mono uppercase tracking-wider text-right">
+                          {new Date(session.session_date).toLocaleDateString()}
                         </span>
                       )}
                     </div>
-                    {session.session_date && (
-                      <span className="text-sm text-gray-400 font-mono uppercase tracking-wider text-right">
-                        {new Date(session.session_date).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                )
+              })}
             </div>
           ) : (
             <p className="text-gray-500 font-mono italic">No related sessions yet.</p>

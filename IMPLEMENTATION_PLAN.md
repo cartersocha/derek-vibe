@@ -14,6 +14,8 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-18, evening):** Rolled out campaign-aware session numbering, five-across character grids, compact inline search on the characters tab, and sidebar refinements that double-click collapse and auto-limit width to content.
 
+> **Note (2025-10-18, late night):** Unified session search and attendee chips across pages, expanded the dashboard's recent sessions feed with richer metadata, removed obsolete quick actions, and capped badge rendering for better mobile performance.
+
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
 ## Recent Enhancements (2025-10-18)
@@ -25,9 +27,11 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Backstory and session notes layouts preserve whitespace, while character metadata in selection lists uses a `•` separator for quicker scanning.
 - Textarea resizing, character search filtering, and image preview generation were optimized to reduce layout thrash and memory usage, with server-side sanitization applied to all text fields.
 - Session detail, campaign detail, and session list pages now surface campaign-specific session numbers derived from ascending dates and display related characters in a 1/3/5 responsive grid for better density.
+- Session index mirrors the character tab with an inline search bar, attendee chips, and automated empty-state handling while filtering by campaign, notes, and player names.
+- Character, session, campaign, and dashboard views now share a common attendee badge renderer that collapses overflow into a concise `+N more` pill for dense parties.
 - Characters index gained a compact inline search bar colocated with the create button, along with a five-card responsive grid and empty-state messaging.
 - Sidebar resizing enforces an auto-measured maximum width and supports double-click toggles directly from the panel and resize handle for quicker interactions.
-- Dashboard recent sessions showcase the campaign-aware session number badges alongside dates for quick chronological context.
+- Dashboard recent sessions panel expanded to six entries, added note previews and attendee chips, and removed the redundant quick action tiles to streamline the layout.
 
 ## Project Overview
 

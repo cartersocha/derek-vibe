@@ -71,37 +71,26 @@
 
 ```typescript
 app/
-├── page.tsx                          # Home page (redirects to /dashboard)
-├── layout.tsx                        # Root layout with Analytics
 ├── globals.css                       # Tailwind imports and custom styles
 ├── login/
 │   └── page.tsx                      # Password login page
 ├── dashboard/
-│   ├── layout.tsx                    # Dashboard layout
-│   └── page.tsx                      # Dashboard overview with stats
-├── campaigns/
+  - List of participating characters with links laid out in a 1/3/5 responsive grid to surface more attendees at a glance
+  - Character roster chips reused across dashboards, campaign lists, and character histories with capped visible badges and a "+N more" indicator for overflow
 │   ├── layout.tsx                    # Campaigns layout with nav
 │   ├── page.tsx                      # Campaigns list
 │   ├── [id]/
-│   │   ├── page.tsx                  # Campaign detail view
-│   │   └── edit/
-│   │       └── page.tsx              # Campaign edit page
 │   └── new/
 │       └── page.tsx                  # New campaign form
-├── sessions/
 │   ├── layout.tsx                    # Sessions layout with nav
 │   ├── page.tsx                      # Sessions list
 │   ├── [id]/
-│   │   ├── page.tsx                  # Session detail view
-│   │   └── edit/
-│   │       └── page.tsx              # Session edit page
+  - 6 most recent sessions with dates, campaign-aware session numbers, player badge chips (with overflow counter), and note previews
 │   └── new/
 │       └── page.tsx                  # New session form
 └── characters/
     ├── layout.tsx                    # Characters layout with nav
     ├── page.tsx                      # Characters list
-    ├── [id]/
-    │   ├── page.tsx                  # Character detail view
     │   └── edit/
     │       └── page.tsx              # Character edit page
     └── new/
@@ -197,8 +186,15 @@ app/
   - Session date
   - Notes presented in a styled panel with preserved line breaks
   - List of participating characters with links laid out in a 1/3/5 responsive grid to surface more attendees at a glance
+  - Player chips reused across dashboard, campaigns, and character detail pages with overflow condensed into a `+N more` badge
 - Campaign-specific ordering assigns a session number based on ascending session date; numbering appears on the sessions list, campaign detail cards, and session detail header when a campaign provides dated entries
 - Unsaved session note drafts persist locally across navigation and are cleared after a successful submission to prevent data loss
+
+#### Sessions Index
+
+- Inline search input styled consistently with the character tab, filtering by session name, campaign name, notes, and attendee names
+- Player chips on each card are capped at four visible entries with a `+N more` overflow indicator for dense parties
+- Search control automatically disables when no sessions exist to avoid unnecessary input handling
 
 ### Characters
 
@@ -211,7 +207,7 @@ app/
   - Level (1-20)
   - Backstory/notes (long text)
 - Character selection lists render race and class with a separator dot instead of parentheses for clarity
-- View all sessions character has participated in
+- View all sessions character has participated in with inline player chips showing fellow attendees (capped at four visible with overflow indicator)
 - Character detail view shows:
   - Portrait image (if uploaded)
   - Race, class, and level
@@ -237,11 +233,7 @@ app/
   - Total sessions count
   - Total characters count
 - Recent activity:
-  - 5 most recent sessions with dates and campaign-aware session numbers when available
-- Quick action links:
-  - Create new campaign
-  - Create new session
-  - Create new character
+  - Up to 6 most recent sessions with campaign-aware session numbers, scheduled dates, note previews, and attendee chips with overflow indicators
 - Cyberpunk-themed UI with neon accents
 
 ## 6. Technical Implementation Details
