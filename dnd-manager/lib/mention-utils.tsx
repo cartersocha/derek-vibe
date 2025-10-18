@@ -23,11 +23,16 @@ export function renderNotesWithMentions(text: string, targets: MentionTarget[]):
   return tokens.map((token, index) => {
     if (token.type === 'mention') {
       const label = `@${token.target.name}`
+      const colorClasses =
+        token.target.kind === 'character'
+          ? 'text-[#2de2e6] decoration-[#2de2e6]/70 hover:text-[#65f8ff] focus-visible:ring-[#2de2e6]/50'
+          : 'text-[#ff6ad5] decoration-[#ff6ad5]/70 hover:text-[#ff94e3] focus-visible:ring-[#ff6ad5]/50'
+
       return (
         <Link
           key={`mention-link-${token.target.id}-${index}`}
           href={token.target.href}
-          className="text-[#ff00ff] underline decoration-dotted underline-offset-4 decoration-[#ff00ff]/70 hover:text-[#ff66ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff]/50"
+          className={`underline decoration-dotted underline-offset-4 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 ${colorClasses}`}
         >
           {label}
         </Link>

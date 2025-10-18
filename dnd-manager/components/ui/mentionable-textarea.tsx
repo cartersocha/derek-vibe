@@ -33,8 +33,8 @@ function MentionKindLabel({ kind }: MentionKindLabelProps) {
   const label = kind === "character" ? "Character" : "Session"
   const colorClasses =
     kind === "character"
-      ? "border-[#00ffff] text-[#00ffff]"
-      : "border-[#ff00ff] text-[#ff00ff]"
+      ? "border-[#2de2e6] text-[#2de2e6]"
+      : "border-[#ff6ad5] text-[#ff6ad5]"
 
   return (
     <span
@@ -486,6 +486,8 @@ export default function MentionableTextarea({
             <>
               {mentionOptions.map((option, index) => {
                 const isActive = index === mentionHighlightIndex
+                const baseTextColor = option.kind === "character" ? "text-[#2de2e6]" : "text-[#ff6ad5]"
+                const activeTextColor = option.kind === "character" ? "text-[#65f8ff]" : "text-[#ff94e3]"
                 return (
                   <button
                     key={`${option.kind}-${option.id}`}
@@ -496,7 +498,7 @@ export default function MentionableTextarea({
                     onClick={() => handleMentionClick(option)}
                     onMouseEnter={() => handleMentionHover(index)}
                     className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
-                      isActive ? "bg-[#1a1a3e] text-[#ff00ff]" : "text-[#00ffff] hover:bg-[#11112b]"
+                      isActive ? `bg-[#1a1a3e] ${activeTextColor}` : `${baseTextColor} hover:bg-[#11112b]`
                     }`}
                   >
                     <span className="font-semibold">{option.name}</span>
@@ -515,14 +517,14 @@ export default function MentionableTextarea({
                   disabled={isCreatingMentionCharacter}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
                     mentionHighlightIndex === mentionOptions.length
-                      ? "bg-[#1a1a3e] text-[#ff00ff]"
-                      : "text-[#ff00ff] hover:bg-[#11112b]"
+                      ? "bg-[#1a1a3e] text-[#65f8ff]"
+                      : "text-[#2de2e6] hover:bg-[#11112b]"
                   } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
                 >
                   <span className="font-semibold">
                     {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
                   </span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#ff00ff]">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#2de2e6]">
                     New Character
                   </span>
                 </button>

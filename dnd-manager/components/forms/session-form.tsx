@@ -1071,8 +1071,8 @@ export default function SessionForm({
                     onMouseEnter={() => setMentionHighlightIndex(index)}
                     className={`flex w-full items-start gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
                       isActive
-                        ? 'bg-[#1a1a3e] text-[#ff00ff]'
-                        : 'text-[#00ffff] hover:bg-[#11112b]'
+                        ? 'bg-[#1a1a3e] text-[#65f8ff]'
+                        : 'text-[#2de2e6] hover:bg-[#11112b]'
                     }`}
                   >
                     <span className="font-semibold">{character.name}</span>
@@ -1090,8 +1090,8 @@ export default function SessionForm({
                   onClick={() => void handleCreateCharacterInline()}
                   className={`flex w-full items-start gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
                     mentionHighlightIndex === mentionOptions.length
-                      ? 'bg-[#1a1a3e] text-[#ff00ff]'
-                      : 'text-[#ff00ff] hover:bg-[#11112b]'
+                      ? 'bg-[#1a1a3e] text-[#65f8ff]'
+                      : 'text-[#2de2e6] hover:bg-[#11112b]'
                   }`}
                   disabled={isCreatingMentionCharacter}
                 >
