@@ -730,12 +730,13 @@ export interface CharacterWithSessions extends Character {
 ## Phase 5: Organization Management Rollout
 
 ### Step 5.1: Database Migration for Organizations
-**Goal**: Introduce first-class organization support with Supabase migrations
+**Goal**: Add organization affiliations for campaigns, sessions, and characters
 
 **Tasks**:
-- Author `supabase/migrations/` scripts that create `organizations`, `organization_members`, and linking FKs to campaigns.
-- Ensure triggers mirror the existing `update_updated_at_column` pattern for organization tables.
-- Backfill existing campaigns with a default organization to preserve current routing semantics.
+- Author `supabase/migrations/` scripts that create `organizations` (with `logo_url` and timestamps) plus the `organization_campaigns`, `organization_sessions`, and `organization_characters` join tables.
+- Apply a CHECK constraint on `organization_characters.role` limited to `npc` and `player` with a default of `npc`.
+- Seed existing records into a default organization or backfill affiliation rows so current content remains visible post-migration.
+- Ensure triggers update `organizations.updated_at` on change and add convenient indexes on each join table for faster lookups by organization and entity IDs.
 
 **Files Touched**:
 - `supabase/migrations/20XXYYZZ_add_organizations.sql`
@@ -746,10 +747,11 @@ export interface CharacterWithSessions extends Character {
 **Goal**: Wire organization workflows into server-side logic
 
 **Tasks**:
-- Add `lib/actions/organizations.ts` with CRUD handlers that reuse `sanitizeText` and `sanitizeNullableText` from `lib/security/sanitize.ts`.
+- Add `lib/actions/organizations.ts` with CRUD handlers that reuse `sanitizeText` and `sanitizeNullableText` from `lib/security/sanitize.ts`, including optional logo uploads.
 - Extend `lib/mention-utils.ts` to expose organization targets, keeping the shared mention parsing behavior intact.
-- Create validation schema in `lib/validations/organization.ts` aligned with existing Zod patterns.
-- Update campaign, session, and character actions to accept organization context IDs while preserving mention hydration logic.
+- Create validation schema in `lib/validations/organization.ts` aligned with existing Zod patterns and enforcing role options for affiliations.
+- Update campaign, session, and character actions to create/update affiliation rows in the respective join tables while preserving mention hydration logic.
+- Introduce helper utilities that sync organization-session affiliations when a session is added to a campaign linked to multiple organizations.
 
 **Files Touched**:
 - `lib/actions/organizations.ts`
@@ -763,16 +765,17 @@ export interface CharacterWithSessions extends Character {
 **Goal**: Deliver end-to-end organization management screens
 
 **Tasks**:
-- Scaffold `app/(protected)/organizations/` routes (list, new, detail, members) using existing `Synthwave` UI primitives.
+- Scaffold `app/(protected)/organizations/` routes (list, new, detail, edit) using existing `Synthwave` UI primitives.
 - Add `app/organizations/layout.tsx` that parallels campaigns layout with responsive sidebar hooks and feeds shared params into the protected subtree.
-- Introduce `components/organizations/` for cards, forms, and member chips, reusing `MentionableTextarea` for description fields to leverage shared mention rendering.
+- Introduce `components/organizations/` for cards, forms, and affiliation chips, reusing `MentionableTextarea` for description fields and `ImageUpload` for optional logos.
+- Build detail views that summarize linked campaigns, sessions, and characters with role indicators and quick actions to attach/detach affiliations.
 - Ensure client components pull sanitized content and display mention highlights via `renderNotesWithMentions`.
 
 **Files Touched**:
 - `app/(protected)/organizations/page.tsx`
 - `app/(protected)/organizations/new/page.tsx`
 - `app/(protected)/organizations/[id]/page.tsx`
-- `app/(protected)/organizations/[id]/members/page.tsx`
+- `app/(protected)/organizations/[id]/edit/page.tsx`
 - `app/(protected)/organizations/layout.tsx`
 - `components/organizations/*`
 
@@ -783,10 +786,10 @@ export interface CharacterWithSessions extends Character {
 
 **Tasks**:
 - Verify migrations against Supabase preview databases and production shadow copies.
-- Exercise server actions with organization scoping, ensuring mention dropdowns reference organizations alongside characters and sessions.
-- Confirm sanitization removes unsafe markup in organization descriptions, matching campaign/session behavior.
-- Run manual regression across `app/organizations` flows, invitations, and membership removal.
-- Capture QA notes for reuse in future multi-tenant enhancements.
+- Exercise server actions with organization affiliations, ensuring mention dropdowns reference organizations alongside characters and sessions.
+- Confirm sanitization removes unsafe markup in organization descriptions and that logo uploads respect storage limits.
+- Run manual regression across `app/organizations` flows, campaign/session/character attachment toggles, and player vs NPC role rendering.
+- Capture QA notes for reuse in future multi-organization enhancements.
 
 **Files Referenced**:
 - `app/(protected)/organizations/*`

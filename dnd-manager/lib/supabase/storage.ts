@@ -1,6 +1,6 @@
 import { put, del } from '@vercel/blob'
 
-type StorageBucket = 'character-images' | 'session-images'
+type StorageBucket = 'character-images' | 'session-images' | 'organization-logos'
 
 export async function uploadImage(
   bucket: StorageBucket,

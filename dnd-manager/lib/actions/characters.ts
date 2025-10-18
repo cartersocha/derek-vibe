@@ -15,12 +15,33 @@ import { characterSchema } from "@/lib/validations/schemas";
 import { sanitizeNullableText, sanitizeText } from "@/lib/security/sanitize";
 import { CharacterStatus, PlayerType } from "@/lib/characters/constants";
 import { toTitleCase } from "@/lib/utils";
+import {
+  resolveOrganizationIds,
+  setCharacterOrganizations,
+} from "@/lib/actions/organizations";
+import { extractCharacterOrganizationAffiliations } from "@/lib/organizations/helpers";
+import type { CharacterOrganizationAffiliationInput } from "@/lib/validations/organization";
 
 const CHARACTER_BUCKET = "character-images" as const;
 
 export async function createCharacter(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const characterId = randomUUID();
+
+  const organizationFieldProvided =
+    formData.has("organization_roles") ||
+    formData.has("organization_ids") ||
+    formData.has("organization_id");
+
+  let organizationAffiliations = extractCharacterOrganizationAffiliations(formData);
+
+  if (organizationAffiliations.length === 0 && !organizationFieldProvided) {
+    const fallbackOrganizationIds = await resolveOrganizationIds(supabase, []);
+    organizationAffiliations = fallbackOrganizationIds.map((organizationId) => ({
+      organizationId,
+      role: "npc" as CharacterOrganizationAffiliationInput["role"],
+    }));
+  }
 
   const imageFile = getFile(formData, "image");
   let imageUrl: string | null = null;
@@ -70,6 +91,11 @@ export async function createCharacter(formData: FormData): Promise<void> {
     throw new Error(error.message);
   }
 
+  if (organizationAffiliations.length > 0 || organizationFieldProvided) {
+    await setCharacterOrganizations(supabase, characterId, organizationAffiliations);
+    revalidatePath("/organizations");
+  }
+
   const newlyLinkedSessions = await ensureMentionedSessionsLinked(
     supabase,
     characterId,
@@ -106,7 +132,10 @@ export async function createCharacter(formData: FormData): Promise<void> {
   redirect("/characters");
 }
 
-export async function createCharacterInline(name: string): Promise<{
+export async function createCharacterInline(
+  name: string,
+  organizationIds?: string[]
+): Promise<{
   id: string;
   name: string;
 }> {
@@ -131,6 +160,25 @@ export async function createCharacterInline(name: string): Promise<{
     throw new Error(error.message);
   }
 
+  const desiredOrganizationIds = Array.isArray(organizationIds)
+    ? organizationIds
+    : [];
+
+  const resolvedOrganizationIds = await resolveOrganizationIds(
+    supabase,
+    desiredOrganizationIds
+  );
+
+  if (resolvedOrganizationIds.length > 0) {
+    const affiliations = resolvedOrganizationIds.map((organizationId) => ({
+      organizationId,
+      role: "npc" as CharacterOrganizationAffiliationInput["role"],
+    }));
+
+    await setCharacterOrganizations(supabase, characterId, affiliations);
+    revalidatePath("/organizations");
+  }
+
   revalidatePath("/characters");
 
   return {
@@ -144,6 +192,15 @@ export async function updateCharacter(
   formData: FormData
 ): Promise<void> {
   const supabase = await createClient();
+
+  const organizationFieldProvided =
+    formData.has("organization_roles") ||
+    formData.has("organization_ids") ||
+    formData.has("organization_id");
+
+  const organizationAffiliations = organizationFieldProvided
+    ? extractCharacterOrganizationAffiliations(formData)
+    : [];
 
   const { data: existing, error: fetchError } = await supabase
     .from("characters")
@@ -223,6 +280,11 @@ export async function updateCharacter(
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (organizationFieldProvided) {
+    await setCharacterOrganizations(supabase, id, organizationAffiliations);
+    revalidatePath("/organizations");
   }
 
   const newlyLinkedSessions = await ensureMentionedSessionsLinked(

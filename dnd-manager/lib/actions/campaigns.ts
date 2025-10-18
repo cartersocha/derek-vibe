@@ -1,12 +1,19 @@
-'use server'
+"use server"
 
+import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { campaignSchema } from '@/lib/validations/schemas'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
+import { resolveOrganizationIds, setCampaignOrganizations } from '@/lib/actions/organizations'
+import { extractOrganizationIds } from '@/lib/organizations/helpers'
 
-export async function createCampaignInline(name: string, description?: string | null): Promise<{ id: string; name: string }> {
+export async function createCampaignInline(
+  name: string,
+  description?: string | null,
+  organizationIds?: string[]
+): Promise<{ id: string; name: string }> {
   const supabase = await createClient()
 
   const data = {
@@ -19,9 +26,11 @@ export async function createCampaignInline(name: string, description?: string | 
     throw new Error('Validation failed')
   }
 
+  const campaignId = randomUUID()
+
   const { data: created, error } = await supabase
     .from('campaigns')
-    .insert(result.data)
+    .insert({ id: campaignId, ...result.data })
     .select('id, name')
     .single()
 
@@ -33,12 +42,27 @@ export async function createCampaignInline(name: string, description?: string | 
     throw new Error('Failed to create campaign')
   }
 
+  const desiredOrganizationIds = Array.isArray(organizationIds) ? organizationIds : []
+  const resolvedOrganizationIds = await resolveOrganizationIds(
+    supabase,
+    desiredOrganizationIds
+  )
+
+  await setCampaignOrganizations(supabase, created.id, resolvedOrganizationIds)
+
   revalidatePath('/campaigns')
+  if (resolvedOrganizationIds.length > 0) {
+    revalidatePath('/organizations')
+  }
   return created
 }
 
 export async function createCampaign(formData: FormData): Promise<void> {
   const supabase = await createClient()
+
+  const organizationFieldProvided =
+    formData.has('organization_ids') || formData.has('organization_id')
+  const discoveredOrganizationIds = extractOrganizationIds(formData)
 
   const rawName = formData.get('name')
   const data = {
@@ -51,12 +75,28 @@ export async function createCampaign(formData: FormData): Promise<void> {
     throw new Error('Validation failed')
   }
 
+  const campaignId = randomUUID()
+
   const { error } = await supabase
     .from('campaigns')
-    .insert(result.data)
+    .insert({ id: campaignId, ...result.data })
 
   if (error) {
     throw new Error(error.message)
+  }
+
+  let resolvedOrganizationIds = Array.from(new Set(discoveredOrganizationIds))
+
+  if (resolvedOrganizationIds.length === 0 && !organizationFieldProvided) {
+    resolvedOrganizationIds = await resolveOrganizationIds(supabase, [])
+  }
+
+  if (resolvedOrganizationIds.length > 0 || organizationFieldProvided) {
+    await setCampaignOrganizations(supabase, campaignId, resolvedOrganizationIds)
+  }
+
+  if (resolvedOrganizationIds.length > 0) {
+    revalidatePath('/organizations')
   }
 
   revalidatePath('/campaigns')
@@ -65,6 +105,10 @@ export async function createCampaign(formData: FormData): Promise<void> {
 
 export async function updateCampaign(id: string, formData: FormData): Promise<void> {
   const supabase = await createClient()
+
+  const organizationFieldProvided =
+    formData.has('organization_ids') || formData.has('organization_id')
+  const discoveredOrganizationIds = extractOrganizationIds(formData)
 
   const rawName = formData.get('name')
   const data = {
@@ -84,6 +128,12 @@ export async function updateCampaign(id: string, formData: FormData): Promise<vo
 
   if (error) {
     throw new Error(error.message)
+  }
+
+  if (organizationFieldProvided) {
+    const resolvedOrganizationIds = Array.from(new Set(discoveredOrganizationIds))
+    await setCampaignOrganizations(supabase, id, resolvedOrganizationIds)
+    revalidatePath('/organizations')
   }
 
   revalidatePath('/campaigns')

@@ -1,66 +1,106 @@
 # D&D Campaign Manager - Technical Specification
 
-## 1. Project Overview
-
-**Name**: D&D Campaign Manager  
-**Stack**: Next.js 15.5.6 (App Router), TypeScript, Tailwind CSS, Supabase  
-**Architecture**: Full-stack Next.js with Supabase for database  
-**Storage**: Vercel Blob Storage for images  
-**Authentication**: Simple password-based authentication with iron-session
-
-## 2. Database Schema (Supabase PostgreSQL)
-
-### Tables
-
-#### `campaigns`
-
-- `id` (uuid, PK)
-- `name` (text, required)
-- `description` (text)
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
-
-#### `sessions`
-
-- `id` (uuid, PK)
-- `campaign_id` (uuid, FK to campaigns.id, nullable)
-- `name` (text, required)
-- `session_date` (date)
-- `notes` (text)
-- `header_image_url` (text, nullable)
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
-
-#### `characters`
-
-- `id` (uuid, PK)
-- `name` (text, required)
-- `race` (text)
-- `class` (text)
-- `level` (integer)
-- `backstory` (text)
-- `image_url` (text, nullable)
-- `created_at` (timestamp)
-- `updated_at` (timestamp)
-
-#### `session_characters` (junction table)
-
-- `id` (uuid, PK)
-- `session_id` (uuid, FK to sessions.id)
-- `character_id` (uuid, FK to characters.id)
-- `created_at` (timestamp)
-- Unique constraint on (session_id, character_id)
-
-### Vercel Blob Storage
-
-- Character images stored in Vercel Blob Storage
-- Public read access via CDN URLs
-- Automatic file naming: `character-images/characters/{character-id}/{filename}`
-- Max file size: 5MB
-- Supported formats: JPG, PNG, WebP, GIF
-- Files served from Vercel's global CDN
-
-### Database Policies
+```typescript
+dnd-manager/
+├── app/                              # Next.js app directory
+│   ├── layout.tsx                    # Root layout
+│   ├── page.tsx                      # Home page (redirects to dashboard)
+│   ├── globals.css                   # Global styles and Tailwind
+│   ├── login/
+│   │   └── page.tsx                  # Login page
+│   ├── dashboard/
+│   │   ├── layout.tsx                # Dashboard layout
+│   │   └── page.tsx                  # Dashboard with stats
+│   ├── campaigns/
+│   │   ├── layout.tsx                # Campaigns layout
+│   │   ├── page.tsx                  # Campaigns list
+│   │   ├── [id]/
+│   │   │   ├── page.tsx              # Campaign detail
+│   │   │   └── edit/
+│   │   │       └── page.tsx          # Edit campaign
+│   │   └── new/
+│   │       └── page.tsx              # New campaign
+│   ├── sessions/
+│   │   ├── layout.tsx                # Sessions layout
+│   │   ├── page.tsx                  # Sessions list
+│   │   ├── [id]/
+│   │   │   ├── page.tsx              # Session detail
+│   │   │   └── edit/
+│   │   │       └── page.tsx          # Edit session
+│   │   └── new/
+│   │       └── page.tsx              # New session
+│   ├── characters/
+│   │   ├── layout.tsx                # Characters layout
+│   │   ├── page.tsx                  # Characters list
+│   │   ├── [id]/
+│   │   │   ├── page.tsx              # Character detail
+│   │   │   └── edit/
+│   │   │       └── page.tsx          # Edit character
+│   │   └── new/
+│   │       └── page.tsx              # New character
+│   └── organizations/
+│       ├── layout.tsx                # Organizations layout
+│       ├── page.tsx                  # Organizations list
+│       ├── [id]/
+│       │   ├── page.tsx              # Organization detail
+│       │   └── edit/
+│       │       └── page.tsx          # Edit organization
+│       └── new/
+│           └── page.tsx              # New organization
+├── components/                       # React components
+│   ├── ui/                          # Reusable UI components
+│   │   ├── auto-resize-textarea.tsx # Auto-growing textarea component
+│   │   ├── image-upload.tsx         # Image upload component
+│   │   ├── delete-character-button.tsx
+│   │   ├── delete-session-button.tsx
+│   │   └── delete-campaign-button.tsx
+│   ├── forms/                       # Form components
+│   │   ├── character-edit-form.tsx  # Character edit form
+│   │   └── session-form.tsx         # Session form with character select
+│   ├── organizations/               # Organization-specific UI
+│   │   ├── organization-form.tsx    # Organization create/edit form
+│   │   └── affiliation-chips.tsx    # Organization affiliation chips
+│   └── layout/                      # Layout components
+│       └── navbar.tsx               # Navigation bar
+├── lib/                             # Utilities and helpers
+│   ├── supabase/
+│   │   ├── client.ts               # Client-side Supabase client
+│   │   ├── server.ts               # Server-side Supabase client
+│   │   └── storage.ts              # Vercel Blob image upload/delete utilities
+│   ├── auth/
+│   │   ├── session.ts              # iron-session configuration
+│   │   └── actions.ts              # Auth server actions
+│   ├── actions/                    # Server actions
+│   │   ├── campaigns.ts            # Campaign CRUD actions
+│   │   ├── sessions.ts             # Session CRUD actions
+│   │   ├── characters.ts           # Character CRUD actions
+│   │   └── organizations.ts        # Organization CRUD actions
+│   ├── validations/
+│   │   ├── schemas.ts              # Zod validation schemas
+│   │   └── organization.ts         # Organization-specific schema
+│   └── utils.ts                    # Helper functions
+├── types/                           # TypeScript types
+│   └── database.ts                 # Database types
+├── supabase/
+│   └── migrations/                 # Database migrations
+│       ├── 20241017_initial_schema.sql
+│       ├── 20241017_remove_ability_scores.sql
+│       ├── 20241018_add_character_player_type_location.sql
+│       ├── 20241018_add_character_status.sql
+│       ├── 20241018_change_character_level_to_text.sql
+│       └── 20241020_add_organizations.sql
+├── public/                          # Static assets
+├── middleware.ts                    # Auth middleware
+├── .env.local                       # Environment variables (not committed)
+├── .gitignore                       # Git ignore file
+├── next.config.ts                   # Next.js configuration
+├── tailwind.config.ts               # Tailwind configuration
+├── tsconfig.json                    # TypeScript configuration
+├── package.json                     # Dependencies
+├── SPEC.md                          # Technical specification
+├── IMPLEMENTATION_PLAN.md           # Implementation guide
+└── PROJECT_SUMMARY.md               # Project documentation
+```
 
 - No Row Level Security (RLS) needed - basic password protection handles all access
 - Cascade deletes: Deleting a campaign deletes sessions, deleting sessions removes session_characters entries
@@ -72,29 +112,49 @@
 ```typescript
 app/
 ├── globals.css                       # Tailwind imports and custom styles
+├── layout.tsx                        # Root layout with providers and analytics
+├── page.tsx                          # Landing page (redirects to dashboard)
 ├── login/
 │   └── page.tsx                      # Password login page
 ├── dashboard/
-  - List of participating characters with links laid out in a 1/3/5 responsive grid to surface more attendees at a glance
-  - Character roster chips reused across dashboards, campaign lists, and character histories with capped visible badges and a "+N more" indicator for overflow
-│   ├── layout.tsx                    # Campaigns layout with nav
-│   ├── page.tsx                      # Campaigns list
+│   ├── layout.tsx                    # Dashboard layout with metrics grid
+│   └── page.tsx                      # Dashboard with stats and recent sessions
+├── campaigns/
+│   ├── layout.tsx                    # Campaigns layout scoped to organization
+│   ├── page.tsx                      # Campaigns list filtered by organization
 │   ├── [id]/
+│   │   ├── page.tsx                  # Campaign detail view
+│   │   └── edit/
+│   │       └── page.tsx              # Edit campaign
 │   └── new/
 │       └── page.tsx                  # New campaign form
-│   ├── layout.tsx                    # Sessions layout with nav
-│   ├── page.tsx                      # Sessions list
+├── sessions/
+│   ├── layout.tsx                    # Sessions layout scoped to organization
+│   ├── page.tsx                      # Sessions list with filtering
 │   ├── [id]/
-  - 6 most recent sessions with dates, campaign-aware session numbers, player badge chips (with overflow counter), and note previews
+│   │   ├── page.tsx                  # Session detail view
+│   │   └── edit/
+│   │       └── page.tsx              # Edit session
 │   └── new/
 │       └── page.tsx                  # New session form
-└── characters/
-    ├── layout.tsx                    # Characters layout with nav
-    ├── page.tsx                      # Characters list
-    │   └── edit/
-    │       └── page.tsx              # Character edit page
-    └── new/
-        └── page.tsx                  # New character form
+├── characters/
+│   ├── layout.tsx                    # Characters layout scoped to organization
+│   ├── page.tsx                      # Characters list with search
+│   ├── [id]/
+│   │   ├── page.tsx                  # Character detail view
+│   │   └── edit/
+│   │       └── page.tsx              # Edit character
+│   └── new/
+│       └── page.tsx                  # New character form
+└── organizations/
+  ├── layout.tsx                    # Organizations layout with synthwave sidebar
+  ├── page.tsx                      # Organizations list page
+  ├── [id]/
+  │   ├── page.tsx                  # Organization overview with linked campaigns, sessions, and characters
+  │   └── edit/
+  │       └── page.tsx              # Edit organization details
+  └── new/
+    └── page.tsx                  # Create organization flow
 ```
 
 **Note**: The home page (`/`) automatically redirects to `/dashboard`, which then redirects unauthenticated users to `/login` via middleware.
@@ -117,6 +177,9 @@ app/
 - `SessionForm` - Create/edit session with character selection and draft auto-save
   - Location: `components/forms/session-form.tsx`
   - Client component with search, hidden selection syncing, redirect-aware character creation, and inline `@` mention menus that surface character matches at the caret while supporting keyboard navigation and inline character creation when no match exists
+- `OrganizationForm` - Create/edit organization with sanitized description, optional logo, and mention-enabled notes
+  - Location: `components/organizations/organization-form.tsx`
+  - Client component that reuses `MentionableTextarea`, supports logo preview uploads, and forwards organization context IDs into affiliation actions
 
 #### UI Components
 
@@ -136,7 +199,7 @@ app/
   - Remove image functionality
 - `Mention Utils` - Shared helpers for rendering and parsing character mentions
   - Location: `lib/mention-utils.tsx`
-  - Exports render helpers, boundary checks, and mention target types reused by session detail pages and list summaries
+  - Exports render helpers, boundary checks, and mention target types reused by session detail pages, organization summaries, and list rollups for characters, sessions, organizations, and NPC/player chips
 - `DeleteCharacterButton` - Confirmation dialog for character deletion
   - Location: `components/ui/delete-character-button.tsx`
   - Client component with confirmation prompt
@@ -146,6 +209,9 @@ app/
 - `DeleteCampaignButton` - Confirmation dialog for campaign deletion
   - Location: `components/ui/delete-campaign-button.tsx`
   - Client component with confirmation prompt
+- `AffiliationChips` - Reusable chip renderer that displays organization-linked entities with NPC/player role tinting
+  - Location: `components/organizations/affiliation-chips.tsx`
+  - Client component shared across organization pages, dashboards, and campaign detail views
 
 ## 5. Features & Functionality
 
@@ -159,22 +225,33 @@ app/
 - No user accounts or registration needed
 - Session persists across browser sessions
 
+### Organizations
+
+- Create, read, update, and delete organizations that act as the thematic container for campaigns, sessions, and characters
+- Organization descriptions leverage the mentionable textarea so staff can reference sessions and characters inline while drafting notes; optional logos provide quick visual anchors
+- Link campaigns and sessions to multiple organizations through affiliation join tables without duplicating underlying records
+- Associate characters with organizations while denoting whether they appear as `player` or `npc`; chips inherit the role tint whenever rendered under an organization scope
+- Organization context threads through server actions so downstream mutations enforce affiliation constraints and sanitize text inputs consistently with other entities
+- Switching organizations re-runs dashboard, campaign, session, and character queries using the join tables to keep multi-organization setups isolated
+
 ### Campaigns
 
 - Create, read, update, delete campaigns
-- List all campaigns with session count
-- View campaign details with associated sessions
-- Optional campaign assignment (sessions can exist without campaigns)
+- Associate campaigns with one or more organizations via the `organization_campaigns` join table; UI lets users toggle organization affiliations without duplicating campaign data
+- List all campaigns with session count, filtered by the active organization when one is selected
+- View campaign details with associated sessions and any organizations they belong to
+- Optional campaign assignment (sessions can exist without campaigns) still applies; affiliation records update automatically when linking or unlinking sessions and campaigns inside an organization
 - Campaigns display:
   - Name and description
   - Total sessions count
   - Created and last updated dates
   - List of all sessions in campaign
+  - Organization chips summarizing linked groups
 
 ### Sessions
 
 - Create, read, update, delete sessions
-- Assign to campaign (optional)
+- Assign to campaign (optional) while preserving organization linkage for standalone sessions via direct `organization_sessions` affiliations
 - Set session date
 - Plain text notes field with auto-resizing textarea and localStorage draft auto-save
 - Upload and display header image (stored in Supabase Storage)
@@ -199,6 +276,7 @@ app/
 - Mention hyperlinks and dropdown badges are color-coded by target type (character vs session) to keep references scannable in both drafting and rendered views
 - Mentioned characters are auto-selected for the session’s attendee list to keep relationships in sync
 - Session names are normalized to title case when saved so campaign and dashboard views stay consistent even if inputs vary
+- Sessions linked to campaigns automatically sync their organization affiliations, while standalone sessions can be attached directly to organizations for dashboard filtering
 
 #### Sessions Index
 
@@ -227,13 +305,14 @@ app/
 - Characters index includes a compact inline search field beside the create button and renders results in a responsive five-card-wide grid with graceful empty states when no matches are found
 - Characters can also be created on-the-fly from session notes mentions; the inline creation path captures only the required name and routes the user back to their in-progress draft with the new character linked
 - Character backstory editors reuse the caret-anchored mention dropdown (including inline character creation) so relationships stay in sync while drafting, and saved names are normalized to title case for consistent display across the app
+- Characters can be affiliated with organizations while marking their role (`npc` vs `player`) for that context; dashboards and character lists tint chips accordingly
 
 ### Image Management
 
-- Upload images for characters only (sessions do not have images)
-- Image preview before upload with drag-and-drop support
-- Store images in Vercel Blob Storage with public CDN access
-- Delete old images when updating/removing
+- Upload images for characters (portraits) and sessions (header images)
+- Image preview before upload with drag-and-drop support and automatic blob URL cleanup
+- Store images in Vercel Blob Storage (`character-images`, `session-images`, and `organization-logos`) with public CDN access
+- Delete or replace prior uploads when updating/removing assets to avoid orphaned blobs
 - Supported formats: JPG, PNG, WebP, GIF
 - Max file size: 5MB
 - Images served via Vercel's global CDN for fast delivery
@@ -247,6 +326,7 @@ app/
 - Recent activity:
   - Up to 6 most recent sessions with campaign-aware session numbers, scheduled dates, note previews, and attendee chips with overflow indicators
 - Cyberpunk-themed UI with neon accents
+- Switching organizations revalidates dashboard metrics and recent sessions so stats always reflect the active tenant without leaking cross-organization data
 
 ## 6. Technical Implementation Details
 
@@ -259,6 +339,7 @@ app/
 - No client-side state management library needed
 - Client-visible form inputs are sanitized server-side with `sanitize-html` before validation or persistence
 - Long-form textareas (session notes, campaign descriptions, and character backstories) enable browser spellcheck to catch typos during drafting
+- Organization forms reuse the same sanitization helpers so descriptions and member notes stay free of unsafe markup while still supporting color-coded mention links
 
 ### Data Fetching
 
@@ -267,6 +348,7 @@ app/
 - revalidatePath() for cache invalidation after mutations
 - redirect() for navigation after successful mutations
 - No client-side data fetching libraries needed
+- Active organization IDs come from the protected layout and feed Supabase queries that join against `organization_campaigns`, `organization_sessions`, and `organization_characters` so cross-tenant data stays isolated
 
 ### Styling
 
@@ -376,6 +458,9 @@ dnd-manager/
 │   ├── forms/                       # Form components
 │   │   ├── character-edit-form.tsx  # Character edit form
 │   │   └── session-form.tsx         # Session form with character select
+│   ├── organizations/               # Organization-specific UI
+│   │   ├── organization-form.tsx    # Organization create/edit form
+│   │   └── member-chips.tsx         # Member roster chips shared across views
 │   └── layout/                      # Layout components
 │       └── navbar.tsx               # Navigation bar
 ├── lib/                             # Utilities and helpers
@@ -389,15 +474,22 @@ dnd-manager/
 │   ├── actions/                    # Server actions
 │   │   ├── campaigns.ts            # Campaign CRUD actions
 │   │   ├── sessions.ts             # Session CRUD actions
-│   │   └── characters.ts           # Character CRUD actions
+│   │   ├── characters.ts           # Character CRUD actions
+│   │   └── organizations.ts        # Organization CRUD actions
 │   ├── validations/
-│   │   └── schemas.ts              # Zod validation schemas
+│   │   ├── schemas.ts              # Zod validation schemas
+│   │   └── organization.ts         # Organization-specific schema
 │   └── utils.ts                    # Helper functions
 ├── types/                           # TypeScript types
 │   └── database.ts                 # Database types
 ├── supabase/
 │   └── migrations/                 # Database migrations
 │       ├── 20241017_initial_schema.sql
+│       ├── 20241017_remove_ability_scores.sql
+│       ├── 20241018_add_character_player_type_location.sql
+│       ├── 20241018_add_character_status.sql
+│       ├── 20241018_change_character_level_to_text.sql
+│       └── 20241020_add_organizations.sql
 │       └── 20241017_remove_ability_scores.sql
 ├── public/                          # Static assets
 ├── middleware.ts                    # Auth middleware
@@ -518,7 +610,7 @@ interface Character {
 - No export/import features
 - No image optimization or resizing
 - No dark mode toggle (always dark theme)
-- Sessions don't have header images
+- Organization affiliations do not yet drive user-level permissions (read/write is uniform)
 
 ### 🔮 Future Enhancements (Optional)
 
