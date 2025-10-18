@@ -12,7 +12,8 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 **Language**: TypeScript  
 **Styling**: Tailwind CSS (Cyberpunk theme)  
 **Database**: Supabase (PostgreSQL)  
-**Storage**: Supabase Storage  
+**Storage**: Vercel Blob Storage (for images)  
+**Analytics**: Vercel Analytics  
 **Authentication**: iron-session (password-based)
 
 ---
@@ -31,6 +32,7 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 ```bash
 @supabase/supabase-js @supabase/ssr
 @vercel/blob
+@vercel/analytics
 iron-session
 zod
 clsx
@@ -186,7 +188,22 @@ CREATE TRIGGER update_characters_updated_at BEFORE UPDATE ON characters
 
 ---
 
-#### Step 1.6: Create TypeScript Types ✅
+#### Step 1.7: Setup Analytics & Routing ✅
+**Completed**: Integrated Vercel Analytics and configured routing
+- Installed `@vercel/analytics` package
+- Added Analytics component to root layout
+- Configured home page (`/`) to redirect to `/dashboard`
+- Middleware protects routes and redirects unauthenticated users to `/login`
+- Authenticated users redirected from `/login` to `/dashboard`
+
+**Files Modified**:
+- `app/layout.tsx` - Added Analytics component
+- `app/page.tsx` - Added redirect to dashboard
+- `middleware.ts` - Handles authentication and route protection
+
+---
+
+#### Step 1.8: Create TypeScript Types ✅
 **Completed**: Defined all core TypeScript interfaces
 - Define database types
 - Define form types
