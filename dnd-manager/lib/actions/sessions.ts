@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
 import { sessionSchema } from '@/lib/validations/schemas'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
+import { toTitleCase } from '@/lib/utils'
 
 const SESSION_BUCKET = 'session-images' as const
 
@@ -16,8 +17,10 @@ export async function createSession(formData: FormData): Promise<void> {
 
   const headerImageFile = getFile(formData, 'header_image')
 
+  const sessionName = toTitleCase(getString(formData, 'name'))
+
   const baseData = {
-    name: getString(formData, 'name'),
+    name: sessionName,
     campaign_id: getStringOrNull(formData, 'campaign_id'),
     session_date: getStringOrNull(formData, 'session_date'),
     notes: getStringOrNull(formData, 'notes'),
@@ -126,8 +129,10 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
     headerImageUrl = null
   }
 
+  const sessionName = toTitleCase(getString(formData, 'name'))
+
   const data = {
-    name: getString(formData, 'name'),
+    name: sessionName,
     campaign_id: getStringOrNull(formData, 'campaign_id'),
     session_date: getStringOrNull(formData, 'session_date'),
     notes: getStringOrNull(formData, 'notes'),

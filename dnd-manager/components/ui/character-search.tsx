@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import type { Character } from "@/types/database";
 
 export type CharacterSearchProps = {
@@ -20,7 +21,15 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
     const lowerQuery = trimmed.toLowerCase();
 
     return characters.filter((character) => {
-      const haystack = [character.name, character.race, character.class]
+      const haystack = [
+        character.name,
+        character.race,
+        character.class,
+        character.level,
+        character.last_known_location,
+        character.player_type,
+        character.status,
+      ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -73,30 +82,90 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 gap-5">
-          {filtered.map((character) => (
-            <Link
-              key={character.id}
-              href={`/characters/${character.id}`}
-              className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-5 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50 transition-all duration-200 group"
-            >
-              <h3 className="text-lg font-bold text-[#00ffff] mb-2 uppercase tracking-wider group-hover:text-[#ff00ff] transition-colors">
-                {character.name}
-              </h3>
-              <div className="space-y-1 text-xs sm:text-sm">
-                {character.race && character.class && (
-                  <p className="text-gray-400 font-mono">
-                    {character.race} {character.class}
-                    {character.level && ` (Level ${character.level})`}
-                  </p>
+          {filtered.map((character) => {
+            const isPlayerCharacter = character.player_type === "player";
+            const cardClasses = isPlayerCharacter
+              ? "border-[#00ffff] border-opacity-35 bg-[#0f1428] hover:border-[#00ffff] hover:shadow-[#00ffff]/40 focus-visible:ring-[#00ffff]"
+              : "border-[#ff00ff] border-opacity-35 bg-[#1a0220] hover:border-[#ff6ad5] hover:shadow-[#ff6ad5]/40 focus-visible:ring-[#ff6ad5]";
+            const headingClasses = isPlayerCharacter
+              ? "text-[#00ffff] group-hover:text-[#ff00ff]"
+              : "text-[#ff6ad5] group-hover:text-[#ff9de6]";
+            const detailLabelClass = cn(
+              "mr-1 uppercase tracking-widest text-[10px] align-middle",
+              isPlayerCharacter ? "text-[#00ffff]" : "text-[#ff6ad5]"
+            );
+
+            return (
+              <Link
+                key={character.id}
+                href={`/characters/${character.id}`}
+                className={cn(
+                  "backdrop-blur-sm rounded-lg border shadow-2xl p-5 transition-all duration-200 group focus:outline-none focus-visible:ring-2",
+                  cardClasses
                 )}
-                {character.backstory && (
-                  <p className="text-gray-500 line-clamp-3 mt-2 font-mono text-xs">
-                    {character.backstory}
-                  </p>
-                )}
-              </div>
-            </Link>
-          ))}
+              >
+                <h3
+                  className={cn(
+                    "text-lg font-bold mb-2 uppercase tracking-wider transition-colors",
+                    headingClasses
+                  )}
+                >
+                  {character.name}
+                </h3>
+                {(() => {
+                const statusLabel = character.status === "dead"
+                  ? "Dead"
+                  : character.status === "unknown"
+                    ? "Unknown"
+                    : "Alive";
+
+                const levelLabel = character.level
+                  ? character.player_type === "player"
+                    ? `Level ${character.level}`
+                    : `CR ${character.level}`
+                  : null;
+
+                const details: Array<{ label: string; value: string }> = [
+                  {
+                    label: "Type",
+                    value: character.player_type === "player" ? "Player Character" : "NPC",
+                  },
+                  {
+                    label: "Status",
+                    value: statusLabel,
+                  },
+                ];
+
+                if (character.race) {
+                  details.push({ label: "Race", value: character.race });
+                }
+
+                if (character.class) {
+                  details.push({ label: "Class", value: character.class });
+                }
+
+                if (levelLabel) {
+                  details.push({ label: character.player_type === "player" ? "Level" : "Challenge", value: levelLabel });
+                }
+
+                if (character.last_known_location) {
+                  details.push({ label: "Last Seen", value: character.last_known_location });
+                }
+
+                return (
+                  <div className="space-y-1 text-xs sm:text-sm">
+                    {details.map((detail) => (
+                      <p key={`${character.id}-${detail.label}`} className="text-gray-400 font-mono">
+                        <span className={detailLabelClass}>{detail.label}:</span>
+                        <span className="align-middle">{detail.value}</span>
+                      </p>
+                    ))}
+                  </div>
+                );
+              })()}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

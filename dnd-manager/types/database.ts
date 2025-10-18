@@ -1,3 +1,5 @@
+import type { CharacterStatus, PlayerType } from "@/lib/characters/constants"
+
 export interface Campaign {
   id: string
   name: string
@@ -24,9 +26,12 @@ export interface Character {
   name: string
   race: string | null
   class: string | null
-  level: number | null
+  level: string | null
   backstory: string | null
   image_url: string | null
+  player_type: PlayerType
+  last_known_location: string | null
+  status: CharacterStatus
   created_at: string
   updated_at: string
   sessions?: Session[]

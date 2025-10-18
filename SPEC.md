@@ -123,6 +123,9 @@ app/
 - `AutoResizeTextarea` - Textarea that grows with content for long-form inputs using animation frame throttling
   - Location: `components/ui/auto-resize-textarea.tsx`
   - Client component shared by character and session forms for backstory and notes
+- `SynthwaveDropdown` - Popover-driven select that powers all fixed-option dropdowns with synthwave styling and optional search/footers
+  - Location: `components/ui/synthwave-dropdown.tsx`
+  - Client component adopted by character and session forms, supports inline creation footers for workflows like campaign creation
 - `CharacterSearch` - Characters index wrapper with inline search and responsive card grid
   - Location: `components/ui/character-search.tsx`
   - Client component providing compact search input, empty-state messaging, and a five-column responsive layout for character cards
@@ -193,7 +196,9 @@ app/
 - Campaign-specific ordering assigns a session number based on ascending session date; numbering appears on the sessions list, campaign detail cards, and session detail header when a campaign provides dated entries
 - Unsaved session note drafts persist locally across navigation and are cleared after a successful submission to prevent data loss
 - Session notes support inline `@Character` mentions that hyperlink to character sheets; the mention menu appears at the caret, filters matches by name, and offers inline character creation when no match exists (automatically linking the newly created character to the session)
+- Mention hyperlinks and dropdown badges are color-coded by target type (character vs session) to keep references scannable in both drafting and rendered views
 - Mentioned characters are auto-selected for the session’s attendee list to keep relationships in sync
+- Session names are normalized to title case when saved so campaign and dashboard views stay consistent even if inputs vary
 
 #### Sessions Index
 
@@ -221,6 +226,7 @@ app/
 - **Note**: Ability scores (STR, DEX, CON, INT, WIS, CHA) have been removed from the system
 - Characters index includes a compact inline search field beside the create button and renders results in a responsive five-card-wide grid with graceful empty states when no matches are found
 - Characters can also be created on-the-fly from session notes mentions; the inline creation path captures only the required name and routes the user back to their in-progress draft with the new character linked
+- Character backstory editors reuse the caret-anchored mention dropdown (including inline character creation) so relationships stay in sync while drafting, and saved names are normalized to title case for consistent display across the app
 
 ### Image Management
 
@@ -252,6 +258,7 @@ app/
 - Form submissions use Server Actions
 - No client-side state management library needed
 - Client-visible form inputs are sanitized server-side with `sanitize-html` before validation or persistence
+- Long-form textareas (session notes, campaign descriptions, and character backstories) enable browser spellcheck to catch typos during drafting
 
 ### Data Fetching
 
@@ -282,6 +289,12 @@ app/
 
 > **Note (2025-10-19):** Delivered caret-anchored session mention menus with inline character creation, cross-page mention rendering utilities, and streamlined session header image controls.
 
+> **Note (2025-10-19, later):** Brought the character backstory mention dropdown up to the session experience (caret anchoring, inline creation, widened menu), normalized saved session and character names to title case, and enabled browser spellcheck for all long-form editors.
+
+> **Note (2025-10-20):** Consolidated session draft autosave timers into a shared idle-aware scheduler to reduce overlapping timeouts and tightened draft cleanup while continuing the mobile/performance sweep.
+
+> **Note (2025-10-20, evening):** Tinted mention hyperlinks and drafting dropdown badges so character and session references stay color-coded everywhere they render.
+
 
 ### Form Handling
 
@@ -291,9 +304,10 @@ app/
 - Error handling via try/catch in Server Actions
 - Client-side validation with HTML5 attributes
 - File uploads handled through FormData
-- Session notes auto-save to `localStorage` with a debounce and clear on successful submission
+- Session notes auto-save to `localStorage` via a shared idle-aware scheduler that debounces updates, tracks all draft keys centrally, and clears cached data after successful submissions
 - Autosaved drafts are purged if the user leaves the form without submitting to avoid stale resumes
 - Auto-resizing textarea component keeps long-form inputs visible without manual resizing
+- Text inputs automatically capitalize their first alphabetical character on blur via a global provider, with an opt-out flag for edge cases
 
 ### Environment Variables
 

@@ -4,8 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { deleteCampaign } from '@/lib/actions/campaigns'
 import { DeleteCampaignButton } from '@/components/ui/delete-campaign-button'
 import {
+  cn,
   extractPlayerSummaries,
-  getVisiblePlayers,
   type SessionCharacterRelation,
 } from '@/lib/utils'
 
@@ -38,7 +38,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     .select(`
       *,
       session_characters:session_characters(
-        character:characters(id, name, class, race, level)
+        character:characters(id, name, class, race, level, player_type)
       )
     `)
     .eq('campaign_id', id)
@@ -166,18 +166,22 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           ) : (
             <div className="space-y-3">
               {sessionsWithPlayers.map((session) => {
-                const { visible: visiblePlayers, hiddenCount } = getVisiblePlayers(session.players, 4)
+                const players = session.players
 
                 return (
-                  <Link
+                  <article
                     key={session.id}
-                    href={`/sessions/${session.id}`}
-                    className="block p-4 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                    className="group p-4 border border-[#00ffff] border-opacity-20 rounded transition-all duration-200 hover:border-[#ff00ff] hover:bg-[#0f0f23]"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <h3 className="font-medium text-[#00ffff] font-mono">{session.name}</h3>
+                          <Link
+                            href={`/sessions/${session.id}`}
+                            className="font-medium text-[#00ffff] font-mono transition-colors hover:text-[#ff00ff] focus:text-[#ff00ff] focus:outline-none"
+                          >
+                            {session.name}
+                          </Link>
                           {sessionNumberMap.has(session.id) && (
                             <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
                               Session #{sessionNumberMap.get(session.id)}
@@ -187,35 +191,44 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                         {session.notes && (
                           <p className="text-sm text-gray-400 line-clamp-2 font-mono">{session.notes}</p>
                         )}
-                        {session.players.length > 0 && (
+                        {players.length > 0 && (
                           <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
-                            {visiblePlayers.map((player) => (
-                              <span
+                            {players.map((player) => (
+                              <Link
                                 key={`${session.id}-${player.id}`}
-                                className="rounded border border-[#00ffff] border-opacity-25 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]"
+                                href={`/characters/${player.id}`}
+                                className={cn(
+                                  'rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2',
+                                  player.player_type === 'player'
+                                    ? 'border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
+                                    : 'border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]'
+                                )}
                               >
                                 {player.name}
-                              </span>
+                              </Link>
                             ))}
-                            {hiddenCount > 0 && (
-                              <span className="rounded border border-dashed border-[#00ffff]/40 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]/70">
-                                +{hiddenCount} more
-                              </span>
-                            )}
                           </div>
                         )}
                       </div>
-                      {session.session_date && (
-                        <span className="text-sm text-gray-400 font-mono uppercase tracking-wider sm:ml-4">
-                          {new Date(session.session_date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </span>
-                      )}
+                      <div className="flex flex-col items-start sm:items-end sm:ml-4 gap-2 text-sm text-gray-400 font-mono uppercase tracking-wider">
+                        {session.session_date ? (
+                          <span>
+                            {new Date(session.session_date).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        ) : null}
+                        <Link
+                          href={`/sessions/${session.id}`}
+                          className="text-[#ff00ff] text-[10px] font-bold uppercase tracking-widest hover:text-[#ff6ad5] focus:text-[#ff6ad5] focus:outline-none"
+                        >
+                          View session →
+                        </Link>
+                      </div>
                     </div>
-                  </Link>
+                  </article>
                 )
               })}
             </div>

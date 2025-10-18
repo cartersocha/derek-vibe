@@ -5,12 +5,43 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function toTitleCase(value: string): string {
+  const trimmed = value.trim()
+
+  if (!trimmed) {
+    return ""
+  }
+
+  const normalizeWord = (word: string) =>
+    word
+      .split(/([-'])/)
+      .map((segment) => {
+        if (segment === "-" || segment === "'") {
+          return segment
+        }
+
+        if (!segment) {
+          return segment
+        }
+
+        const [first, ...rest] = segment
+        return `${first.toUpperCase()}${rest.join("").toLowerCase()}`
+      })
+      .join("")
+
+  return trimmed
+    .split(/\s+/)
+    .map((word) => normalizeWord(word))
+    .join(" ")
+}
+
 export type PlayerSummary = {
   id: string
   name: string
   class: string | null
   race: string | null
-  level: number | null
+  level: string | null
+  player_type: "npc" | "player" | null
 }
 
 export type SessionCharacterRelation = {
@@ -43,6 +74,7 @@ export function extractPlayerSummaries(
       class: character.class ?? null,
       race: character.race ?? null,
       level: character.level ?? null,
+      player_type: (character as { player_type?: "npc" | "player" | null })?.player_type ?? null,
     })
   }
 

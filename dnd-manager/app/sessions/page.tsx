@@ -11,7 +11,7 @@ export default async function SessionsPage() {
       *,
       campaign:campaigns(name),
       session_characters:session_characters(
-        character:characters(id, name, class, race, level)
+        character:characters(id, name, class, race, level, player_type)
       )
     `)
     .order('session_date', { ascending: false, nullsFirst: false })

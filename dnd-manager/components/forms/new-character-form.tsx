@@ -1,10 +1,12 @@
-'use client'
+"use client"
 
-import { useCallback, useState } from 'react'
-import ImageUpload from '@/components/ui/image-upload'
-import Link from 'next/link'
-import CreatableSelect from '@/components/ui/creatable-select'
-import SynthwaveDropdown from '@/components/ui/synthwave-dropdown'
+import { useCallback, useState } from "react"
+import Link from "next/link"
+import ImageUpload from "@/components/ui/image-upload"
+import CreatableSelect from "@/components/ui/creatable-select"
+import SynthwaveDropdown from "@/components/ui/synthwave-dropdown"
+import MentionableTextarea from "@/components/ui/mentionable-textarea"
+import { createCharacter } from "@/lib/actions/characters"
 import {
   CHARACTER_STATUS_OPTIONS,
   CLASS_OPTIONS,
@@ -12,39 +14,29 @@ import {
   PLAYER_TYPE_OPTIONS,
   RACE_OPTIONS,
   type CharacterStatus,
-} from '@/lib/characters/constants'
-import MentionableTextarea from '@/components/ui/mentionable-textarea'
-import type { MentionTarget } from '@/lib/mention-utils'
+} from "@/lib/characters/constants"
+import type { MentionTarget } from "@/lib/mention-utils"
 
-interface Character {
-  id: string
-  name: string
-  race: string | null
-  class: string | null
-  level: string | null
-  backstory: string | null
-  image_url: string | null
-  player_type: 'npc' | 'player'
-  last_known_location: string | null
-  status: CharacterStatus
-}
+const RACE_STORAGE_KEY = "character-race-options"
+const CLASS_STORAGE_KEY = "character-class-options"
+const LOCATION_STORAGE_KEY = "character-location-options"
 
-interface CharacterEditFormProps {
-  action: (formData: FormData) => Promise<void>
-  character: Character
-  cancelHref?: string
+type NewCharacterFormProps = {
+  redirectTo?: string | null
   mentionTargets: MentionTarget[]
 }
 
-const RACE_STORAGE_KEY = 'character-race-options'
-const CLASS_STORAGE_KEY = 'character-class-options'
-const LOCATION_STORAGE_KEY = 'character-location-options'
+export function NewCharacterForm({ redirectTo, mentionTargets }: NewCharacterFormProps) {
+  const [playerType, setPlayerType] = useState<"npc" | "player">("npc")
+  const [race, setRace] = useState("")
+  const [characterClass, setCharacterClass] = useState("")
+  const [lastKnownLocation, setLastKnownLocation] = useState("")
+  const [status, setStatus] = useState<CharacterStatus>("alive")
 
-export default function CharacterEditForm({ action, character, cancelHref, mentionTargets }: CharacterEditFormProps) {
   const toTitleCase = useCallback((value: string) => {
     const trimmed = value.trim()
     if (!trimmed) {
-      return ''
+      return ""
     }
 
     return trimmed
@@ -53,7 +45,7 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
         word
           .split(/([-'])/)
           .map((segment) => {
-            if (segment === '-' || segment === "'") {
+            if (segment === "-" || segment === "'") {
               return segment
             }
             if (!segment) {
@@ -61,43 +53,22 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
             }
             return segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()
           })
-          .join('')
+          .join("")
       )
-      .join(' ')
+      .join(" ")
   }, [])
 
-  const [playerType, setPlayerType] = useState<Character['player_type']>(character.player_type ?? 'npc')
-  const [race, setRace] = useState(() => toTitleCase(character.race ?? ''))
-  const [characterClass, setCharacterClass] = useState(() => toTitleCase(character.class ?? ''))
-  const [lastKnownLocation, setLastKnownLocation] = useState(() => toTitleCase(character.last_known_location ?? ''))
-  const [status, setStatus] = useState<CharacterStatus>(character.status ?? 'alive')
-
-  const handleRaceChange = useCallback((next: string) => {
-    setRace(next ? toTitleCase(next) : '')
-  }, [toTitleCase])
-
-  const handleClassChange = useCallback((next: string) => {
-    setCharacterClass(next ? toTitleCase(next) : '')
-  }, [toTitleCase])
-
-  const handleLocationChange = useCallback((next: string) => {
-    setLastKnownLocation(next ? toTitleCase(next) : '')
-  }, [toTitleCase])
-
-  const levelLabel = playerType === 'player' ? 'Level' : 'Challenge Rating'
+  const levelLabel = playerType === "player" ? "Level" : "Challenge Rating"
 
   return (
     <form
-      action={action}
+      action={createCharacter}
       encType="multipart/form-data"
       className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-8"
     >
-      <ImageUpload
-        name="image"
-        label="Character Portrait"
-        currentImage={character.image_url}
-        maxSize={5}
-      />
+      {redirectTo ? <input type="hidden" name="redirect_to" value={redirectTo} /> : null}
+
+      <ImageUpload name="image" label="Character Portrait" maxSize={5} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
@@ -109,7 +80,6 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
             id="name"
             name="name"
             required
-            defaultValue={character.name}
             className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           />
         </div>
@@ -122,7 +92,7 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
             id="race"
             name="race"
             value={race}
-            onChange={handleRaceChange}
+            onChange={(next) => setRace(next ? toTitleCase(next) : "")}
             options={RACE_OPTIONS}
             placeholder="Select or create a race"
             storageKey={RACE_STORAGE_KEY}
@@ -140,7 +110,7 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
             id="class"
             name="class"
             value={characterClass}
-            onChange={handleClassChange}
+            onChange={(next) => setCharacterClass(next ? toTitleCase(next) : "")}
             options={CLASS_OPTIONS}
             placeholder="Select or create a class"
             storageKey={CLASS_STORAGE_KEY}
@@ -156,7 +126,7 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
             id="player_type"
             name="player_type"
             value={playerType}
-            onChange={(next) => setPlayerType(next as Character['player_type'])}
+            onChange={(next) => setPlayerType(next as "npc" | "player")}
             options={PLAYER_TYPE_OPTIONS}
             hideSearch
           />
@@ -186,7 +156,6 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
             type="text"
             id="level"
             name="level"
-            defaultValue={character.level || ''}
             className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           />
         </div>
@@ -200,7 +169,7 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
           id="last_known_location"
           name="last_known_location"
           value={lastKnownLocation}
-          onChange={handleLocationChange}
+          onChange={(next) => setLastKnownLocation(next ? toTitleCase(next) : "")}
           options={LOCATION_SUGGESTIONS}
           placeholder="Select or create a location"
           storageKey={LOCATION_STORAGE_KEY}
@@ -216,9 +185,10 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
           id="backstory"
           name="backstory"
           rows={6}
-          initialValue={character.backstory || ''}
+          initialValue=""
           mentionTargets={mentionTargets}
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+          placeholder="Character background, personality, goals..."
           spellCheck
         />
         <p className="mt-2 text-xs text-gray-500 font-mono uppercase tracking-wider">
@@ -226,15 +196,15 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
         </p>
       </div>
 
-      <div className="flex flex-col gap-4 sm:flex-row">
+      <div className="flex flex-col gap-4 pt-4 sm:flex-row">
         <button
           type="submit"
           className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-[#ff00ff] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50"
         >
-          Save Changes
+          Create Character
         </button>
         <Link
-          href={cancelHref || '/characters'}
+          href="/characters"
           className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
         >
           Cancel

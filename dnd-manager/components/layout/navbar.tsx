@@ -93,6 +93,9 @@ export default function Navbar() {
 
   const handlePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (typeof window === "undefined" || window.matchMedia("(max-width: 767px)").matches) {
+        return;
+      }
       if (event.button !== 0) return;
       isDraggingRef.current = true;
       setIsDragging(true);

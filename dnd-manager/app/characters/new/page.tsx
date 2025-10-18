@@ -1,23 +1,41 @@
-'use client'
+import { createClient } from '@/lib/supabase/server'
+import { NewCharacterForm } from '@/components/forms/new-character-form'
 
-import { Suspense } from "react";
-import { createCharacter } from "@/lib/actions/characters";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import ImageUpload from "@/components/ui/image-upload";
-import AutoResizeTextarea from "@/components/ui/auto-resize-textarea";
-
-export default function NewCharacterPage() {
-  return (
-    <Suspense fallback={null}>
-      <NewCharacterForm />
-    </Suspense>
-  );
+type NewCharacterPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-function NewCharacterForm() {
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo");
+export default async function NewCharacterPage({ searchParams }: NewCharacterPageProps) {
+  const supabase = await createClient()
+  const params = await searchParams
+
+  const [{ data: allCharacters }, { data: allSessions }] = await Promise.all([
+    supabase.from('characters').select('id, name').order('name'),
+    supabase.from('sessions').select('id, name').order('name'),
+  ])
+
+  const mentionTargets = [
+    ...(allCharacters ?? [])
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/characters/${entry.id}`,
+        kind: 'character' as const,
+      })),
+    ...(allSessions ?? [])
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/sessions/${entry.id}`,
+        kind: 'session' as const,
+      })),
+  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+
+  const redirectValue = params?.redirectTo
+  const redirectTo = Array.isArray(redirectValue) ? redirectValue[0] ?? null : redirectValue ?? null
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
@@ -25,148 +43,8 @@ function NewCharacterForm() {
         <p className="mt-2 text-gray-400 font-mono">Add a new character to your campaign</p>
       </div>
 
-      <form
-        action={createCharacter}
-        encType="multipart/form-data"
-        className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-8"
-      >
-        {redirectTo && (
-          <input type="hidden" name="redirect_to" value={redirectTo} />
-        )}
-        {/* Character Portrait */}
-        <ImageUpload
-          name="image"
-          label="Character Portrait"
-          maxSize={5}
-        />
-
-        {/* Basic Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
-            >
-              Character Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              required
-              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-              placeholder="Enter character name"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="level"
-              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
-            >
-              Level
-            </label>
-            <input
-              type="number"
-              id="level"
-              name="level"
-              min="1"
-              max="20"
-              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-              placeholder="1-20"
-            />
-          </div>
-        </div>
-
-        {/* Race & Class */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label
-              htmlFor="race"
-              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
-            >
-              Race
-            </label>
-            <select
-              id="race"
-              name="race"
-              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-            >
-              <option value="">Select a Race</option>
-              <option value="Human">Human</option>
-              <option value="Elf">Elf</option>
-              <option value="Dwarf">Dwarf</option>
-              <option value="Halfling">Halfling</option>
-              <option value="Dragonborn">Dragonborn</option>
-              <option value="Gnome">Gnome</option>
-              <option value="Half-Elf">Half-Elf</option>
-              <option value="Half-Orc">Half-Orc</option>
-              <option value="Tiefling">Tiefling</option>
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="class"
-              className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
-            >
-              Class
-            </label>
-            <select
-              id="class"
-              name="class"
-              className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-            >
-              <option value="">Select a Class</option>
-              <option value="Barbarian">Barbarian</option>
-              <option value="Bard">Bard</option>
-              <option value="Cleric">Cleric</option>
-              <option value="Druid">Druid</option>
-              <option value="Fighter">Fighter</option>
-              <option value="Monk">Monk</option>
-              <option value="Paladin">Paladin</option>
-              <option value="Ranger">Ranger</option>
-              <option value="Rogue">Rogue</option>
-              <option value="Sorcerer">Sorcerer</option>
-              <option value="Warlock">Warlock</option>
-              <option value="Wizard">Wizard</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Backstory */}
-        <div>
-          <label
-            htmlFor="backstory"
-            className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider"
-          >
-            Backstory & Notes
-          </label>
-          <AutoResizeTextarea
-            id="backstory"
-            name="backstory"
-            rows={6}
-            className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-            placeholder="Character background, personality, goals..."
-          />
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-4 pt-4 sm:flex-row">
-          <button
-            type="submit"
-            className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-[#ff00ff] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50"
-          >
-            Create Character
-          </button>
-          <Link
-            href="/characters"
-            className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
-          >
-            Cancel
-          </Link>
-        </div>
-      </form>
+      <NewCharacterForm redirectTo={redirectTo} mentionTargets={mentionTargets} />
     </div>
-  );
+  )
 }
+

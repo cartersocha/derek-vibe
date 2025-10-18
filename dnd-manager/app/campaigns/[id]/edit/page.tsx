@@ -55,6 +55,7 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
             defaultValue={campaign.description || ''}
             className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono resize-none"
             placeholder="Campaign description, setting, goals..."
+            spellCheck
           />
         </div>
 

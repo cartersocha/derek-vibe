@@ -1,11 +1,15 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type KeyboardEvent } from 'react'
 import Link from 'next/link'
-import ImageUpload from '@/components/ui/image-upload'
 import AutoResizeTextarea from '@/components/ui/auto-resize-textarea'
 import { isMentionBoundary } from '@/lib/mention-utils'
 import { createCharacterInline } from '@/lib/actions/characters'
+import { createCampaignInline } from '@/lib/actions/campaigns'
+
+const ImageUpload = dynamic(() => import('@/components/ui/image-upload'), { ssr: false })
+const SynthwaveDropdown = dynamic(() => import('@/components/ui/synthwave-dropdown'))
 
 const AUTO_SAVE_DELAY_MS = 2000
 const DEFAULT_DRAFT_KEY = 'session-notes:draft'
@@ -23,6 +27,10 @@ interface Character {
   name: string
   race: string | null
   class: string | null
+}
+
+function sortCampaignsByName(list: Campaign[]): Campaign[] {
+  return [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 }
 
 interface SessionFormProps {
@@ -67,19 +75,26 @@ export default function SessionForm({
   const pendingCursorRef = useRef<number | null>(null)
   const [headerImageDraft, setHeaderImageDraft] = useState<{ dataUrl: string; name?: string | null } | null>(null)
   const [characterList, setCharacterList] = useState(characters)
+  const [campaignList, setCampaignList] = useState(() => sortCampaignsByName(campaigns))
   const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(() => {
     const initialSet = new Set(initialData?.characterIds || [])
     preselectedCharacterIds?.forEach((id) => initialSet.add(id))
     return initialSet
   })
+  const [campaignId, setCampaignId] = useState(() => initialData?.campaign_id || defaultCampaignId || '')
+  const [campaignDropdownKey, setCampaignDropdownKey] = useState(0)
+  const [isCampaignCreatorOpen, setIsCampaignCreatorOpen] = useState(false)
+  const [newCampaignName, setNewCampaignName] = useState('')
+  const [newCampaignDescription, setNewCampaignDescription] = useState('')
+  const [isCreatingCampaignInline, setIsCreatingCampaignInline] = useState(false)
+  const [campaignCreationError, setCampaignCreationError] = useState<string | null>(null)
   const [characterSearch, setCharacterSearch] = useState('')
   const deferredCharacterSearch = useDeferredValue(characterSearch)
-  const saveTimeoutRef = useRef<number | null>(null)
-  const characterSaveTimeoutRef = useRef<number | null>(null)
-  const nameSaveTimeoutRef = useRef<number | null>(null)
-  const headerSaveTimeoutRef = useRef<number | null>(null)
+  const draftTimeoutsRef = useRef<Map<string, number>>(new Map())
+  const idleCallbackRef = useRef<((callback: IdleRequestCallback) => number) | null>(null)
   const hasLoadedDraftRef = useRef(false)
   const hasLoadedCharactersRef = useRef(false)
+  const newCampaignNameInputRef = useRef<HTMLInputElement | null>(null)
   const [mentionQuery, setMentionQuery] = useState('')
   const [mentionStart, setMentionStart] = useState<number | null>(null)
   const [isMentionMenuOpen, setIsMentionMenuOpen] = useState(false)
@@ -92,17 +107,99 @@ export default function SessionForm({
   const nameStorageKey = `${draftStorageKey}${NAME_SUFFIX}`
   const headerImageStorageKey = `${draftStorageKey}${HEADER_IMAGE_SUFFIX}`
   const isNavigatingRef = useRef(false)
+  const cancelDraftUpdate = useCallback((key: string) => {
+    if (typeof window === 'undefined') {
+      return
+    }
+    const timeouts = draftTimeoutsRef.current
+    const existing = timeouts.get(key)
+    if (existing) {
+      window.clearTimeout(existing)
+      timeouts.delete(key)
+    }
+  }, [])
+
+  const scheduleDraftUpdate = useCallback(
+    (key: string, work: () => void) => {
+      if (typeof window === 'undefined') {
+        work()
+        return
+      }
+
+      const timeouts = draftTimeoutsRef.current
+      const existing = timeouts.get(key)
+      if (existing) {
+        window.clearTimeout(existing)
+      }
+
+      const timerId = window.setTimeout(() => {
+        timeouts.delete(key)
+        const idle = idleCallbackRef.current
+        if (idle) {
+          idle(() => work())
+        } else {
+          work()
+        }
+      }, AUTO_SAVE_DELAY_MS)
+
+      timeouts.set(key, timerId)
+    },
+    []
+  )
+
+  const campaignOptions = useMemo(() => {
+    const base = [{ value: '', label: 'No campaign' }]
+    const mapped = campaignList.map((campaign) => ({ value: campaign.id, label: campaign.name }))
+    return [...base, ...mapped]
+  }, [campaignList])
 
   useEffect(() => {
     setCharacterList(characters)
   }, [characters])
 
   useEffect(() => {
-    hasLoadedDraftRef.current = false
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-      saveTimeoutRef.current = null
+    setCampaignList(sortCampaignsByName(campaigns))
+  }, [campaigns])
+
+  useEffect(() => {
+    setCampaignId(initialData?.campaign_id || defaultCampaignId || '')
+  }, [defaultCampaignId, initialData?.campaign_id])
+
+  useEffect(() => {
+    if (!isCampaignCreatorOpen) {
+      return
     }
+    newCampaignNameInputRef.current?.focus()
+  }, [isCampaignCreatorOpen])
+
+  useEffect(() => {
+    const timeoutRegistry = draftTimeoutsRef.current
+
+    if (typeof window === 'undefined') {
+      idleCallbackRef.current = null
+      return
+    }
+
+    if (typeof window.requestIdleCallback === 'function') {
+      idleCallbackRef.current = (callback) => window.requestIdleCallback(callback)
+    } else {
+      idleCallbackRef.current = null
+    }
+
+    return () => {
+      timeoutRegistry.forEach((id) => {
+        if (typeof window !== 'undefined') {
+          window.clearTimeout(id)
+        }
+      })
+      timeoutRegistry.clear()
+      idleCallbackRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    hasLoadedDraftRef.current = false
+    cancelDraftUpdate(draftStorageKey)
 
     if (typeof window === 'undefined') {
       setNotesDraft(initialNotes)
@@ -117,13 +214,10 @@ export default function SessionForm({
       setNotesDraft(initialNotes)
     }
     hasLoadedDraftRef.current = true
-  }, [draftStorageKey, initialNotes])
+  }, [cancelDraftUpdate, draftStorageKey, initialNotes])
 
   useEffect(() => {
-    if (nameSaveTimeoutRef.current) {
-      clearTimeout(nameSaveTimeoutRef.current)
-      nameSaveTimeoutRef.current = null
-    }
+    cancelDraftUpdate(nameStorageKey)
 
     if (typeof window === 'undefined') {
       setNameDraft(initialName)
@@ -136,14 +230,11 @@ export default function SessionForm({
     } else {
       setNameDraft(initialName)
     }
-  }, [initialName, nameStorageKey])
+  }, [cancelDraftUpdate, initialName, nameStorageKey])
 
   useEffect(() => {
     hasLoadedCharactersRef.current = false
-    if (characterSaveTimeoutRef.current) {
-      clearTimeout(characterSaveTimeoutRef.current)
-      characterSaveTimeoutRef.current = null
-    }
+    cancelDraftUpdate(charactersStorageKey)
 
     if (typeof window === 'undefined') {
       hasLoadedCharactersRef.current = true
@@ -173,13 +264,10 @@ export default function SessionForm({
     }
 
     hasLoadedCharactersRef.current = true
-  }, [charactersStorageKey])
+  }, [cancelDraftUpdate, charactersStorageKey])
 
   useEffect(() => {
-    if (headerSaveTimeoutRef.current) {
-      clearTimeout(headerSaveTimeoutRef.current)
-      headerSaveTimeoutRef.current = null
-    }
+    cancelDraftUpdate(headerImageStorageKey)
 
     if (typeof window === 'undefined') {
       setHeaderImageDraft(null)
@@ -203,47 +291,34 @@ export default function SessionForm({
       window.localStorage.removeItem(headerImageStorageKey)
       setHeaderImageDraft(null)
     }
-  }, [headerImageStorageKey])
+  }, [cancelDraftUpdate, headerImageStorageKey])
 
   useEffect(() => {
     if (!hasLoadedDraftRef.current) {
       return
     }
-    if (typeof window === 'undefined') {
-      return
-    }
 
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
-
-    saveTimeoutRef.current = window.setTimeout(() => {
+    scheduleDraftUpdate(draftStorageKey, () => {
+      if (typeof window === 'undefined') {
+        return
+      }
       if (!notesDraft) {
         window.localStorage.removeItem(draftStorageKey)
       } else {
         window.localStorage.setItem(draftStorageKey, notesDraft)
       }
-      saveTimeoutRef.current = null
-    }, AUTO_SAVE_DELAY_MS)
+    })
 
     return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
-        saveTimeoutRef.current = null
-      }
+      cancelDraftUpdate(draftStorageKey)
     }
-  }, [notesDraft, draftStorageKey])
+  }, [cancelDraftUpdate, draftStorageKey, notesDraft, scheduleDraftUpdate])
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    if (nameSaveTimeoutRef.current) {
-      clearTimeout(nameSaveTimeoutRef.current)
-    }
-
-    nameSaveTimeoutRef.current = window.setTimeout(() => {
+    scheduleDraftUpdate(nameStorageKey, () => {
+      if (typeof window === 'undefined') {
+        return
+      }
       if (!nameDraft) {
         window.localStorage.removeItem(nameStorageKey)
       } else {
@@ -253,37 +328,12 @@ export default function SessionForm({
           console.error('Failed to persist session name draft', error)
         }
       }
-      nameSaveTimeoutRef.current = null
-    }, AUTO_SAVE_DELAY_MS)
+    })
 
     return () => {
-      if (nameSaveTimeoutRef.current) {
-        clearTimeout(nameSaveTimeoutRef.current)
-        nameSaveTimeoutRef.current = null
-      }
+      cancelDraftUpdate(nameStorageKey)
     }
-  }, [nameDraft, nameStorageKey])
-
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
-        saveTimeoutRef.current = null
-      }
-      if (characterSaveTimeoutRef.current) {
-        clearTimeout(characterSaveTimeoutRef.current)
-        characterSaveTimeoutRef.current = null
-      }
-      if (nameSaveTimeoutRef.current) {
-        clearTimeout(nameSaveTimeoutRef.current)
-        nameSaveTimeoutRef.current = null
-      }
-      if (headerSaveTimeoutRef.current) {
-        clearTimeout(headerSaveTimeoutRef.current)
-        headerSaveTimeoutRef.current = null
-      }
-    }
-  }, [])
+  }, [cancelDraftUpdate, nameDraft, nameStorageKey, scheduleDraftUpdate])
 
   useEffect(() => {
     if (!preselectedCharacterIds?.length) {
@@ -319,13 +369,69 @@ export default function SessionForm({
     []
   )
 
+  const handleCampaignSelectionChange = useCallback((value: string) => {
+    setCampaignId(value)
+    setIsCampaignCreatorOpen(false)
+    setCampaignCreationError(null)
+    setNewCampaignName('')
+    setNewCampaignDescription('')
+  }, [])
+
+  const handleCancelCampaignInline = useCallback(() => {
+    setIsCampaignCreatorOpen(false)
+    setCampaignCreationError(null)
+    setNewCampaignName('')
+    setNewCampaignDescription('')
+  }, [])
+
+  const handleCampaignCreateInline = useCallback(async () => {
+    if (isCreatingCampaignInline) {
+      return
+    }
+
+    const trimmedName = newCampaignName.trim()
+    if (!trimmedName) {
+      setCampaignCreationError('Campaign name is required')
+      return
+    }
+
+    setIsCreatingCampaignInline(true)
+    setCampaignCreationError(null)
+
+    try {
+      const trimmedDescription = newCampaignDescription.trim()
+      const created = await createCampaignInline(trimmedName, trimmedDescription ? trimmedDescription : null)
+      const newCampaign: Campaign = { id: created.id, name: created.name }
+
+      setCampaignList((previous) => {
+        const existingIndex = previous.findIndex((campaign) => campaign.id === newCampaign.id)
+        if (existingIndex !== -1) {
+          const updated = [...previous]
+          updated[existingIndex] = newCampaign
+          return sortCampaignsByName(updated)
+        }
+        return sortCampaignsByName([...previous, newCampaign])
+      })
+
+      setCampaignId(newCampaign.id)
+      setIsCampaignCreatorOpen(false)
+      setNewCampaignName('')
+      setNewCampaignDescription('')
+      setCampaignDropdownKey((prev) => prev + 1)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create campaign'
+      setCampaignCreationError(message)
+    } finally {
+      setIsCreatingCampaignInline(false)
+    }
+  }, [isCreatingCampaignInline, newCampaignDescription, newCampaignName])
+
   const handleFormSubmit = useCallback(() => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
-    if (characterSaveTimeoutRef.current) {
-      clearTimeout(characterSaveTimeoutRef.current)
-    }
+    cancelDraftUpdate(draftStorageKey)
+    cancelDraftUpdate(charactersStorageKey)
+    cancelDraftUpdate(nameStorageKey)
+    cancelDraftUpdate(headerImageStorageKey)
+
     if (typeof window === 'undefined') {
       return
     }
@@ -337,7 +443,7 @@ export default function SessionForm({
     window.localStorage.removeItem(charactersStorageKey)
     window.localStorage.removeItem(nameStorageKey)
     window.localStorage.removeItem(headerImageStorageKey)
-  }, [charactersStorageKey, draftStorageKey, headerImageStorageKey, nameStorageKey])
+  }, [cancelDraftUpdate, charactersStorageKey, draftStorageKey, headerImageStorageKey, nameStorageKey])
 
   const toggleCharacter = useCallback((characterId: string) => {
     setSelectedCharacters((prev) => {
@@ -748,68 +854,111 @@ export default function SessionForm({
     setCharacterSearch(event.target.value)
   }, [])
 
+  const disableCampaignCreate = newCampaignName.trim().length === 0 || isCreatingCampaignInline
+
+  const campaignDropdownFooter = (
+    <div className="space-y-2">
+      {isCampaignCreatorOpen ? (
+        <div className="space-y-2">
+          <input
+            ref={newCampaignNameInputRef}
+            type="text"
+            value={newCampaignName}
+            onChange={(event) => setNewCampaignName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                void handleCampaignCreateInline()
+              }
+            }}
+            placeholder="Campaign name"
+            className="w-full rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] px-3 py-2 text-sm font-mono text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+          />
+          <textarea
+            value={newCampaignDescription}
+            onChange={(event) => setNewCampaignDescription(event.target.value)}
+            rows={3}
+            placeholder="Optional description"
+            className="w-full rounded border border-[#00ffff] border-opacity-20 bg-[#0a0a1f] px-3 py-2 text-xs font-mono text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#ff00ff]"
+          />
+          {campaignCreationError ? (
+            <p className="text-xs font-mono text-[#ff6ad5]">{campaignCreationError}</p>
+          ) : null}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => void handleCampaignCreateInline()}
+              disabled={disableCampaignCreate}
+              className="flex-1 rounded border border-[#ff00ff] bg-[#ff00ff] px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-black transition-colors duration-200 hover:bg-[#cc00cc] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isCreatingCampaignInline ? 'Creating…' : 'Save Campaign'}
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelCampaignInline}
+              className="flex-1 rounded border border-[#00ffff] border-opacity-30 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#00ffff] transition-colors duration-200 hover:border-[#ff00ff] hover:text-[#ff00ff]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setIsCampaignCreatorOpen(true)
+            setCampaignCreationError(null)
+          }}
+          className="w-full rounded border border-dashed border-[#00ffff] border-opacity-40 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#00ffff] transition-colors duration-200 hover:border-solid hover:border-[#ff00ff] hover:text-[#ff00ff]"
+        >
+          + New Campaign
+        </button>
+      )}
+    </div>
+  )
+
   useEffect(() => {
     if (!hasLoadedCharactersRef.current) {
       return
     }
-    if (typeof window === 'undefined') {
-      return
-    }
 
-    if (characterSaveTimeoutRef.current) {
-      clearTimeout(characterSaveTimeoutRef.current)
-    }
-
-    characterSaveTimeoutRef.current = window.setTimeout(() => {
+    scheduleDraftUpdate(charactersStorageKey, () => {
+      if (typeof window === 'undefined') {
+        return
+      }
       const values = Array.from(selectedCharacters)
       if (values.length === 0) {
         window.localStorage.removeItem(charactersStorageKey)
       } else {
         window.localStorage.setItem(charactersStorageKey, JSON.stringify(values))
       }
-      characterSaveTimeoutRef.current = null
-    }, AUTO_SAVE_DELAY_MS)
+    })
 
     return () => {
-      if (characterSaveTimeoutRef.current) {
-        clearTimeout(characterSaveTimeoutRef.current)
-        characterSaveTimeoutRef.current = null
-      }
+      cancelDraftUpdate(charactersStorageKey)
     }
-  }, [selectedCharacters, charactersStorageKey])
+  }, [cancelDraftUpdate, charactersStorageKey, scheduleDraftUpdate, selectedCharacters])
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    if (headerSaveTimeoutRef.current) {
-      clearTimeout(headerSaveTimeoutRef.current)
-    }
-
-    headerSaveTimeoutRef.current = window.setTimeout(() => {
+    scheduleDraftUpdate(headerImageStorageKey, () => {
+      if (typeof window === 'undefined') {
+        return
+      }
       if (!headerImageDraft) {
         window.localStorage.removeItem(headerImageStorageKey)
       } else {
         try {
-          window.localStorage.setItem(
-            headerImageStorageKey,
-            JSON.stringify(headerImageDraft)
-          )
+          window.localStorage.setItem(headerImageStorageKey, JSON.stringify(headerImageDraft))
         } catch (error) {
           console.error('Failed to persist session header image draft', error)
         }
       }
-      headerSaveTimeoutRef.current = null
-    }, AUTO_SAVE_DELAY_MS)
+    })
 
     return () => {
-      if (headerSaveTimeoutRef.current) {
-        clearTimeout(headerSaveTimeoutRef.current)
-        headerSaveTimeoutRef.current = null
-      }
+      cancelDraftUpdate(headerImageStorageKey)
     }
-  }, [headerImageDraft, headerImageStorageKey])
+  }, [cancelDraftUpdate, headerImageDraft, headerImageStorageKey, scheduleDraftUpdate])
 
   return (
     <form
@@ -850,19 +999,17 @@ export default function SessionForm({
         <label htmlFor="campaign_id" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
           Campaign
         </label>
-        <select
+        <SynthwaveDropdown
+          key={campaignDropdownKey}
           id="campaign_id"
           name="campaign_id"
-          defaultValue={initialData?.campaign_id || defaultCampaignId || ''}
-          className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-        >
-          <option value="">No campaign</option>
-          {campaigns?.map((campaign) => (
-            <option key={campaign.id} value={campaign.id}>
-              {campaign.name}
-            </option>
-          ))}
-        </select>
+          value={campaignId}
+          onChange={handleCampaignSelectionChange}
+          options={campaignOptions}
+          placeholder="Select a campaign"
+          hideSearch
+          customFooter={campaignDropdownFooter}
+        />
       </div>
 
       {/* Session Date */}
@@ -902,6 +1049,7 @@ export default function SessionForm({
             aria-controls={isMentionMenuOpen ? mentionListId : undefined}
             className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
             placeholder="What happened in this session..."
+            spellCheck
           />
           {isMentionMenuOpen && (
             <div
@@ -923,8 +1071,8 @@ export default function SessionForm({
                     onMouseEnter={() => setMentionHighlightIndex(index)}
                     className={`flex w-full items-start gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
                       isActive
-                        ? 'bg-[#1a1a3e] text-[#ff00ff]'
-                        : 'text-[#00ffff] hover:bg-[#11112b]'
+                        ? 'bg-[#1a1a3e] text-[#65f8ff]'
+                        : 'text-[#2de2e6] hover:bg-[#11112b]'
                     }`}
                   >
                     <span className="font-semibold">{character.name}</span>
@@ -942,8 +1090,8 @@ export default function SessionForm({
                   onClick={() => void handleCreateCharacterInline()}
                   className={`flex w-full items-start gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
                     mentionHighlightIndex === mentionOptions.length
-                      ? 'bg-[#1a1a3e] text-[#ff00ff]'
-                      : 'text-[#ff00ff] hover:bg-[#11112b]'
+                      ? 'bg-[#1a1a3e] text-[#65f8ff]'
+                      : 'text-[#2de2e6] hover:bg-[#11112b]'
                   }`}
                   disabled={isCreatingMentionCharacter}
                 >

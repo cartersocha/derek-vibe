@@ -56,13 +56,14 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     name: string
     race: string | null
     class: string | null
-    level: number | null
+    level: string | null
+    player_type: "npc" | "player" | null
   }> = []
 
   if (characterIds.length > 0) {
     const { data: charData } = await supabase
       .from('characters')
-      .select('id, name, race, class, level')
+      .select('id, name, race, class, level, player_type')
       .in('id', characterIds)
     
     sessionChars = charData || []
@@ -71,6 +72,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const mentionableCharacters: MentionTarget[] = sessionChars.map((character) => ({
     id: character.id,
     name: character.name,
+    href: `/characters/${character.id}`,
+    kind: 'character',
   }))
 
   const deleteSessionWithId = deleteSession.bind(null, id)
@@ -168,7 +171,11 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
                   {character.race && character.class && (
                     <p className="text-xs text-gray-400 font-mono sm:text-sm">
                       {character.race} {character.class}
-                      {character.level && ` (Level ${character.level})`}
+                    </p>
+                  )}
+                  {character.level && (
+                    <p className="text-[11px] text-gray-400 font-mono uppercase tracking-wider">
+                      {character.player_type === 'player' ? `Level ${character.level}` : `CR ${character.level}`}
                     </p>
                   )}
                 </Link>
