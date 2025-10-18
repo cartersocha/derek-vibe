@@ -182,6 +182,59 @@ export async function deleteCharacter(id: string): Promise<void> {
   redirect("/characters");
 }
 
+export async function updateCharacterSessions(
+  id: string,
+  formData: FormData
+): Promise<void> {
+  const supabase = await createClient();
+
+  const sessionIds = Array.from(new Set(formData.getAll("session_ids") as string[]));
+
+  const { data: existingLinks, error: fetchError } = await supabase
+    .from("session_characters")
+    .select("session_id")
+    .eq("character_id", id);
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  const previousSessionIds = new Set(existingLinks?.map((link) => link.session_id) || []);
+
+  const { error: deleteError } = await supabase
+    .from("session_characters")
+    .delete()
+    .eq("character_id", id);
+
+  if (deleteError) {
+    throw new Error(deleteError.message);
+  }
+
+  if (sessionIds.length > 0) {
+    const inserts = sessionIds.map((sessionId) => ({
+      session_id: sessionId,
+      character_id: id,
+    }));
+
+    const { error: insertError } = await supabase
+      .from("session_characters")
+      .insert(inserts);
+
+    if (insertError) {
+      throw new Error(insertError.message);
+    }
+  }
+
+  revalidatePath("/characters");
+  revalidatePath(`/characters/${id}`);
+  revalidatePath("/sessions");
+
+  const sessionsToRevalidate = new Set([...previousSessionIds, ...sessionIds]);
+  sessionsToRevalidate.forEach((sessionId) => {
+    revalidatePath(`/sessions/${sessionId}`);
+  });
+}
+
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
