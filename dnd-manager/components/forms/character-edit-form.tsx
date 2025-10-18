@@ -22,9 +22,10 @@ interface Character {
 interface CharacterEditFormProps {
   action: (formData: FormData) => Promise<void>
   character: Character
+  cancelHref?: string
 }
 
-export default function CharacterEditForm({ action, character }: CharacterEditFormProps) {
+export default function CharacterEditForm({ action, character, cancelHref }: CharacterEditFormProps) {
   return (
     <form
       action={action}
@@ -157,7 +158,7 @@ export default function CharacterEditForm({ action, character }: CharacterEditFo
           Save Changes
         </button>
         <Link
-          href="/characters"
+          href={cancelHref || "/characters"}
           className="flex-1 py-3 px-6 text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
         >
           Cancel

@@ -162,7 +162,7 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
 
   revalidatePath('/sessions')
   revalidatePath(`/sessions/${id}`)
-  redirect('/sessions')
+  redirect(`/sessions/${id}`)
 }
 
 export async function deleteSession(id: string): Promise<void> {

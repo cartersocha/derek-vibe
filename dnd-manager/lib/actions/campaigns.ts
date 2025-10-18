@@ -54,7 +54,7 @@ export async function updateCampaign(id: string, formData: FormData): Promise<vo
 
   revalidatePath('/campaigns')
   revalidatePath(`/campaigns/${id}`)
-  redirect('/campaigns')
+  redirect(`/campaigns/${id}`)
 }
 
 export async function deleteCampaign(id: string): Promise<void> {

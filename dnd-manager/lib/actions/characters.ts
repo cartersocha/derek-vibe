@@ -159,7 +159,7 @@ export async function updateCharacter(
 
   revalidatePath("/characters");
   revalidatePath(`/characters/${id}`);
-  redirect("/characters");
+  redirect(`/characters/${id}`);
 }
 
 export async function deleteCharacter(id: string): Promise<void> {
