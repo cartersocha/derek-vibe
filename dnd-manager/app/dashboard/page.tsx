@@ -18,9 +18,43 @@ export default async function DashboardPage() {
   // Fetch recent sessions
   const { data: recentSessions } = await supabase
     .from('sessions')
-    .select('id, name, session_date, created_at')
+    .select('id, name, session_date, created_at, campaign_id')
     .order('created_at', { ascending: false })
     .limit(5)
+
+  const sessionNumberMap = new Map<string, number>()
+
+  if (recentSessions && recentSessions.length > 0) {
+    const campaignIds = Array.from(
+      new Set(
+        recentSessions
+          .map((session) => session.campaign_id)
+          .filter((campaignId): campaignId is string => Boolean(campaignId))
+      )
+    )
+
+    if (campaignIds.length > 0) {
+      await Promise.all(
+        campaignIds.map(async (campaignId) => {
+          const { data: campaignSessions } = await supabase
+            .from('sessions')
+            .select('id, session_date, created_at')
+            .eq('campaign_id', campaignId)
+            .order('session_date', { ascending: true, nullsFirst: true })
+            .order('created_at', { ascending: true })
+
+          if (!campaignSessions) return
+
+          let counter = 1
+          for (const campaignSession of campaignSessions) {
+            if (!campaignSession.session_date) continue
+            sessionNumberMap.set(campaignSession.id, counter)
+            counter += 1
+          }
+        })
+      )
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -93,7 +127,14 @@ export default async function DashboardPage() {
                 className="block p-3 rounded border border-[#00ffff] border-opacity-20 hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <h3 className="font-medium text-[#00ffff] font-mono">{session.name}</h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-medium text-[#00ffff] font-mono">{session.name}</h3>
+                    {sessionNumberMap.has(session.id) && (
+                      <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#ff00ff]">
+                        Session #{sessionNumberMap.get(session.id)}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-sm text-gray-400 font-mono uppercase tracking-wider">
                     {session.session_date 
                       ? new Date(session.session_date).toLocaleDateString()

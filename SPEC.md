@@ -116,9 +116,9 @@ app/
 
 #### Layout Components
 
-- `Navbar` - Collapsible sidebar navigation with icon mode, hover tooltips, and throttled drag resizing
+- `Navbar` - Collapsible sidebar navigation with icon mode, hover tooltips, throttled drag resizing, and intelligent width clamping
   - Location: `components/layout/navbar.tsx`
-  - Client component with requestAnimationFrame throttled resizing, width persistence, and mobile menu
+  - Client component with requestAnimationFrame throttled resizing, width persistence, mobile menu, dynamic max-width measurement that hugs the longest label, and double-click toggles on both the panel and resize handle
 
 #### Form Components
 
@@ -134,6 +134,9 @@ app/
 - `AutoResizeTextarea` - Textarea that grows with content for long-form inputs using animation frame throttling
   - Location: `components/ui/auto-resize-textarea.tsx`
   - Client component shared by character and session forms for backstory and notes
+- `CharacterSearch` - Characters index wrapper with inline search and responsive card grid
+  - Location: `components/ui/character-search.tsx`
+  - Client component providing compact search input, empty-state messaging, and a five-column responsive layout for character cards
 - `ImageUpload` - File upload with preview and remove functionality
   - Location: `components/ui/image-upload.tsx`
   - Client component with drag-and-drop support
@@ -193,7 +196,8 @@ app/
   - Campaign association
   - Session date
   - Notes presented in a styled panel with preserved line breaks
-  - List of participating characters with links
+  - List of participating characters with links laid out in a 1/3/5 responsive grid to surface more attendees at a glance
+- Campaign-specific ordering assigns a session number based on ascending session date; numbering appears on the sessions list, campaign detail cards, and session detail header when a campaign provides dated entries
 - Unsaved session note drafts persist locally across navigation and are cleared after a successful submission to prevent data loss
 
 ### Characters
@@ -214,6 +218,7 @@ app/
   - Backstory & Notes section with preserved line breaks that wraps around the infobox for readability
   - List of sessions they participated in with links
 - **Note**: Ability scores (STR, DEX, CON, INT, WIS, CHA) have been removed from the system
+- Characters index includes a compact inline search field beside the create button and renders results in a responsive five-card-wide grid with graceful empty states when no matches are found
 
 ### Image Management
 
@@ -232,7 +237,7 @@ app/
   - Total sessions count
   - Total characters count
 - Recent activity:
-  - 5 most recent sessions with dates
+  - 5 most recent sessions with dates and campaign-aware session numbers when available
 - Quick action links:
   - Create new campaign
   - Create new session
@@ -274,6 +279,8 @@ app/
 > **Note (2025-10-17):** Completed a mobile responsiveness pass that adds a collapsible mobile navigation, stacks action bars on small screens, and widens primary controls for better touch targets.
 
 > **Note (2025-10-18):** Landed sidebar performance improvements, session form draft preservation, auto-resizing text areas, and refreshed character metadata formatting.
+
+> **Note (2025-10-18, evening):** Added campaign-aware session numbering across list and detail views, tightened related character grids to fit five cards, introduced a compact character search bar with responsive results, and refined the sidebar to auto-clamp to label width with double-click toggles.
 
 
 ### Form Handling

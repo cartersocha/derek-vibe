@@ -17,7 +17,8 @@ export default async function SessionsPage() {
 
   if (sessions) {
     // Group sessions by campaign so we can assign per-campaign sequence numbers
-    const sessionsByCampaign = new Map<string, any[]>()
+    type SessionWithCampaign = typeof sessions extends (infer S)[] ? S : never
+    const sessionsByCampaign = new Map<string, SessionWithCampaign[]>()
 
     for (const session of sessions) {
       if (!session.campaign_id) {

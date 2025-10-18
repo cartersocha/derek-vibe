@@ -12,6 +12,8 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-18, later):** Hardened text inputs with HTML sanitization, throttled interactive UI resizing, deferred character searches, and cleaned image preview URLs while expanding draft persistence safeguards.
 
+> **Note (2025-10-18, evening):** Rolled out campaign-aware session numbering, five-across character grids, compact inline search on the characters tab, and sidebar refinements that double-click collapse and auto-limit width to content.
+
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
 ## Recent Enhancements (2025-10-18)
@@ -22,6 +24,10 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Character creation redirects return users to the in-progress session with the new character automatically selected, accelerating party management.
 - Backstory and session notes layouts preserve whitespace, while character metadata in selection lists uses a `•` separator for quicker scanning.
 - Textarea resizing, character search filtering, and image preview generation were optimized to reduce layout thrash and memory usage, with server-side sanitization applied to all text fields.
+- Session detail, campaign detail, and session list pages now surface campaign-specific session numbers derived from ascending dates and display related characters in a 1/3/5 responsive grid for better density.
+- Characters index gained a compact inline search bar colocated with the create button, along with a five-card responsive grid and empty-state messaging.
+- Sidebar resizing enforces an auto-measured maximum width and supports double-click toggles directly from the panel and resize handle for quicker interactions.
+- Dashboard recent sessions showcase the campaign-aware session number badges alongside dates for quick chronological context.
 
 ## Project Overview
 
