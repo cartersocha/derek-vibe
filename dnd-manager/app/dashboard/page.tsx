@@ -50,25 +50,48 @@ export default async function DashboardPage() {
     )
 
     if (campaignIds.length > 0) {
-      await Promise.all(
-        campaignIds.map(async (campaignId) => {
-          const { data: campaignSessions } = await supabase
-            .from('sessions')
-            .select('id, session_date, created_at')
-            .eq('campaign_id', campaignId)
-            .order('session_date', { ascending: true, nullsFirst: true })
-            .order('created_at', { ascending: true })
+      const { data: relatedSessions } = await supabase
+        .from('sessions')
+        .select('id, campaign_id, session_date, created_at')
+        .in('campaign_id', campaignIds)
 
-          if (!campaignSessions) return
+      if (relatedSessions) {
+        const groupedByCampaign = relatedSessions.reduce<Map<string, typeof relatedSessions>>((acc, session) => {
+          if (!session.campaign_id) {
+            return acc
+          }
+          const existing = acc.get(session.campaign_id)
+          if (existing) {
+            existing.push(session)
+          } else {
+            acc.set(session.campaign_id, [session])
+          }
+          return acc
+        }, new Map())
+
+        groupedByCampaign.forEach((sessions) => {
+          const sorted = sessions
+            .filter((session) => Boolean(session.session_date))
+            .sort((a, b) => {
+              if (a.session_date && b.session_date) {
+                const dateCompare = new Date(a.session_date).getTime() - new Date(b.session_date).getTime()
+                if (dateCompare !== 0) {
+                  return dateCompare
+                }
+              }
+
+              const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0
+              const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0
+              return aCreated - bCreated
+            })
 
           let counter = 1
-          for (const campaignSession of campaignSessions) {
-            if (!campaignSession.session_date) continue
-            sessionNumberMap.set(campaignSession.id, counter)
+          for (const session of sorted) {
+            sessionNumberMap.set(session.id, counter)
             counter += 1
           }
         })
-      )
+      }
     }
   }
 

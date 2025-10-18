@@ -22,6 +22,8 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-19, evening):** Synced character backstory mention menus with the session experience (inline creation, widened dropdown, caret anchoring), normalized saved session and character names to title case, and enabled spellcheck for long-form drafting fields.
 
+> **Note (2025-10-20):** Consolidated session draft autosave timers into a shared idle-aware coordinator, pruning redundant timeouts ahead of the remaining mobile and performance follow-ups.
+
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
 ## Recent Enhancements (2025-10-18)
@@ -39,6 +41,7 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Sidebar resizing enforces an auto-measured maximum width and supports double-click toggles directly from the panel and resize handle for quicker interactions.
 - Dashboard recent sessions panel expanded to six entries, added note previews and attendee chips, and removed the redundant quick action tiles to streamline the layout.
 - Session notes now support caret-positioned `@` mention menus that hyperlink to character sheets, with keyboard navigation, inline creation for new characters, and automatic attendee syncing.
+- Session draft persistence now routes through a shared idle-aware scheduler that debounces notes, name, character selection, and header image updates while centralizing cleanup to prevent orphaned timers.
 - Mention rendering utilities were centralized so session lists and detail pages share consistent hyperlink behavior for `@Character` references.
 - Session header image controls on the edit form drop redundant labels, keeping the remove action aligned to the right for a cleaner presentation.
 - Text inputs across the app now auto-capitalize their first alphabetical character on blur, applied through a global provider with a data attribute escape hatch for special cases.

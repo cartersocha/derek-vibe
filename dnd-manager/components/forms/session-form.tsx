@@ -1,13 +1,15 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type KeyboardEvent } from 'react'
 import Link from 'next/link'
-import ImageUpload from '@/components/ui/image-upload'
 import AutoResizeTextarea from '@/components/ui/auto-resize-textarea'
-import SynthwaveDropdown from '@/components/ui/synthwave-dropdown'
 import { isMentionBoundary } from '@/lib/mention-utils'
 import { createCharacterInline } from '@/lib/actions/characters'
 import { createCampaignInline } from '@/lib/actions/campaigns'
+
+const ImageUpload = dynamic(() => import('@/components/ui/image-upload'), { ssr: false })
+const SynthwaveDropdown = dynamic(() => import('@/components/ui/synthwave-dropdown'))
 
 const AUTO_SAVE_DELAY_MS = 2000
 const DEFAULT_DRAFT_KEY = 'session-notes:draft'
@@ -88,10 +90,8 @@ export default function SessionForm({
   const [campaignCreationError, setCampaignCreationError] = useState<string | null>(null)
   const [characterSearch, setCharacterSearch] = useState('')
   const deferredCharacterSearch = useDeferredValue(characterSearch)
-  const saveTimeoutRef = useRef<number | null>(null)
-  const characterSaveTimeoutRef = useRef<number | null>(null)
-  const nameSaveTimeoutRef = useRef<number | null>(null)
-  const headerSaveTimeoutRef = useRef<number | null>(null)
+  const draftTimeoutsRef = useRef<Map<string, number>>(new Map())
+  const idleCallbackRef = useRef<((callback: IdleRequestCallback) => number) | null>(null)
   const hasLoadedDraftRef = useRef(false)
   const hasLoadedCharactersRef = useRef(false)
   const newCampaignNameInputRef = useRef<HTMLInputElement | null>(null)
@@ -107,6 +107,46 @@ export default function SessionForm({
   const nameStorageKey = `${draftStorageKey}${NAME_SUFFIX}`
   const headerImageStorageKey = `${draftStorageKey}${HEADER_IMAGE_SUFFIX}`
   const isNavigatingRef = useRef(false)
+  const cancelDraftUpdate = useCallback((key: string) => {
+    if (typeof window === 'undefined') {
+      return
+    }
+    const timeouts = draftTimeoutsRef.current
+    const existing = timeouts.get(key)
+    if (existing) {
+      window.clearTimeout(existing)
+      timeouts.delete(key)
+    }
+  }, [])
+
+  const scheduleDraftUpdate = useCallback(
+    (key: string, work: () => void) => {
+      if (typeof window === 'undefined') {
+        work()
+        return
+      }
+
+      const timeouts = draftTimeoutsRef.current
+      const existing = timeouts.get(key)
+      if (existing) {
+        window.clearTimeout(existing)
+      }
+
+      const timerId = window.setTimeout(() => {
+        timeouts.delete(key)
+        const idle = idleCallbackRef.current
+        if (idle) {
+          idle(() => work())
+        } else {
+          work()
+        }
+      }, AUTO_SAVE_DELAY_MS)
+
+      timeouts.set(key, timerId)
+    },
+    []
+  )
+
   const campaignOptions = useMemo(() => {
     const base = [{ value: '', label: 'No campaign' }]
     const mapped = campaignList.map((campaign) => ({ value: campaign.id, label: campaign.name }))
@@ -133,11 +173,33 @@ export default function SessionForm({
   }, [isCampaignCreatorOpen])
 
   useEffect(() => {
-    hasLoadedDraftRef.current = false
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-      saveTimeoutRef.current = null
+    const timeoutRegistry = draftTimeoutsRef.current
+
+    if (typeof window === 'undefined') {
+      idleCallbackRef.current = null
+      return
     }
+
+    if (typeof window.requestIdleCallback === 'function') {
+      idleCallbackRef.current = (callback) => window.requestIdleCallback(callback)
+    } else {
+      idleCallbackRef.current = null
+    }
+
+    return () => {
+      timeoutRegistry.forEach((id) => {
+        if (typeof window !== 'undefined') {
+          window.clearTimeout(id)
+        }
+      })
+      timeoutRegistry.clear()
+      idleCallbackRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    hasLoadedDraftRef.current = false
+    cancelDraftUpdate(draftStorageKey)
 
     if (typeof window === 'undefined') {
       setNotesDraft(initialNotes)
@@ -152,13 +214,10 @@ export default function SessionForm({
       setNotesDraft(initialNotes)
     }
     hasLoadedDraftRef.current = true
-  }, [draftStorageKey, initialNotes])
+  }, [cancelDraftUpdate, draftStorageKey, initialNotes])
 
   useEffect(() => {
-    if (nameSaveTimeoutRef.current) {
-      clearTimeout(nameSaveTimeoutRef.current)
-      nameSaveTimeoutRef.current = null
-    }
+    cancelDraftUpdate(nameStorageKey)
 
     if (typeof window === 'undefined') {
       setNameDraft(initialName)
@@ -171,14 +230,11 @@ export default function SessionForm({
     } else {
       setNameDraft(initialName)
     }
-  }, [initialName, nameStorageKey])
+  }, [cancelDraftUpdate, initialName, nameStorageKey])
 
   useEffect(() => {
     hasLoadedCharactersRef.current = false
-    if (characterSaveTimeoutRef.current) {
-      clearTimeout(characterSaveTimeoutRef.current)
-      characterSaveTimeoutRef.current = null
-    }
+    cancelDraftUpdate(charactersStorageKey)
 
     if (typeof window === 'undefined') {
       hasLoadedCharactersRef.current = true
@@ -208,13 +264,10 @@ export default function SessionForm({
     }
 
     hasLoadedCharactersRef.current = true
-  }, [charactersStorageKey])
+  }, [cancelDraftUpdate, charactersStorageKey])
 
   useEffect(() => {
-    if (headerSaveTimeoutRef.current) {
-      clearTimeout(headerSaveTimeoutRef.current)
-      headerSaveTimeoutRef.current = null
-    }
+    cancelDraftUpdate(headerImageStorageKey)
 
     if (typeof window === 'undefined') {
       setHeaderImageDraft(null)
@@ -238,47 +291,34 @@ export default function SessionForm({
       window.localStorage.removeItem(headerImageStorageKey)
       setHeaderImageDraft(null)
     }
-  }, [headerImageStorageKey])
+  }, [cancelDraftUpdate, headerImageStorageKey])
 
   useEffect(() => {
     if (!hasLoadedDraftRef.current) {
       return
     }
-    if (typeof window === 'undefined') {
-      return
-    }
 
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
-
-    saveTimeoutRef.current = window.setTimeout(() => {
+    scheduleDraftUpdate(draftStorageKey, () => {
+      if (typeof window === 'undefined') {
+        return
+      }
       if (!notesDraft) {
         window.localStorage.removeItem(draftStorageKey)
       } else {
         window.localStorage.setItem(draftStorageKey, notesDraft)
       }
-      saveTimeoutRef.current = null
-    }, AUTO_SAVE_DELAY_MS)
+    })
 
     return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
-        saveTimeoutRef.current = null
-      }
+      cancelDraftUpdate(draftStorageKey)
     }
-  }, [notesDraft, draftStorageKey])
+  }, [cancelDraftUpdate, draftStorageKey, notesDraft, scheduleDraftUpdate])
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    if (nameSaveTimeoutRef.current) {
-      clearTimeout(nameSaveTimeoutRef.current)
-    }
-
-    nameSaveTimeoutRef.current = window.setTimeout(() => {
+    scheduleDraftUpdate(nameStorageKey, () => {
+      if (typeof window === 'undefined') {
+        return
+      }
       if (!nameDraft) {
         window.localStorage.removeItem(nameStorageKey)
       } else {
@@ -288,37 +328,12 @@ export default function SessionForm({
           console.error('Failed to persist session name draft', error)
         }
       }
-      nameSaveTimeoutRef.current = null
-    }, AUTO_SAVE_DELAY_MS)
+    })
 
     return () => {
-      if (nameSaveTimeoutRef.current) {
-        clearTimeout(nameSaveTimeoutRef.current)
-        nameSaveTimeoutRef.current = null
-      }
+      cancelDraftUpdate(nameStorageKey)
     }
-  }, [nameDraft, nameStorageKey])
-
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
-        saveTimeoutRef.current = null
-      }
-      if (characterSaveTimeoutRef.current) {
-        clearTimeout(characterSaveTimeoutRef.current)
-        characterSaveTimeoutRef.current = null
-      }
-      if (nameSaveTimeoutRef.current) {
-        clearTimeout(nameSaveTimeoutRef.current)
-        nameSaveTimeoutRef.current = null
-      }
-      if (headerSaveTimeoutRef.current) {
-        clearTimeout(headerSaveTimeoutRef.current)
-        headerSaveTimeoutRef.current = null
-      }
-    }
-  }, [])
+  }, [cancelDraftUpdate, nameDraft, nameStorageKey, scheduleDraftUpdate])
 
   useEffect(() => {
     if (!preselectedCharacterIds?.length) {
@@ -412,12 +427,11 @@ export default function SessionForm({
   }, [isCreatingCampaignInline, newCampaignDescription, newCampaignName])
 
   const handleFormSubmit = useCallback(() => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
-    if (characterSaveTimeoutRef.current) {
-      clearTimeout(characterSaveTimeoutRef.current)
-    }
+    cancelDraftUpdate(draftStorageKey)
+    cancelDraftUpdate(charactersStorageKey)
+    cancelDraftUpdate(nameStorageKey)
+    cancelDraftUpdate(headerImageStorageKey)
+
     if (typeof window === 'undefined') {
       return
     }
@@ -429,7 +443,7 @@ export default function SessionForm({
     window.localStorage.removeItem(charactersStorageKey)
     window.localStorage.removeItem(nameStorageKey)
     window.localStorage.removeItem(headerImageStorageKey)
-  }, [charactersStorageKey, draftStorageKey, headerImageStorageKey, nameStorageKey])
+  }, [cancelDraftUpdate, charactersStorageKey, draftStorageKey, headerImageStorageKey, nameStorageKey])
 
   const toggleCharacter = useCallback((characterId: string) => {
     setSelectedCharacters((prev) => {
@@ -907,64 +921,44 @@ export default function SessionForm({
     if (!hasLoadedCharactersRef.current) {
       return
     }
-    if (typeof window === 'undefined') {
-      return
-    }
 
-    if (characterSaveTimeoutRef.current) {
-      clearTimeout(characterSaveTimeoutRef.current)
-    }
-
-    characterSaveTimeoutRef.current = window.setTimeout(() => {
+    scheduleDraftUpdate(charactersStorageKey, () => {
+      if (typeof window === 'undefined') {
+        return
+      }
       const values = Array.from(selectedCharacters)
       if (values.length === 0) {
         window.localStorage.removeItem(charactersStorageKey)
       } else {
         window.localStorage.setItem(charactersStorageKey, JSON.stringify(values))
       }
-      characterSaveTimeoutRef.current = null
-    }, AUTO_SAVE_DELAY_MS)
+    })
 
     return () => {
-      if (characterSaveTimeoutRef.current) {
-        clearTimeout(characterSaveTimeoutRef.current)
-        characterSaveTimeoutRef.current = null
-      }
+      cancelDraftUpdate(charactersStorageKey)
     }
-  }, [selectedCharacters, charactersStorageKey])
+  }, [cancelDraftUpdate, charactersStorageKey, scheduleDraftUpdate, selectedCharacters])
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    if (headerSaveTimeoutRef.current) {
-      clearTimeout(headerSaveTimeoutRef.current)
-    }
-
-    headerSaveTimeoutRef.current = window.setTimeout(() => {
+    scheduleDraftUpdate(headerImageStorageKey, () => {
+      if (typeof window === 'undefined') {
+        return
+      }
       if (!headerImageDraft) {
         window.localStorage.removeItem(headerImageStorageKey)
       } else {
         try {
-          window.localStorage.setItem(
-            headerImageStorageKey,
-            JSON.stringify(headerImageDraft)
-          )
+          window.localStorage.setItem(headerImageStorageKey, JSON.stringify(headerImageDraft))
         } catch (error) {
           console.error('Failed to persist session header image draft', error)
         }
       }
-      headerSaveTimeoutRef.current = null
-    }, AUTO_SAVE_DELAY_MS)
+    })
 
     return () => {
-      if (headerSaveTimeoutRef.current) {
-        clearTimeout(headerSaveTimeoutRef.current)
-        headerSaveTimeoutRef.current = null
-      }
+      cancelDraftUpdate(headerImageStorageKey)
     }
-  }, [headerImageDraft, headerImageStorageKey])
+  }, [cancelDraftUpdate, headerImageDraft, headerImageStorageKey, scheduleDraftUpdate])
 
   return (
     <form

@@ -290,6 +290,8 @@ app/
 
 > **Note (2025-10-19, later):** Brought the character backstory mention dropdown up to the session experience (caret anchoring, inline creation, widened menu), normalized saved session and character names to title case, and enabled browser spellcheck for all long-form editors.
 
+> **Note (2025-10-20):** Consolidated session draft autosave timers into a shared idle-aware scheduler to reduce overlapping timeouts and tightened draft cleanup while continuing the mobile/performance sweep.
+
 
 ### Form Handling
 
@@ -299,7 +301,7 @@ app/
 - Error handling via try/catch in Server Actions
 - Client-side validation with HTML5 attributes
 - File uploads handled through FormData
-- Session notes auto-save to `localStorage` with a debounce and clear on successful submission
+- Session notes auto-save to `localStorage` via a shared idle-aware scheduler that debounces updates, tracks all draft keys centrally, and clears cached data after successful submissions
 - Autosaved drafts are purged if the user leaves the form without submitting to avoid stale resumes
 - Auto-resizing textarea component keeps long-form inputs visible without manual resizing
 - Text inputs automatically capitalize their first alphabetical character on blur via a global provider, with an opt-out flag for edge cases
