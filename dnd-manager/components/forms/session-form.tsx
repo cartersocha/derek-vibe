@@ -1,9 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
 import Link from 'next/link'
 import ImageUpload from '@/components/ui/image-upload'
 import AutoResizeTextarea from '@/components/ui/auto-resize-textarea'
+
+const AUTO_SAVE_DELAY_MS = 2000
+const DEFAULT_DRAFT_KEY = 'session-notes:draft'
 
 interface Campaign {
   id: string
@@ -32,6 +35,7 @@ interface SessionFormProps {
   defaultCampaignId?: string
   submitLabel?: string
   cancelHref?: string
+  draftKey?: string
 }
 
 export default function SessionForm({
@@ -41,26 +45,112 @@ export default function SessionForm({
   characters,
   defaultCampaignId,
   submitLabel = 'Create Session',
-  cancelHref = '/sessions'
+  cancelHref = '/sessions',
+  draftKey
 }: SessionFormProps) {
-  const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(
+  const draftStorageKey = draftKey ?? DEFAULT_DRAFT_KEY
+  const initialNotes = initialData?.notes ?? ''
+  const [notesDraft, setNotesDraft] = useState(initialNotes)
+  const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(() =>
     new Set(initialData?.characterIds || [])
   )
+  const saveTimeoutRef = useRef<number | null>(null)
+  const hasLoadedDraftRef = useRef(false)
 
-  const toggleCharacter = (characterId: string) => {
-    const newSet = new Set(selectedCharacters)
-    if (newSet.has(characterId)) {
-      newSet.delete(characterId)
-    } else {
-      newSet.add(characterId)
+  useEffect(() => {
+    hasLoadedDraftRef.current = false
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+      saveTimeoutRef.current = null
     }
-    setSelectedCharacters(newSet)
-  }
+
+    if (typeof window === 'undefined') {
+      setNotesDraft(initialNotes)
+      hasLoadedDraftRef.current = true
+      return
+    }
+
+    const stored = window.localStorage.getItem(draftStorageKey)
+    if (stored !== null) {
+      setNotesDraft(stored)
+    } else {
+      setNotesDraft(initialNotes)
+    }
+    hasLoadedDraftRef.current = true
+  }, [draftStorageKey, initialNotes])
+
+  useEffect(() => {
+    if (!hasLoadedDraftRef.current) {
+      return
+    }
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+
+    saveTimeoutRef.current = window.setTimeout(() => {
+      if (!notesDraft) {
+        window.localStorage.removeItem(draftStorageKey)
+      } else {
+        window.localStorage.setItem(draftStorageKey, notesDraft)
+      }
+      saveTimeoutRef.current = null
+    }, AUTO_SAVE_DELAY_MS)
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+        saveTimeoutRef.current = null
+      }
+    }
+  }, [notesDraft, draftStorageKey])
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+        saveTimeoutRef.current = null
+      }
+    }
+  }, [])
+
+  const handleNotesChange = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
+    setNotesDraft(event.target.value)
+  }, [])
+
+  const handleFormSubmit = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+    if (typeof window === 'undefined') {
+      return
+    }
+    if (!draftStorageKey) {
+      return
+    }
+    window.localStorage.removeItem(draftStorageKey)
+  }, [draftStorageKey])
+
+  const toggleCharacter = useCallback((characterId: string) => {
+    setSelectedCharacters((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(characterId)) {
+        newSet.delete(characterId)
+      } else {
+        newSet.add(characterId)
+      }
+      return newSet
+    })
+  }, [])
 
   return (
     <form
       action={action}
       encType="multipart/form-data"
+      onSubmit={handleFormSubmit}
       className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-6"
     >
       {/* Header Image Upload */}
@@ -130,7 +220,8 @@ export default function SessionForm({
           id="notes"
           name="notes"
           rows={8}
-          defaultValue={initialData?.notes || ''}
+          value={notesDraft}
+          onChange={handleNotesChange}
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           placeholder="What happened in this session..."
         />

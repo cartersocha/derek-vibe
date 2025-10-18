@@ -15,6 +15,10 @@ export default async function NewSessionPage({
     supabase.from('characters').select('id, name, race, class').order('name'),
   ])
 
+  const draftKey = params.campaign_id
+    ? `session-notes:new:${params.campaign_id}`
+    : 'session-notes:new'
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
@@ -29,6 +33,7 @@ export default async function NewSessionPage({
         defaultCampaignId={params.campaign_id}
         submitLabel="Create Session"
         cancelHref="/sessions"
+        draftKey={draftKey}
       />
     </div>
   )

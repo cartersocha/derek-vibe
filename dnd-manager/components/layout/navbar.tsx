@@ -1,27 +1,113 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { logout } from "@/lib/auth/actions";
 import { cn } from "@/lib/utils";
+
+const DEFAULT_WIDTH = 208;
+const COLLAPSED_WIDTH = 72;
+const COLLAPSE_THRESHOLD = 120;
+const MAX_WIDTH = 320;
+
+const clampSidebarWidth = (value: number) => {
+  return Math.min(Math.max(value, COLLAPSED_WIDTH), MAX_WIDTH);
+};
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [width, setWidth] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem("sidebar-width");
+      if (stored) {
+        const parsed = Number(stored);
+        if (!Number.isNaN(parsed)) {
+          return clampSidebarWidth(parsed);
+        }
+      }
+    }
+    return DEFAULT_WIDTH;
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragState = useRef({ startX: 0, startWidth: DEFAULT_WIDTH });
+  const isDraggingRef = useRef(false);
+
+  const clampWidth = useCallback((value: number) => clampSidebarWidth(value), []);
+
+  const isCollapsed = width <= COLLAPSE_THRESHOLD;
+
+  const handlePointerMove = useCallback(
+    (event: PointerEvent) => {
+      if (!isDraggingRef.current) return;
+      const delta = event.clientX - dragState.current.startX;
+      const nextWidth = clampWidth(dragState.current.startWidth + delta);
+      setWidth(nextWidth);
+    },
+    [clampWidth]
+  );
+
+  const handlePointerUp = useCallback(() => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    setIsDragging(false);
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", handlePointerUp);
+    setWidth((prev) => (prev <= COLLAPSE_THRESHOLD ? COLLAPSED_WIDTH : clampWidth(prev)));
+  }, [clampWidth, handlePointerMove]);
+
+  const handlePointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (event.button !== 0) return;
+      isDraggingRef.current = true;
+      setIsDragging(true);
+      dragState.current = { startX: event.clientX, startWidth: width };
+      window.addEventListener("pointermove", handlePointerMove);
+      window.addEventListener("pointerup", handlePointerUp);
+      event.preventDefault();
+    },
+    [handlePointerMove, handlePointerUp, width]
+  );
+
+  const toggleCollapse = useCallback(() => {
+    setWidth((prev) => (prev <= COLLAPSE_THRESHOLD ? DEFAULT_WIDTH : COLLAPSED_WIDTH));
+  }, []);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("sidebar-width", String(width));
+  }, [width]);
+
+  useEffect(() => {
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [handlePointerMove, handlePointerUp]);
+
   const navLinks = [
-    { href: "/campaigns", label: "Campaigns" },
-    { href: "/sessions", label: "Sessions" },
-    { href: "/characters", label: "Characters" },
+    { href: "/campaigns", label: "Campaigns", symbol: "⚔" },
+    { href: "/sessions", label: "Sessions", symbol: "✎" },
+    { href: "/characters", label: "Characters", symbol: "♞" },
   ];
 
+  const sidebarStyles = {
+    "--sidebar-width": `${Math.round(width)}px`,
+  } as CSSProperties;
+
   return (
-    <div className="w-full md:w-64 md:flex md:flex-col md:bg-[#0f0f23] md:border-r md:border-[#00ffff] md:border-opacity-20">
+    <div
+      className={cn(
+        "relative w-full md:flex md:flex-col md:bg-[#0f0f23] md:border-r md:border-[#00ffff] md:border-opacity-20 md:[width:var(--sidebar-width)]",
+        isDragging ? "md:transition-none" : "transition-[width] duration-300 ease-in-out"
+      )}
+      style={sidebarStyles}
+    >
       {/* Mobile header */}
       <div className="md:hidden border-b border-[#00ffff] border-opacity-20 bg-[#0f0f23]">
         <div className="flex items-center justify-between px-4 py-4">
@@ -78,60 +164,133 @@ export default function Navbar() {
               </Link>
             );
           })}
-          <button
-            onClick={() => logout()}
-            className="w-full px-4 py-3 text-sm font-bold uppercase tracking-wider text-[#00ffff] border border-[#00ffff] border-opacity-30 rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-colors duration-200"
-          >
-            Logout
-          </button>
         </div>
       </div>
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:flex-1 md:flex-col">
-        <div className="p-6">
-          <Link
-            href="/dashboard"
-            className="text-2xl font-bold text-[#00ffff] glitch-subtle tracking-[0.15em] uppercase"
-            data-text="TYRANNY OF DRAGONS"
-          >
-            TYRANNY
-            <br />
-            OF
-            <br />
-            DRAGONS
-          </Link>
+      <aside className={cn("hidden md:flex md:flex-1 md:flex-col", isCollapsed && "items-center")}>        
+        <div
+          className={cn(
+            "w-full border-b border-[#00ffff] border-opacity-10",
+            isCollapsed ? "p-4" : "p-6"
+          )}
+        >
+          <div className={cn("flex items-center", isCollapsed ? "justify-center" : "justify-between")}>
+            <Link
+              href="/dashboard"
+              className={cn(
+                "text-2xl font-bold text-[#00ffff] glitch-subtle uppercase",
+                isCollapsed ? "tracking-[0.35em]" : "tracking-[0.15em]"
+              )}
+              data-text={isCollapsed ? "TYR" : "TYRANNY OF DRAGONS"}
+            >
+              {isCollapsed ? (
+                <span>TYR</span>
+              ) : (
+                <>
+                  TYRANNY
+                  <br />
+                  OF
+                  <br />
+                  DRAGONS
+                </>
+              )}
+            </Link>
+          </div>
         </div>
 
-        <div className="flex-1 px-4 py-6 space-y-2">
+        <div
+          className={cn(
+            "flex-1 overflow-y-auto py-6 space-y-2",
+            isCollapsed ? "px-2" : "px-4"
+          )}
+        >
           {navLinks.map((link) => {
             const isActive = pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}
                 href={link.href}
+                title={isCollapsed ? link.label : undefined}
+                aria-label={isCollapsed ? link.label : undefined}
                 className={cn(
-                  "block px-4 py-3 text-lg font-bold uppercase tracking-wider transition-all duration-200 rounded",
+                  "group relative flex items-center rounded transition-all duration-200 uppercase tracking-wider font-bold",
+                  isCollapsed
+                    ? "justify-center aspect-square w-14 p-0 text-xs"
+                    : "px-4 py-3 text-lg",
                   isActive
                     ? "bg-[#ff00ff] text-black shadow-lg shadow-[#ff00ff]/50"
                     : "text-[#00ffff] hover:bg-[#1a1a3e] hover:text-[#ff00ff]"
                 )}
               >
-                {link.label}
+                <span className={cn(isCollapsed && "sr-only")}>{link.label}</span>
+                {isCollapsed && (
+                  <span
+                    aria-hidden
+                    className="text-3xl leading-none text-[#00ffff] drop-shadow-[0_0_6px_rgba(0,255,255,0.45)] group-hover:text-[#ff00ff]"
+                  >
+                    {link.symbol}
+                  </span>
+                )}
+                {isCollapsed && (
+                  <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded border border-[#00ffff] border-opacity-40 bg-[#0f0f23] px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-[#00ffff] opacity-0 shadow-lg shadow-[#00ffff]/20 transition-opacity duration-150 group-hover:opacity-100">
+                    {link.label}
+                  </span>
+                )}
               </Link>
             );
           })}
         </div>
 
-        <div className="p-4">
+        <div
+          className={cn(
+            "hidden md:flex w-full border-t border-[#00ffff] border-opacity-10",
+            isCollapsed
+              ? "flex-col items-center gap-2 px-2 py-3"
+              : "items-center justify-between gap-3 px-4 py-4"
+          )}
+        >
           <button
-            onClick={() => logout()}
-            className="w-full px-4 py-2 text-sm font-bold uppercase tracking-wider text-[#00ffff] hover:text-[#ff00ff] transition-colors duration-200 border border-[#00ffff] border-opacity-30 rounded hover:border-[#ff00ff]"
+            type="button"
+            aria-pressed={isCollapsed}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            onClick={toggleCollapse}
+            className={cn(
+              "inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-30 text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff] transition-colors",
+              isCollapsed ? "w-10 h-10" : "gap-2 px-3 py-2 text-xs uppercase tracking-[0.35em]"
+            )}
           >
-            Logout
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {isCollapsed ? (
+                <path d="M9 6l6 6-6 6" />
+              ) : (
+                <path d="M15 6l-6 6 6 6" />
+              )}
+            </svg>
+            {!isCollapsed && <span>Collapse</span>}
           </button>
         </div>
       </aside>
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize sidebar"
+        onPointerDown={handlePointerDown}
+        className={cn(
+          "hidden md:block absolute top-0 right-0 h-full w-2 cursor-col-resize select-none",
+          isDragging ? "bg-[#ff00ff]/30" : "bg-transparent hover:bg-[#00ffff]/20"
+        )}
+      >
+        <span className="sr-only">Drag to resize navigation</span>
+      </div>
     </div>
   );
 }

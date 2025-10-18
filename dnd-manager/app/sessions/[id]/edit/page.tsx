@@ -61,6 +61,7 @@ export default async function SessionEditPage({ params }: { params: Promise<{ id
         characters={allCharacters || []}
         submitLabel="Save Changes"
         cancelHref={`/sessions/${id}`}
+        draftKey={`session-notes:${id}`}
       />
     </div>
   )
