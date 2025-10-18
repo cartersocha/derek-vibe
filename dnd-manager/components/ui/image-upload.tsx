@@ -232,14 +232,16 @@ export default function ImageUpload({
               unoptimized
             />
           </div>
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-sm text-[#00ffff] font-mono truncate flex-1">
-              {fileName || (currentImage && !isRemoved ? "Current image" : "")}
-            </span>
+          <div className="mt-3 flex items-center gap-4">
+            {fileName && (
+              <span className="text-sm text-[#00ffff] font-mono truncate">
+                {fileName}
+              </span>
+            )}
             <button
               type="button"
               onClick={handleRemove}
-              className="ml-4 px-4 py-2 text-sm font-bold uppercase tracking-wider text-black bg-[#ff00ff] hover:bg-[#cc00cc] rounded transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+              className="ml-auto px-4 py-2 text-sm font-bold uppercase tracking-wider text-black bg-[#ff00ff] hover:bg-[#cc00cc] rounded transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
             >
               Remove
             </button>

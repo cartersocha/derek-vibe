@@ -1,9 +1,11 @@
 'use client'
 
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type KeyboardEvent } from 'react'
 import Link from 'next/link'
 import ImageUpload from '@/components/ui/image-upload'
 import AutoResizeTextarea from '@/components/ui/auto-resize-textarea'
+import { isMentionBoundary } from '@/lib/mention-utils'
+import { createCharacterInline } from '@/lib/actions/characters'
 
 const AUTO_SAVE_DELAY_MS = 2000
 const DEFAULT_DRAFT_KEY = 'session-notes:draft'
@@ -61,7 +63,10 @@ export default function SessionForm({
   const today = useMemo(() => new Date().toISOString().split('T')[0], [])
   const [nameDraft, setNameDraft] = useState(initialName)
   const [notesDraft, setNotesDraft] = useState(initialNotes)
+  const notesRef = useRef<HTMLTextAreaElement | null>(null)
+  const pendingCursorRef = useRef<number | null>(null)
   const [headerImageDraft, setHeaderImageDraft] = useState<{ dataUrl: string; name?: string | null } | null>(null)
+  const [characterList, setCharacterList] = useState(characters)
   const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(() => {
     const initialSet = new Set(initialData?.characterIds || [])
     preselectedCharacterIds?.forEach((id) => initialSet.add(id))
@@ -75,10 +80,22 @@ export default function SessionForm({
   const headerSaveTimeoutRef = useRef<number | null>(null)
   const hasLoadedDraftRef = useRef(false)
   const hasLoadedCharactersRef = useRef(false)
+  const [mentionQuery, setMentionQuery] = useState('')
+  const [mentionStart, setMentionStart] = useState<number | null>(null)
+  const [isMentionMenuOpen, setIsMentionMenuOpen] = useState(false)
+  const [mentionHighlightIndex, setMentionHighlightIndex] = useState(0)
+  const [mentionDropdownPosition, setMentionDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null)
+  const [isCreatingMentionCharacter, setIsCreatingMentionCharacter] = useState(false)
+  const [mentionCreationError, setMentionCreationError] = useState<string | null>(null)
+  const mentionListId = useMemo(() => `session-notes-mentions-${draftStorageKey}`, [draftStorageKey])
   const charactersStorageKey = `${draftStorageKey}${CHARACTER_SELECTION_SUFFIX}`
   const nameStorageKey = `${draftStorageKey}${NAME_SUFFIX}`
   const headerImageStorageKey = `${draftStorageKey}${HEADER_IMAGE_SUFFIX}`
   const isNavigatingRef = useRef(false)
+
+  useEffect(() => {
+    setCharacterList(characters)
+  }, [characters])
 
   useEffect(() => {
     hasLoadedDraftRef.current = false
@@ -286,10 +303,6 @@ export default function SessionForm({
     })
   }, [preselectedCharacterIds])
 
-  const handleNotesChange = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
-    setNotesDraft(event.target.value)
-  }, [])
-
   const handleNameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setNameDraft(event.target.value)
   }, [])
@@ -341,19 +354,395 @@ export default function SessionForm({
   const filteredCharacters = useMemo(() => {
     const term = deferredCharacterSearch.trim().toLowerCase()
     if (!term) {
-      return characters
+      return characterList
     }
 
-    return characters.filter((character) => {
+    return characterList.filter((character) => {
       const parts = [character.name, character.race ?? '', character.class ?? '']
       return parts.some((part) => part.toLowerCase().includes(term))
     })
-  }, [deferredCharacterSearch, characters])
+  }, [characterList, deferredCharacterSearch])
 
   const hiddenSelectedCharacterIds = useMemo(() => {
     const visibleIds = new Set(filteredCharacters.map((character) => character.id))
     return Array.from(selectedCharacters).filter((id) => !visibleIds.has(id))
   }, [filteredCharacters, selectedCharacters])
+
+  const sortCharactersByName = useCallback(
+    (list: Character[]) => [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
+    []
+  )
+
+  const closeMentionMenu = useCallback(() => {
+    setIsMentionMenuOpen(false)
+    setMentionQuery('')
+    setMentionStart(null)
+    setMentionHighlightIndex(0)
+    setMentionCreationError(null)
+    setMentionDropdownPosition(null)
+  }, [])
+
+  const measureCaretPosition = useCallback((textarea: HTMLTextAreaElement, index: number) => {
+    if (typeof window === 'undefined') {
+      return null
+    }
+
+    const doc = textarea.ownerDocument
+    const textBefore = textarea.value.slice(0, index).replace(/\n$/u, '\n\u200b')
+    const marker = doc.createElement('span')
+    marker.textContent = '\u200b'
+
+    const mirror = doc.createElement('div')
+    const computed = window.getComputedStyle(textarea)
+
+    mirror.style.position = 'absolute'
+    mirror.style.visibility = 'hidden'
+    mirror.style.whiteSpace = 'pre-wrap'
+    mirror.style.wordBreak = 'break-word'
+    mirror.style.overflow = 'hidden'
+    mirror.style.padding = computed.padding
+    mirror.style.border = computed.border
+    mirror.style.boxSizing = computed.boxSizing
+    mirror.style.font = computed.font
+    mirror.style.letterSpacing = computed.letterSpacing
+    mirror.style.textTransform = computed.textTransform
+    mirror.style.textAlign = computed.textAlign
+    mirror.style.lineHeight = computed.lineHeight
+    mirror.style.width = `${textarea.clientWidth}px`
+    mirror.textContent = textBefore
+    mirror.appendChild(marker)
+
+    doc.body.appendChild(mirror)
+
+    const markerRect = marker.getBoundingClientRect()
+    const mirrorRect = mirror.getBoundingClientRect()
+    const relativeTop = markerRect.top - mirrorRect.top
+    const relativeLeft = markerRect.left - mirrorRect.left
+
+    mirror.remove()
+
+    const rawLineHeight = computed.lineHeight
+    let lineHeight = parseFloat(rawLineHeight)
+    if (Number.isNaN(lineHeight)) {
+      const fontSize = parseFloat(computed.fontSize)
+      lineHeight = Number.isNaN(fontSize) ? 16 : fontSize * 1.2
+    }
+
+    return {
+      top: relativeTop,
+      left: relativeLeft,
+      lineHeight,
+    }
+  }, [])
+
+  const updateMentionMenuPosition = useCallback(
+    (textarea: HTMLTextAreaElement | null, anchorIndex: number, labels: string[]) => {
+      if (!textarea) {
+        setMentionDropdownPosition((prev) => (prev === null ? prev : null))
+        return
+      }
+
+      const metrics = measureCaretPosition(textarea, Math.max(0, anchorIndex))
+      if (!metrics) {
+        setMentionDropdownPosition((prev) => (prev === null ? prev : null))
+        return
+      }
+
+      const computed = window.getComputedStyle(textarea)
+      const fontSize = parseFloat(computed.fontSize) || 16
+      const approxCharWidth = fontSize * 0.6
+      const longestLabelLength = labels.length > 0 ? labels.reduce((max, label) => Math.max(max, label.length), 0) : 12
+      const desiredWidth = Math.ceil(longestLabelLength * approxCharWidth + fontSize * 2)
+      const minWidth = Math.min(Math.max(fontSize * 8, 140), textarea.clientWidth || fontSize * 12)
+      const dropdownWidth = Math.min(Math.max(desiredWidth, minWidth), textarea.clientWidth || desiredWidth)
+      const availableLeft = Math.max(textarea.clientWidth - dropdownWidth, 0)
+      const left = Math.min(Math.max(metrics.left, 0), availableLeft)
+      const top = metrics.top + metrics.lineHeight + 6
+
+      setMentionDropdownPosition((prev) => {
+        if (prev && prev.top === top && prev.left === left && prev.width === dropdownWidth) {
+          return prev
+        }
+        return {
+          top,
+          left,
+          width: dropdownWidth,
+        }
+      })
+    },
+    [measureCaretPosition]
+  )
+
+  const updateMentionState = useCallback(
+    (value: string, cursor: number, textarea?: HTMLTextAreaElement | null) => {
+      if (Number.isNaN(cursor) || cursor < 0) {
+        closeMentionMenu()
+        return
+      }
+
+      const atIndex = value.lastIndexOf('@', cursor - 1)
+
+      if (atIndex === -1) {
+        closeMentionMenu()
+        return
+      }
+
+      if (atIndex > 0) {
+        const charBefore = value.charAt(atIndex - 1)
+        if (!isMentionBoundary(charBefore)) {
+          closeMentionMenu()
+          return
+        }
+      }
+
+      const fragment = value.slice(atIndex + 1, cursor)
+
+      if (fragment.includes('\n') || fragment.includes('\r') || fragment.includes('\t')) {
+        closeMentionMenu()
+        return
+      }
+
+      if (fragment.includes(' ')) {
+        closeMentionMenu()
+        return
+      }
+
+      if (fragment.includes('@')) {
+        closeMentionMenu()
+        return
+      }
+
+      setMentionStart(atIndex)
+      setMentionQuery(fragment)
+      setIsMentionMenuOpen(true)
+      setMentionHighlightIndex(0)
+      updateMentionMenuPosition(textarea ?? null, atIndex, [])
+    },
+    [closeMentionMenu, updateMentionMenuPosition]
+  )
+
+  const handleNotesChange = useCallback((event: ChangeEvent<HTMLTextAreaElement>) => {
+    const { value, selectionStart } = event.target
+    setNotesDraft(value)
+    const cursor = typeof selectionStart === 'number' ? selectionStart : value.length
+    updateMentionState(value, cursor, event.target)
+  }, [updateMentionState])
+
+  const handleNotesCaretUpdate = useCallback(() => {
+    const textarea = notesRef.current
+    if (!textarea) {
+      return
+    }
+    const cursor = typeof textarea.selectionStart === 'number' ? textarea.selectionStart : textarea.value.length
+    updateMentionState(textarea.value, cursor, textarea)
+  }, [updateMentionState])
+
+  const handleNotesBlur = useCallback(() => {
+    closeMentionMenu()
+  }, [closeMentionMenu])
+
+  const mentionQueryNormalized = useMemo(() => mentionQuery.trim(), [mentionQuery])
+
+  const mentionOptions = useMemo(() => {
+    if (!isMentionMenuOpen) {
+      return [] as Character[]
+    }
+
+    const normalizedQuery = mentionQueryNormalized.toLowerCase()
+    const candidates = sortCharactersByName(characterList)
+
+    if (!normalizedQuery) {
+      return candidates.slice(0, 8)
+    }
+
+    return candidates
+      .filter((character) => character.name.toLowerCase().includes(normalizedQuery))
+      .slice(0, 8)
+  }, [characterList, isMentionMenuOpen, mentionQueryNormalized, sortCharactersByName])
+
+  const hasExactMentionMatch = useMemo(() => {
+    if (!mentionQueryNormalized) {
+      return false
+    }
+    const lowered = mentionQueryNormalized.toLowerCase()
+    return characterList.some((character) => character.name.toLowerCase() === lowered)
+  }, [characterList, mentionQueryNormalized])
+
+  const showInlineCreateOption = mentionQueryNormalized.length > 0 && !hasExactMentionMatch
+
+  const totalMentionChoices = mentionOptions.length + (showInlineCreateOption ? 1 : 0)
+
+  const mentionDropdownStyle = useMemo<CSSProperties>(() => {
+    if (!mentionDropdownPosition) {
+      return {
+        top: 'calc(100% + 0.5rem)',
+        left: 0,
+        minWidth: '12rem',
+        width: 'fit-content',
+        maxWidth: '100%',
+      }
+    }
+
+    return {
+      top: mentionDropdownPosition.top,
+      left: mentionDropdownPosition.left,
+      width: mentionDropdownPosition.width,
+      minWidth: mentionDropdownPosition.width,
+      maxWidth: mentionDropdownPosition.width,
+    }
+  }, [mentionDropdownPosition])
+
+  useEffect(() => {
+    if (!isMentionMenuOpen) {
+      return
+    }
+    setMentionHighlightIndex((prev) => {
+      if (totalMentionChoices === 0) {
+        return 0
+      }
+      return Math.min(prev, totalMentionChoices - 1)
+    })
+  }, [isMentionMenuOpen, totalMentionChoices])
+
+  useEffect(() => {
+    if (!isMentionMenuOpen) {
+      return
+    }
+
+    const textarea = notesRef.current
+    if (!textarea) {
+      return
+    }
+
+    const anchorIndex = mentionStart ?? (typeof textarea.selectionStart === 'number' ? textarea.selectionStart : 0)
+    const labels: string[] = mentionOptions.map((option) => option.name)
+    if (showInlineCreateOption) {
+      labels.push(`Create "${mentionQueryNormalized}"`)
+    }
+
+    updateMentionMenuPosition(textarea, anchorIndex, labels)
+  }, [isMentionMenuOpen, mentionOptions, mentionQueryNormalized, mentionStart, showInlineCreateOption, updateMentionMenuPosition])
+
+  const insertMention = useCallback((character: Character) => {
+    const textarea = notesRef.current
+    if (!textarea) {
+      return
+    }
+
+    const rawStart = mentionStart ?? textarea.selectionStart ?? 0
+    const rawEnd = textarea.selectionEnd ?? rawStart
+    const mentionText = `@${character.name}`
+
+    setNotesDraft((previous) => {
+      const safeStart = Math.max(0, Math.min(rawStart, previous.length))
+      const safeEnd = Math.max(safeStart, Math.min(rawEnd, previous.length))
+      const before = previous.slice(0, safeStart)
+      const after = previous.slice(safeEnd)
+      const needsSpace = after.length === 0 ? true : !isMentionBoundary(after.charAt(0))
+      const insertion = needsSpace ? `${mentionText} ` : mentionText
+      pendingCursorRef.current = safeStart + insertion.length
+      return `${before}${insertion}${after}`
+    })
+
+    setSelectedCharacters((prev) => {
+      if (prev.has(character.id)) {
+        return prev
+      }
+      const next = new Set(prev)
+      next.add(character.id)
+      return next
+    })
+
+    closeMentionMenu()
+
+    requestAnimationFrame(() => {
+      const textareaNode = notesRef.current
+      const nextCursor = pendingCursorRef.current
+      if (!textareaNode || nextCursor === null) {
+        return
+      }
+      textareaNode.focus()
+      textareaNode.setSelectionRange(nextCursor, nextCursor)
+      pendingCursorRef.current = null
+    })
+  }, [closeMentionMenu, mentionStart])
+
+  const handleCreateCharacterInline = useCallback(async () => {
+    if (isCreatingMentionCharacter) {
+      return
+    }
+
+    const rawName = mentionQueryNormalized
+
+    if (!rawName || hasExactMentionMatch) {
+      return
+    }
+
+    setIsCreatingMentionCharacter(true)
+    setMentionCreationError(null)
+
+    try {
+      const result = await createCharacterInline(rawName)
+      const newCharacter: Character = {
+        id: result.id,
+        name: result.name,
+        race: null,
+        class: null,
+      }
+
+      setCharacterList((previous) => sortCharactersByName([...previous, newCharacter]))
+      insertMention(newCharacter)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create character'
+      setMentionCreationError(message)
+    } finally {
+      setIsCreatingMentionCharacter(false)
+    }
+  }, [hasExactMentionMatch, insertMention, isCreatingMentionCharacter, mentionQueryNormalized, sortCharactersByName])
+
+  const handleNotesKeyDown = useCallback((event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!isMentionMenuOpen) {
+      return
+    }
+
+    if (mentionOptions.length === 0) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeMentionMenu()
+      }
+      return
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setMentionHighlightIndex((prev) => (prev + 1) % totalMentionChoices)
+      return
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setMentionHighlightIndex((prev) => (prev - 1 + totalMentionChoices) % totalMentionChoices)
+      return
+    }
+
+    if (event.key === 'Enter' || event.key === 'Tab') {
+      event.preventDefault()
+      if (mentionHighlightIndex < mentionOptions.length) {
+        const target = mentionOptions[mentionHighlightIndex]
+        if (target) {
+          insertMention(target)
+        }
+      } else if (showInlineCreateOption) {
+        void handleCreateCharacterInline()
+      }
+      return
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeMentionMenu()
+    }
+  }, [closeMentionMenu, handleCreateCharacterInline, insertMention, isMentionMenuOpen, mentionHighlightIndex, mentionOptions, showInlineCreateOption, totalMentionChoices])
 
   const handleCharacterSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setCharacterSearch(event.target.value)
@@ -495,15 +884,88 @@ export default function SessionForm({
         <label htmlFor="notes" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
           Session Notes
         </label>
-        <AutoResizeTextarea
-          id="notes"
-          name="notes"
-          rows={8}
-          value={notesDraft}
-          onChange={handleNotesChange}
-          className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
-          placeholder="What happened in this session..."
-        />
+        <div className="relative">
+          <AutoResizeTextarea
+            ref={notesRef}
+            id="notes"
+            name="notes"
+            rows={8}
+            value={notesDraft}
+            onChange={handleNotesChange}
+            onKeyDown={handleNotesKeyDown}
+            onClick={handleNotesCaretUpdate}
+            onKeyUp={handleNotesCaretUpdate}
+            onFocus={handleNotesCaretUpdate}
+            onBlur={handleNotesBlur}
+            aria-autocomplete="list"
+            aria-expanded={isMentionMenuOpen}
+            aria-controls={isMentionMenuOpen ? mentionListId : undefined}
+            className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+            placeholder="What happened in this session..."
+          />
+          {isMentionMenuOpen && (
+            <div
+              id={mentionListId}
+              role="listbox"
+              className="absolute z-20 max-h-56 overflow-y-auto rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-lg"
+              style={mentionDropdownStyle}
+            >
+              {mentionOptions.map((character, index) => {
+                const isActive = index === mentionHighlightIndex
+                return (
+                  <button
+                    key={character.id}
+                    type="button"
+                    role="option"
+                    aria-selected={isActive}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => insertMention(character)}
+                    onMouseEnter={() => setMentionHighlightIndex(index)}
+                    className={`flex w-full items-start gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
+                      isActive
+                        ? 'bg-[#1a1a3e] text-[#ff00ff]'
+                        : 'text-[#00ffff] hover:bg-[#11112b]'
+                    }`}
+                  >
+                    <span className="font-semibold">{character.name}</span>
+                  </button>
+                )
+              })}
+
+              {showInlineCreateOption && (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={mentionHighlightIndex === mentionOptions.length}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onMouseEnter={() => setMentionHighlightIndex(mentionOptions.length)}
+                  onClick={() => void handleCreateCharacterInline()}
+                  className={`flex w-full items-start gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
+                    mentionHighlightIndex === mentionOptions.length
+                      ? 'bg-[#1a1a3e] text-[#ff00ff]'
+                      : 'text-[#ff00ff] hover:bg-[#11112b]'
+                  }`}
+                  disabled={isCreatingMentionCharacter}
+                >
+                  <span className="font-semibold">
+                    {isCreatingMentionCharacter ? 'Creating…' : `Create "${mentionQueryNormalized}"`}
+                  </span>
+                </button>
+              )}
+
+              {!showInlineCreateOption && mentionOptions.length === 0 && (
+                <p className="px-3 py-2 text-xs font-mono uppercase tracking-widest text-gray-500">
+                  No matching characters
+                </p>
+              )}
+            </div>
+          )}
+          {mentionCreationError && (
+            <p className="mt-2 text-xs font-mono text-[#ff6ad5]">
+              {mentionCreationError}
+            </p>
+          )}
+        </div>
       </div>
 
           {hiddenSelectedCharacterIds.map((id) => (
@@ -538,7 +1000,7 @@ export default function SessionForm({
             <div className="space-y-2 max-h-64 overflow-y-auto border border-[#00ffff] border-opacity-30 rounded p-4 bg-[#0f0f23]">
               {filteredCharacters.length === 0 ? (
                 <p className="text-xs uppercase tracking-wider text-gray-500 font-mono text-center">
-                  {characters.length === 0
+                  {characterList.length === 0
                     ? 'No characters yet. Create one to get started.'
                     : 'No characters match your search'}
                 </p>

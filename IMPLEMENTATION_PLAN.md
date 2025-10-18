@@ -16,6 +16,8 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-18, late night):** Unified session search and attendee chips across pages, expanded the dashboard's recent sessions feed with richer metadata, removed obsolete quick actions, and capped badge rendering for better mobile performance.
 
+> **Note (2025-10-19):** Added caret-anchored session mention menus with inline character creation, reusable mention rendering helpers, and streamlined header image controls on the session edit form.
+
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
 ## Recent Enhancements (2025-10-18)
@@ -32,6 +34,9 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Characters index gained a compact inline search bar colocated with the create button, along with a five-card responsive grid and empty-state messaging.
 - Sidebar resizing enforces an auto-measured maximum width and supports double-click toggles directly from the panel and resize handle for quicker interactions.
 - Dashboard recent sessions panel expanded to six entries, added note previews and attendee chips, and removed the redundant quick action tiles to streamline the layout.
+- Session notes now support caret-positioned `@` mention menus that hyperlink to character sheets, with keyboard navigation, inline creation for new characters, and automatic attendee syncing.
+- Mention rendering utilities were centralized so session lists and detail pages share consistent hyperlink behavior for `@Character` references.
+- Session header image controls on the edit form drop redundant labels, keeping the remove action aligned to the right for a cleaner presentation.
 
 ## Project Overview
 

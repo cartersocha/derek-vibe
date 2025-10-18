@@ -116,7 +116,7 @@ app/
   - Client component with form state management
 - `SessionForm` - Create/edit session with character selection and draft auto-save
   - Location: `components/forms/session-form.tsx`
-  - Client component with search, hidden selection syncing, and redirect-aware character creation
+  - Client component with search, hidden selection syncing, redirect-aware character creation, and inline `@` mention menus that surface character matches at the caret while supporting keyboard navigation and inline character creation when no match exists
 
 #### UI Components
 
@@ -131,6 +131,9 @@ app/
   - Client component with drag-and-drop support
   - Preview current image and new uploads
   - Remove image functionality
+- `Mention Utils` - Shared helpers for rendering and parsing character mentions
+  - Location: `lib/mention-utils.tsx`
+  - Exports render helpers, boundary checks, and mention target types reused by session detail pages and list summaries
 - `DeleteCharacterButton` - Confirmation dialog for character deletion
   - Location: `components/ui/delete-character-button.tsx`
   - Client component with confirmation prompt
@@ -189,6 +192,8 @@ app/
   - Player chips reused across dashboard, campaigns, and character detail pages with overflow condensed into a `+N more` badge
 - Campaign-specific ordering assigns a session number based on ascending session date; numbering appears on the sessions list, campaign detail cards, and session detail header when a campaign provides dated entries
 - Unsaved session note drafts persist locally across navigation and are cleared after a successful submission to prevent data loss
+- Session notes support inline `@Character` mentions that hyperlink to character sheets; the mention menu appears at the caret, filters matches by name, and offers inline character creation when no match exists (automatically linking the newly created character to the session)
+- Mentioned characters are auto-selected for the session’s attendee list to keep relationships in sync
 
 #### Sessions Index
 
@@ -215,6 +220,7 @@ app/
   - List of sessions they participated in with links
 - **Note**: Ability scores (STR, DEX, CON, INT, WIS, CHA) have been removed from the system
 - Characters index includes a compact inline search field beside the create button and renders results in a responsive five-card-wide grid with graceful empty states when no matches are found
+- Characters can also be created on-the-fly from session notes mentions; the inline creation path captures only the required name and routes the user back to their in-progress draft with the new character linked
 
 ### Image Management
 
@@ -273,6 +279,8 @@ app/
 > **Note (2025-10-18):** Landed sidebar performance improvements, session form draft preservation, auto-resizing text areas, and refreshed character metadata formatting.
 
 > **Note (2025-10-18, evening):** Added campaign-aware session numbering across list and detail views, tightened related character grids to fit five cards, introduced a compact character search bar with responsive results, and refined the sidebar to auto-clamp to label width with double-click toggles.
+
+> **Note (2025-10-19):** Delivered caret-anchored session mention menus with inline character creation, cross-page mention rendering utilities, and streamlined session header image controls.
 
 
 ### Form Handling

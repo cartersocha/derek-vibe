@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { deleteSession } from '@/lib/actions/sessions'
 import { DeleteSessionButton } from '@/components/ui/delete-session-button'
+import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -66,6 +67,11 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     
     sessionChars = charData || []
   }
+
+  const mentionableCharacters: MentionTarget[] = sessionChars.map((character) => ({
+    id: character.id,
+    name: character.name,
+  }))
 
   const deleteSessionWithId = deleteSession.bind(null, id)
 
@@ -140,7 +146,9 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           <div>
             <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Session Notes</h3>
             <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-6">
-              <p className="text-gray-300 whitespace-pre-wrap font-mono text-base sm:text-lg leading-relaxed">{session.notes}</p>
+              <div className="text-gray-300 whitespace-pre-wrap font-mono text-base sm:text-lg leading-relaxed break-words">
+                {renderNotesWithMentions(session.notes, mentionableCharacters)}
+              </div>
             </div>
           </div>
         )}

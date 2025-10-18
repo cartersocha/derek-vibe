@@ -81,6 +81,37 @@ export async function createCharacter(formData: FormData): Promise<void> {
   redirect("/characters");
 }
 
+export async function createCharacterInline(name: string): Promise<{
+  id: string;
+  name: string;
+}> {
+  const supabase = await createClient();
+  const sanitized = sanitizeText(name).trim();
+
+  if (!sanitized) {
+    throw new Error("Character name is required");
+  }
+
+  const truncated = sanitized.slice(0, 100);
+  const characterId = randomUUID();
+
+  const { error } = await supabase.from("characters").insert({
+    id: characterId,
+    name: truncated,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/characters");
+
+  return {
+    id: characterId,
+    name: truncated,
+  };
+}
+
 export async function updateCharacter(
   id: string,
   formData: FormData
