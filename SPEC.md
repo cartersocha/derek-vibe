@@ -116,9 +116,9 @@ app/
 
 #### Layout Components
 
-- `Navbar` - Collapsible sidebar navigation with icon mode and hover tooltips
+- `Navbar` - Collapsible sidebar navigation with icon mode, hover tooltips, and throttled drag resizing
   - Location: `components/layout/navbar.tsx`
-  - Client component with drag-to-resize handling, width persistence, and mobile menu
+  - Client component with requestAnimationFrame throttled resizing, width persistence, and mobile menu
 
 #### Form Components
 
@@ -131,7 +131,7 @@ app/
 
 #### UI Components
 
-- `AutoResizeTextarea` - Textarea that grows with content for long-form inputs
+- `AutoResizeTextarea` - Textarea that grows with content for long-form inputs using animation frame throttling
   - Location: `components/ui/auto-resize-textarea.tsx`
   - Client component shared by character and session forms for backstory and notes
 - `ImageUpload` - File upload with preview and remove functionality
@@ -191,6 +191,7 @@ app/
   - Session date
   - Notes presented in a styled panel with preserved line breaks
   - List of participating characters with links
+- Unsaved session note drafts are stored locally while the user is active and cleared when the tab closes without submitting to prevent stale data
 
 ### Characters
 
@@ -244,6 +245,7 @@ app/
 - Server Actions for all mutations (create, update, delete)
 - Form submissions use Server Actions
 - No client-side state management library needed
+- Client-visible form inputs are sanitized server-side with `sanitize-html` before validation or persistence
 
 ### Data Fetching
 
@@ -280,6 +282,7 @@ app/
 - Client-side validation with HTML5 attributes
 - File uploads handled through FormData
 - Session notes auto-save to `localStorage` with a debounce and clear on successful submission
+- Autosaved drafts are purged if the user leaves the form without submitting to avoid stale resumes
 - Auto-resizing textarea component keeps long-form inputs visible without manual resizing
 
 ### Environment Variables

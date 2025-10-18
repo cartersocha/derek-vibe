@@ -10,14 +10,18 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-18):** Implemented a performance-focused sidebar overhaul, session form draft auto-save with auto-resizing text areas, redirect-aware character creation, defaulted session dates, and refreshed character metadata presentation.
 
+> **Note (2025-10-18, later):** Hardened text inputs with HTML sanitization, throttled interactive UI resizing, deferred character searches, cleaned image preview URLs, and discard abandoned session drafts.
+
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
 ## Recent Enhancements (2025-10-18)
 
-- Collapsible sidebar now supports drag-to-resize with debounced pointer handling, persisted widths, icon-only hover tooltips, and smoother mobile transitions.
+- Collapsible sidebar now supports drag-to-resize with requestAnimationFrame scheduling, persisted widths, icon-only hover tooltips, and smoother mobile transitions.
 - Session create/edit flow introduces localStorage-backed notes drafts, auto-growing text areas, default session dates, and character search with hidden selection syncing.
+- Autosaved session drafts clear when abandoning the form, preventing stale resumes.
 - Character creation redirects return users to the in-progress session with the new character automatically selected, accelerating party management.
 - Backstory and session notes layouts preserve whitespace, while character metadata in selection lists uses a `•` separator for quicker scanning.
+- Textarea resizing, character search filtering, and image preview generation were optimized to reduce layout thrash and memory usage, with server-side sanitization applied to all text fields.
 
 ## Project Overview
 
@@ -348,6 +352,7 @@ export interface CharacterWithSessions extends Character {
 - Configure component variants with Tailwind
 
 > **Enhancement (2025-10-18):** Added `components/ui/auto-resize-textarea.tsx` to auto-grow long-form inputs for session notes and character backstories.
+> **Enhancement (2025-10-18, later):** Auto-resize behavior now schedules height updates with animation frames to minimize layout thrash during rapid typing.
 
 **Files Created**:
 - `components/ui/button.tsx`
@@ -377,6 +382,8 @@ export interface CharacterWithSessions extends Character {
 - `components/ui/image-display.tsx`
 - Complete `lib/supabase/storage.ts`
 
+> **Enhancement (2025-10-18, later):** Image previews now rely on blob URLs with automatic revocation and memoized handlers to reduce memory churn during repeated uploads.
+
 ---
 
 ### Step 2.3: Create Validation Schemas
@@ -393,6 +400,8 @@ export interface CharacterWithSessions extends Character {
 - `lib/validations/session.ts`
 - `lib/validations/character.ts`
 - `lib/validations/index.ts`
+
+> **Enhancement (2025-10-18, later):** Added `sanitize-html` backed helpers so all campaign, session, and character form submissions strip unsafe markup before schema validation.
 
 ---
 
@@ -432,6 +441,7 @@ export interface CharacterWithSessions extends Character {
 - Add campaign selection dropdown
 
 > **Enhancement (2025-10-18):** Session detail view now presents notes within a neon-styled panel that preserves whitespace for easier reading.
+> **Enhancement (2025-10-18, later):** Draft session notes are cleared when the page hides or closes without submission, avoiding stale cache restores.
 
 **Files Created**:
 - `app/(protected)/sessions/page.tsx`
@@ -457,6 +467,7 @@ export interface CharacterWithSessions extends Character {
 - Add character attribute inputs (STR, DEX, CON, INT, WIS, CHA)
 
 > **Enhancement (2025-10-18):** Character detail layout now highlights Backstory & Notes with preserved line breaks, and selection lists render race/class metadata with a separator dot for readability.
+> **Enhancement (2025-10-18, later):** Character server actions sanitize all text input before persistence to guard against embedded markup.
 
 **Files Created**:
 - `app/(protected)/characters/page.tsx`
@@ -481,6 +492,7 @@ export interface CharacterWithSessions extends Character {
 - Create session list component for character detail page
 
 > **Enhancement (2025-10-18):** Session form now auto-saves notes drafts to `localStorage`, defaults new session dates to today, exposes a character search with hidden selection syncing, and integrates redirect-aware character creation so new characters return preselected.
+> **Enhancement (2025-10-18, later):** Deferred character search filtering, requestAnimationFrame textarea updates, and abandoned-draft cleanup keep the form responsive and free of stale notes.
 
 **Files Created/Modified**:
 - `components/sessions/character-selector.tsx`
