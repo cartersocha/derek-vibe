@@ -71,8 +71,8 @@
 
 ```typescript
 app/
-├── page.tsx                          # Landing/Home page (redirects to dashboard)
-├── layout.tsx                        # Root layout
+├── page.tsx                          # Home page (redirects to /dashboard)
+├── layout.tsx                        # Root layout with Analytics
 ├── globals.css                       # Tailwind imports and custom styles
 ├── login/
 │   └── page.tsx                      # Password login page
@@ -107,6 +107,8 @@ app/
     └── new/
         └── page.tsx                  # New character form
 ```
+
+**Note**: The home page (`/`) automatically redirects to `/dashboard`, which then redirects unauthenticated users to `/login` via middleware.
 
 ## 4. Component Architecture
 
@@ -281,6 +283,8 @@ APP_PASSWORD=your-secure-password
 SESSION_SECRET=your-32-character-random-string
 ```
 
+**Note**: Vercel Analytics is included but doesn't require environment variables - it works automatically when deployed to Vercel.
+
 ## 7. File Structure
 
 ```typescript
@@ -356,10 +360,14 @@ dnd-manager/
 ├── public/                          # Static assets
 ├── middleware.ts                    # Auth middleware
 ├── .env.local                       # Environment variables (not committed)
+├── .gitignore                       # Git ignore file
 ├── next.config.ts                   # Next.js configuration
 ├── tailwind.config.ts               # Tailwind configuration
 ├── tsconfig.json                    # TypeScript configuration
-└── package.json                     # Dependencies
+├── package.json                     # Dependencies
+├── SPEC.md                          # Technical specification
+├── IMPLEMENTATION_PLAN.md           # Implementation guide
+└── PROJECT_SUMMARY.md               # Project documentation
 ```
 
 ## 8. TypeScript Types
@@ -412,6 +420,7 @@ interface Character {
     "react-dom": "^19.0.0",
     "@supabase/supabase-js": "^2.49.2",
     "@supabase/ssr": "^0.6.0",
+    "@vercel/analytics": "^1.4.1",
     "@vercel/blob": "^2.0.0",
     "typescript": "^5.7.2",
     "tailwindcss": "^3.4.17",
@@ -430,7 +439,10 @@ interface Character {
 }
 ```
 
-**Note**: Uses Vercel Blob Storage (@vercel/blob) instead of Supabase Storage for image uploads.
+**Key Points**:
+- Uses Vercel Blob Storage (@vercel/blob) for image uploads
+- Includes Vercel Analytics (@vercel/analytics) for tracking
+- Forms use native HTML with Server Actions (no React Hook Form)
 
 ## 10. Development Status
 
@@ -439,20 +451,22 @@ interface Character {
 1. ✅ Next.js 15 project with TypeScript and Tailwind CSS
 2. ✅ Supabase project setup and connection
 3. ✅ Database schema and migrations
-4. ✅ Supabase Storage bucket for character images
+4. ✅ Vercel Blob Storage for character images
 5. ✅ Password authentication with iron-session
 6. ✅ Protected routes via middleware
-7. ✅ Image upload functionality with preview and remove
-8. ✅ Campaign CRUD (create, read, update, delete)
-9. ✅ Session CRUD with character selection
-10. ✅ Character CRUD with image upload
-11. ✅ Session-character relationships
-12. ✅ Dashboard with statistics and recent sessions
-13. ✅ Cyberpunk-themed UI with neon styling
-14. ✅ Responsive design for mobile/tablet/desktop
-15. ✅ Proper Server/Client Component separation
-16. ✅ Delete confirmation dialogs
-17. ✅ Ability scores removed from characters
+7. ✅ Home page redirect to dashboard
+8. ✅ Image upload functionality with preview and remove
+9. ✅ Campaign CRUD (create, read, update, delete)
+10. ✅ Session CRUD with character selection
+11. ✅ Character CRUD with image upload
+12. ✅ Session-character relationships
+13. ✅ Dashboard with statistics and recent sessions
+14. ✅ Cyberpunk-themed UI with neon styling
+15. ✅ Responsive design for mobile/tablet/desktop
+16. ✅ Proper Server/Client Component separation
+17. ✅ Delete confirmation dialogs as Client Components
+18. ✅ Ability scores removed from characters
+19. ✅ Vercel Analytics integration for tracking
 
 ### 🚧 Known Limitations
 
