@@ -16,6 +16,13 @@ type SessionSummary = {
   } | null
 }
 
+type SessionRow = {
+  id: string
+  name: string
+  session_date: string | null
+  campaign: { id: string; name: string } | { id: string; name: string }[] | null
+}
+
 export default async function CharacterPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
@@ -43,8 +50,9 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     .from('sessions')
     .select('id, name, session_date, campaign:campaigns(id, name)')
     .order('session_date', { ascending: false })
+    .returns<SessionRow[]>()
 
-  const allSessions: SessionSummary[] = (allSessionsData || []).map((session: any) => ({
+  const allSessions: SessionSummary[] = (allSessionsData || []).map((session) => ({
     id: session.id,
     name: session.name,
     session_date: session.session_date,
