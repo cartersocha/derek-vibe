@@ -262,8 +262,10 @@ export default function Navbar() {
 
         <div
           className={cn(
-            "flex-1 overflow-y-auto py-6 space-y-2",
-            isCollapsed ? "px-2" : "px-4"
+            "flex-1 py-6 space-y-2",
+            isCollapsed
+              ? "px-2 overflow-y-visible"
+              : "px-4 overflow-y-auto"
           )}
         >
           {NAV_LINKS.map((link) => {
