@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rat Palace",
+  title: "Rat Palace Adventures",
   description: "Manage your D&D campaigns, characters, and sessions",
   icons: {
     icon: '/favicon.ico',
