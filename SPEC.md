@@ -3,8 +3,10 @@
 ## 1. Project Overview
 
 **Name**: D&D Campaign Manager  
-**Stack**: Next.js 14 (App Router), TypeScript, Tailwind CSS, Supabase  
-**Architecture**: Full-stack Next.js with Supabase for authentication and database
+**Stack**: Next.js 15.5.6 (App Router), TypeScript, Tailwind CSS, Supabase  
+**Architecture**: Full-stack Next.js with Supabase for database  
+**Storage**: Vercel Blob Storage for images  
+**Authentication**: Simple password-based authentication with iron-session
 
 ## 2. Database Schema (Supabase PostgreSQL)
 
@@ -38,12 +40,6 @@
 - `level` (integer)
 - `backstory` (text)
 - `image_url` (text, nullable)
-- `strength` (integer)
-- `dexterity` (integer)
-- `constitution` (integer)
-- `intelligence` (integer)
-- `wisdom` (integer)
-- `charisma` (integer)
 - `created_at` (timestamp)
 - `updated_at` (timestamp)
 
@@ -55,11 +51,14 @@
 - `created_at` (timestamp)
 - Unique constraint on (session_id, character_id)
 
-### Supabase Storage Buckets
+### Vercel Blob Storage
 
-- `character-images` - Store character profile images
-- `session-images` - Store session header images
-- Public read access, authenticated write access
+- Character images stored in Vercel Blob Storage
+- Public read access via CDN URLs
+- Automatic file naming: `character-images/characters/{character-id}/{filename}`
+- Max file size: 5MB
+- Supported formats: JPG, PNG, WebP, GIF
+- Files served from Vercel's global CDN
 
 ### Database Policies
 
@@ -70,37 +69,43 @@
 
 ### Pages & Routes (App Router)
 
-```
+```typescript
 app/
-├── page.tsx                          # Landing/Home page
-├── layout.tsx                        # Root layout with auth provider
-├── globals.css                       # Tailwind imports
+├── page.tsx                          # Landing/Home page (redirects to dashboard)
+├── layout.tsx                        # Root layout
+├── globals.css                       # Tailwind imports and custom styles
 ├── login/
 │   └── page.tsx                      # Password login page
-├── (protected)/
-│   ├── layout.tsx                    # Dashboard layout with nav
-│   ├── dashboard/
-│   │   └── page.tsx                  # Dashboard overview
-│   ├── campaigns/
-│   │   ├── page.tsx                  # Campaigns list
-│   │   ├── [id]/
-│   │   │   └── page.tsx              # Campaign detail/edit
-│   │   └── new/
-│   │       └── page.tsx              # New campaign
-│   ├── sessions/
-│   │   ├── page.tsx                  # Sessions list
-│   │   ├── [id]/
-│   │   │   └── page.tsx              # Session detail/edit
-│   │   └── new/
-│   │       └── page.tsx              # New session
-│   └── characters/
-│       ├── page.tsx                  # Characters list
-│       ├── [id]/
-│       │   └── page.tsx              # Character detail/edit
-│       └── new/
-│           └── page.tsx              # New character
-└── api/
-    └── (future REST endpoints if needed)
+├── dashboard/
+│   ├── layout.tsx                    # Dashboard layout
+│   └── page.tsx                      # Dashboard overview with stats
+├── campaigns/
+│   ├── layout.tsx                    # Campaigns layout with nav
+│   ├── page.tsx                      # Campaigns list
+│   ├── [id]/
+│   │   ├── page.tsx                  # Campaign detail view
+│   │   └── edit/
+│   │       └── page.tsx              # Campaign edit page
+│   └── new/
+│       └── page.tsx                  # New campaign form
+├── sessions/
+│   ├── layout.tsx                    # Sessions layout with nav
+│   ├── page.tsx                      # Sessions list
+│   ├── [id]/
+│   │   ├── page.tsx                  # Session detail view
+│   │   └── edit/
+│   │       └── page.tsx              # Session edit page
+│   └── new/
+│       └── page.tsx                  # New session form
+└── characters/
+    ├── layout.tsx                    # Characters layout with nav
+    ├── page.tsx                      # Characters list
+    ├── [id]/
+    │   ├── page.tsx                  # Character detail view
+    │   └── edit/
+    │       └── page.tsx              # Character edit page
+    └── new/
+        └── page.tsx                  # New character form
 ```
 
 ## 4. Component Architecture
@@ -109,162 +114,252 @@ app/
 
 #### Layout Components
 
-- `Navbar` - Top navigation with user menu
-- `Sidebar` - Side navigation for dashboard sections
-- `DashboardLayout` - Wrapper for authenticated pages
+- `Navbar` - Top navigation with logo and logout button
+  - Location: `components/layout/navbar.tsx`
+  - Client component for interactive logout
 
-#### Feature Components
+#### Form Components
 
-- `CampaignCard` - Display campaign summary
-- `CampaignForm` - Create/edit campaign
-- `SessionCard` - Display session summary
+- `CharacterEditForm` - Edit existing character
+  - Location: `components/forms/character-edit-form.tsx`
+  - Client component with form state management
 - `SessionForm` - Create/edit session with character selection
-- `CharacterCard` - Display character summary
-- `CharacterForm` - Create/edit character with attributes
-- `CharacterSelector` - Multi-select for attaching characters to sessions
-- `SessionList` - Display sessions for a character
+  - Location: `components/forms/session-form.tsx`
+  - Client component with multi-select for characters
 
-#### UI Components (shadcn/ui recommended)
+#### UI Components
 
-- `Button`
-- `Input`
-- `Textarea`
-- `Card`
-- `Select`
-- `Dialog/Modal`
-- `Tabs`
-- `Badge`
-- `Spinner/Loading`
-- `Toast` notifications
-- `ImageUpload` - File upload with preview
-- `ImageDisplay` - Display uploaded images with fallback
+- `ImageUpload` - File upload with preview and remove functionality
+  - Location: `components/ui/image-upload.tsx`
+  - Client component with drag-and-drop support
+  - Preview current image and new uploads
+  - Remove image functionality
+- `DeleteCharacterButton` - Confirmation dialog for character deletion
+  - Location: `components/ui/delete-character-button.tsx`
+  - Client component with confirmation prompt
+- `DeleteSessionButton` - Confirmation dialog for session deletion
+  - Location: `components/ui/delete-session-button.tsx`
+  - Client component with confirmation prompt
+- `DeleteCampaignButton` - Confirmation dialog for campaign deletion
+  - Location: `components/ui/delete-campaign-button.tsx`
+  - Client component with confirmation prompt
 
 ## 5. Features & Functionality
 
 ### Authentication (Basic Password Protection)
 
-- Single password for app access (stored in environment variable)
-- Session-based authentication using Next.js middleware
-- Cookie-based session management
-- Protected routes for all dashboard pages
-- Logout functionality clears session
+- Single password for app access (stored in environment variable: `APP_PASSWORD`)
+- Session-based authentication using iron-session
+- Cookie-based session management with encryption
+- Protected routes via Next.js middleware
+- Logout functionality clears session and redirects to login
 - No user accounts or registration needed
+- Session persists across browser sessions
 
 ### Campaigns
 
 - Create, read, update, delete campaigns
-- List all campaigns
-- Associate multiple sessions with a campaign
+- List all campaigns with session count
+- View campaign details with associated sessions
 - Optional campaign assignment (sessions can exist without campaigns)
+- Campaigns display:
+  - Name and description
+  - Total sessions count
+  - Created and last updated dates
+  - List of all sessions in campaign
 
 ### Sessions
 
 - Create, read, update, delete sessions
 - Assign to campaign (optional)
 - Set session date
-- Rich text notes editor
-- Upload and display header image
-- Image stored in Supabase Storage
-- Attach multiple characters
+- Plain text notes field
+- Upload and display header image (stored in Supabase Storage)
+- Attach multiple characters to a session
 - View/edit character list within session
-- Filter sessions by campaign
+- Display list of characters that participated
+- Session detail view shows:
+  - Header image (if uploaded)
+  - Campaign association
+  - Session date
+  - Notes
+  - List of participating characters with links
 
 ### Characters
 
 - Create, read, update, delete characters
-- Upload and display character image
-- Image stored in Supabase Storage
-- Character race and class
-- Level tracking
-- Backstory (long text)
+- Upload and display character portrait image (stored in Vercel Blob Storage)
+- Character attributes:
+  - Name (required)
+  - Race
+  - Class
+  - Level (1-20)
+  - Backstory/notes (long text)
 - View all sessions character has participated in
-- Filter/search characters
+- Character detail view shows:
+  - Portrait image (if uploaded)
+  - Race, class, and level
+  - Backstory
+  - List of sessions they participated in with links
+- **Note**: Ability scores (STR, DEX, CON, INT, WIS, CHA) have been removed from the system
 
 ### Image Management
 
-- Upload images for characters and sessions
-- Image preview before upload
-- Store images in Supabase Storage buckets
-- Automatic image optimization (optional)
-- Delete old images when updating
-- Supported formats: JPG, PNG, WebP
+- Upload images for characters only (sessions do not have images)
+- Image preview before upload with drag-and-drop support
+- Store images in Vercel Blob Storage with public CDN access
+- Delete old images when updating/removing
+- Supported formats: JPG, PNG, WebP, GIF
 - Max file size: 5MB
+- Images served via Vercel's global CDN for fast delivery
 
 ### Dashboard
 
-- Overview statistics (total campaigns, sessions, player character count, non-player character count)
-- 3 most recent sessions
-- Quick actions (create new campaign/session/character)
+- Overview statistics:
+  - Total campaigns count
+  - Total sessions count
+  - Total characters count
+- Recent activity:
+  - 5 most recent sessions with dates
+- Quick action links:
+  - Create new campaign
+  - Create new session
+  - Create new character
+- Cyberpunk-themed UI with neon accents
 
 ## 6. Technical Implementation Details
 
 ### State Management
 
-- React Server Components for data fetching
-- Client components for interactivity
-- Supabase Realtime for live updates (optional Phase 2)
+- React Server Components for data fetching (default)
+- Client Components marked with 'use client' for interactivity
+- Server Actions for all mutations (create, update, delete)
+- Form submissions use Server Actions
+- No client-side state management library needed
 
 ### Data Fetching
 
-- Server Components fetch data directly from Supabase
+- Server Components fetch data directly from Supabase using createClient()
 - Server Actions for mutations (create, update, delete)
-- Optimistic updates on client where appropriate
+- revalidatePath() for cache invalidation after mutations
+- redirect() for navigation after successful mutations
+- No client-side data fetching libraries needed
 
 ### Styling
 
 - Tailwind CSS utility classes
-- CSS variables for theme colors
-- Responsive design (mobile-first)
-- Dark mode support (optional Phase 2)
+- Custom cyberpunk theme with neon colors:
+  - Primary: Cyan (#00ffff)
+  - Secondary: Magenta (#ff00ff)
+  - Background: Dark purple/navy (#0f0f23, #1a1a3e)
+- CSS variables for consistent theming
+- Responsive design (mobile-first approach)
+- Backdrop blur effects for modern glassmorphism
+- Custom fonts: Space Grotesk (headings), Fira Code (monospace)
 
 ### Form Handling
 
-- React Hook Form for form state
-- Zod for validation schemas
-- Error handling and display
+- Native HTML forms with Server Actions
+- Zod for validation schemas (lib/validations/schemas.ts)
+- FormData API for form submissions
+- Error handling via try/catch in Server Actions
+- Client-side validation with HTML5 attributes
+- File uploads handled through FormData
 
 ### Environment Variables
 
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY= (for server-side only)
-APP_PASSWORD= (single password for app access)
-SESSION_SECRET= (for encrypting session cookies)
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Vercel Blob Storage
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxx
+
+# Authentication
+APP_PASSWORD=your-secure-password
+SESSION_SECRET=your-32-character-random-string
 ```
 
 ## 7. File Structure
 
-```
-derek-vibe/
+```typescript
+dnd-manager/
 ├── app/                              # Next.js app directory
+│   ├── layout.tsx                    # Root layout
+│   ├── page.tsx                      # Home page (redirects to dashboard)
+│   ├── globals.css                   # Global styles and Tailwind
+│   ├── login/
+│   │   └── page.tsx                  # Login page
+│   ├── dashboard/
+│   │   ├── layout.tsx                # Dashboard layout
+│   │   └── page.tsx                  # Dashboard with stats
+│   ├── campaigns/
+│   │   ├── layout.tsx                # Campaigns layout
+│   │   ├── page.tsx                  # Campaigns list
+│   │   ├── [id]/
+│   │   │   ├── page.tsx              # Campaign detail
+│   │   │   └── edit/
+│   │   │       └── page.tsx          # Edit campaign
+│   │   └── new/
+│   │       └── page.tsx              # New campaign
+│   ├── sessions/
+│   │   ├── layout.tsx                # Sessions layout
+│   │   ├── page.tsx                  # Sessions list
+│   │   ├── [id]/
+│   │   │   ├── page.tsx              # Session detail
+│   │   │   └── edit/
+│   │   │       └── page.tsx          # Edit session
+│   │   └── new/
+│   │       └── page.tsx              # New session
+│   └── characters/
+│       ├── layout.tsx                # Characters layout
+│       ├── page.tsx                  # Characters list
+│       ├── [id]/
+│       │   ├── page.tsx              # Character detail
+│       │   └── edit/
+│       │       └── page.tsx          # Edit character
+│       └── new/
+│           └── page.tsx              # New character
 ├── components/                       # React components
-│   ├── ui/                          # Base UI components
-│   ├── campaigns/                   # Campaign-specific components
-│   ├── sessions/                    # Session-specific components
-│   ├── characters/                  # Character-specific components
+│   ├── ui/                          # Reusable UI components
+│   │   ├── image-upload.tsx         # Image upload component
+│   │   ├── delete-character-button.tsx
+│   │   ├── delete-session-button.tsx
+│   │   └── delete-campaign-button.tsx
+│   ├── forms/                       # Form components
+│   │   ├── character-edit-form.tsx  # Character edit form
+│   │   └── session-form.tsx         # Session form with character select
 │   └── layout/                      # Layout components
-├── lib/                             # Utilities
+│       └── navbar.tsx               # Navigation bar
+├── lib/                             # Utilities and helpers
 │   ├── supabase/
 │   │   ├── client.ts               # Client-side Supabase client
 │   │   ├── server.ts               # Server-side Supabase client
-│   │   └── storage.ts              # Image upload utilities
+│   │   └── storage.ts              # Vercel Blob image upload/delete utilities
 │   ├── auth/
-│   │   ├── session.ts              # Session management
-│   │   └── middleware.ts           # Auth middleware
-│   ├── validations/                # Zod schemas
+│   │   ├── session.ts              # iron-session configuration
+│   │   └── actions.ts              # Auth server actions
+│   ├── actions/                    # Server actions
+│   │   ├── campaigns.ts            # Campaign CRUD actions
+│   │   ├── sessions.ts             # Session CRUD actions
+│   │   └── characters.ts           # Character CRUD actions
+│   ├── validations/
+│   │   └── schemas.ts              # Zod validation schemas
 │   └── utils.ts                    # Helper functions
 ├── types/                           # TypeScript types
-│   ├── database.ts                 # Supabase generated types
-│   └── index.ts                    # App-specific types
+│   └── database.ts                 # Database types
 ├── supabase/
 │   └── migrations/                 # Database migrations
+│       ├── 20241017_initial_schema.sql
+│       └── 20241017_remove_ability_scores.sql
 ├── public/                          # Static assets
-├── .env.local                       # Environment variables
-├── next.config.js
-├── tailwind.config.ts
-├── tsconfig.json
-└── package.json
+├── middleware.ts                    # Auth middleware
+├── .env.local                       # Environment variables (not committed)
+├── next.config.ts                   # Next.js configuration
+├── tailwind.config.ts               # Tailwind configuration
+├── tsconfig.json                    # TypeScript configuration
+└── package.json                     # Dependencies
 ```
 
 ## 8. TypeScript Types
@@ -312,51 +407,69 @@ interface Character {
 ```json
 {
   "dependencies": {
-    "next": "^14.2.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "@supabase/supabase-js": "^2.39.0",
-    "@supabase/ssr": "^0.1.0",
-    "typescript": "^5.3.0",
-    "tailwindcss": "^3.4.0",
-    "zod": "^3.22.0",
-    "react-hook-form": "^7.50.0",
-    "@hookform/resolvers": "^3.3.0"
+    "next": "15.5.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@supabase/supabase-js": "^2.49.2",
+    "@supabase/ssr": "^0.6.0",
+    "@vercel/blob": "^2.0.0",
+    "typescript": "^5.7.2",
+    "tailwindcss": "^3.4.17",
+    "zod": "^3.24.1",
+    "iron-session": "^8.0.5",
+    "clsx": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.6",
+    "postcss": "^8"
   }
 }
 ```
 
-## 10. Development Phases
+**Note**: Uses Vercel Blob Storage (@vercel/blob) instead of Supabase Storage for image uploads.
 
-### Phase 1: Core Setup
+## 10. Development Status
 
-1. Initialize Next.js project with TypeScript
-2. Configure Tailwind CSS
-3. Set up Supabase project and connection
-4. Create database schema and migrations
-5. Set up Supabase Storage buckets for images
-6. Implement basic password authentication with session management
+### ✅ Completed
 
-### Phase 2: Core Features
+1. ✅ Next.js 15 project with TypeScript and Tailwind CSS
+2. ✅ Supabase project setup and connection
+3. ✅ Database schema and migrations
+4. ✅ Supabase Storage bucket for character images
+5. ✅ Password authentication with iron-session
+6. ✅ Protected routes via middleware
+7. ✅ Image upload functionality with preview and remove
+8. ✅ Campaign CRUD (create, read, update, delete)
+9. ✅ Session CRUD with character selection
+10. ✅ Character CRUD with image upload
+11. ✅ Session-character relationships
+12. ✅ Dashboard with statistics and recent sessions
+13. ✅ Cyberpunk-themed UI with neon styling
+14. ✅ Responsive design for mobile/tablet/desktop
+15. ✅ Proper Server/Client Component separation
+16. ✅ Delete confirmation dialogs
+17. ✅ Ability scores removed from characters
 
-1. Build image upload functionality
-2. Build Campaign CRUD
-3. Build Session CRUD with header image upload
-4. Build Character CRUD with image upload
-5. Implement session-character relationships
+### 🚧 Known Limitations
 
-### Phase 3: Polish
+- No rich text editor for notes (plain text only)
+- No search or filtering functionality
+- No export/import features
+- No image optimization or resizing
+- No dark mode toggle (always dark theme)
+- Sessions don't have header images
 
-1. Add dashboard with statistics
-2. Improve UI/UX
-3. Add loading states and error handling
-4. Responsive design refinements
+### 🔮 Future Enhancements (Optional)
 
-### Phase 4: Enhancements (Optional)
-
-1. Rich text editor for notes
-2. Image optimization and resizing
-3. Search and filtering
-4. Export functionality
-5. Dark mode
-6. Drag and drop image uploads
+1. Rich text editor for session notes
+2. Search and filter across all entities
+3. Image optimization and automatic resizing via Vercel Blob
+4. Export campaigns/sessions to PDF or JSON
+5. Drag and drop for reordering
+6. Session templates
+7. Character stat tracking (if needed)
+8. Real-time collaboration with Supabase Realtime

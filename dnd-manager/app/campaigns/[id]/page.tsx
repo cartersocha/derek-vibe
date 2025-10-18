@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { updateCampaign, deleteCampaign } from '@/lib/actions/campaigns'
+import { deleteCampaign } from '@/lib/actions/campaigns'
+import { DeleteCampaignButton } from '@/components/ui/delete-campaign-button'
 
 export default async function CampaignPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -22,98 +23,121 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     .from('sessions')
     .select('*')
     .eq('campaign_id', id)
-    .order('session_date', { ascending: false })
+    .order('session_date', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
 
-  const updateCampaignWithId = updateCampaign.bind(null, id)
   const deleteCampaignWithId = deleteCampaign.bind(null, id)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-center">
-        <Link href="/campaigns" className="text-blue-600 hover:text-blue-700">
+        <Link href="/campaigns" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
           ← Back to Campaigns
         </Link>
-        <form action={deleteCampaignWithId}>
-          <button
-            type="submit"
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+        <div className="flex gap-4">
+          <Link
+            href={`/campaigns/${id}/edit`}
+            className="bg-[#ff00ff] text-black px-4 py-2 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
           >
-            Delete Campaign
-          </button>
-        </form>
+            Edit Campaign
+          </Link>
+          <form action={deleteCampaignWithId}>
+            <DeleteCampaignButton />
+          </form>
+        </div>
       </div>
 
-      <form action={updateCampaignWithId} className="bg-white rounded-lg shadow p-6 space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900">Edit Campaign</h2>
-
+      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8 space-y-8">
+        {/* Campaign Name and Description */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            Campaign Name *
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            defaultValue={campaign.name}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <h1 className="text-4xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">{campaign.name}</h1>
+          {campaign.description && (
+            <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-6">
+              <p className="text-gray-300 whitespace-pre-wrap font-mono">{campaign.description}</p>
+            </div>
+          )}
         </div>
 
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-            Description
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            rows={4}
-            defaultValue={campaign.description || ''}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Save Changes
-        </button>
-      </form>
-
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Sessions</h2>
-          <Link
-            href={`/sessions/new?campaign_id=${id}`}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-          >
-            + Add Session
-          </Link>
-        </div>
-
-        {!sessions || sessions.length === 0 ? (
-          <p className="text-gray-600">No sessions yet for this campaign</p>
-        ) : (
-          <div className="space-y-3">
-            {sessions.map((session) => (
-              <Link
-                key={session.id}
-                href={`/sessions/${session.id}`}
-                className="block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="font-medium text-gray-900">{session.name}</h3>
-                  {session.session_date && (
-                    <span className="text-sm text-gray-500">
-                      {new Date(session.session_date).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              </Link>
-            ))}
+        {/* Campaign Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Sessions</div>
+            <div className="text-3xl font-bold text-[#00ffff]">{sessions?.length || 0}</div>
           </div>
-        )}
+          <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Created</div>
+            <div className="text-lg font-bold text-[#00ffff]">
+              {new Date(campaign.created_at).toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </div>
+          </div>
+          <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Last Updated</div>
+            <div className="text-lg font-bold text-[#00ffff]">
+              {new Date(campaign.updated_at).toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Sessions */}
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h2>
+            <Link
+              href={`/sessions/new?campaign_id=${id}`}
+              className="bg-[#ff00ff] text-black px-4 py-2 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 text-sm shadow-lg shadow-[#ff00ff]/50"
+            >
+              + Add Session
+            </Link>
+          </div>
+
+          {!sessions || sessions.length === 0 ? (
+            <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-8 text-center">
+              <p className="text-gray-400 font-mono mb-4">No sessions yet for this campaign</p>
+              <Link
+                href={`/sessions/new?campaign_id=${id}`}
+                className="inline-block bg-[#ff00ff] text-black px-6 py-3 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+              >
+                Create First Session
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sessions.map((session) => (
+                <Link
+                  key={session.id}
+                  href={`/sessions/${session.id}`}
+                  className="block p-4 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-medium text-[#00ffff] font-mono mb-1">{session.name}</h3>
+                      {session.notes && (
+                        <p className="text-sm text-gray-400 line-clamp-2 font-mono">{session.notes}</p>
+                      )}
+                    </div>
+                    {session.session_date && (
+                      <span className="text-sm text-gray-400 font-mono uppercase tracking-wider ml-4">
+                        {new Date(session.session_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

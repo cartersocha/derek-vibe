@@ -9,6 +9,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   const navLinks = [
+    { href: "/campaigns", label: "Campaigns" },
     { href: "/sessions", label: "Sessions" },
     { href: "/characters", label: "Characters" },
   ];

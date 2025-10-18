@@ -1,7 +1,9 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { updateSession, deleteSession } from '@/lib/actions/sessions'
+import { deleteSession } from '@/lib/actions/sessions'
+import { DeleteSessionButton } from '@/components/ui/delete-session-button'
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -28,7 +30,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
   const characterIds = sessionCharacters?.map(sc => sc.character_id) || []
   
-  let characters: Array<{
+  let sessionChars: Array<{
     id: string
     name: string
     race: string | null
@@ -42,155 +44,102 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
       .select('id, name, race, class, level')
       .in('id', characterIds)
     
-    characters = charData || []
+    sessionChars = charData || []
   }
 
-  // Fetch all campaigns and characters for the form
-  const [{ data: campaigns }, { data: allCharacters }] = await Promise.all([
-    supabase.from('campaigns').select('id, name').order('name'),
-    supabase.from('characters').select('id, name, race, class').order('name'),
-  ])
-
-  const updateSessionWithId = updateSession.bind(null, id)
   const deleteSessionWithId = deleteSession.bind(null, id)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-center">
-        <Link href="/sessions" className="text-blue-600 hover:text-blue-700">
+        <Link href="/sessions" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
           ← Back to Sessions
         </Link>
-        <form action={deleteSessionWithId}>
-          <button
-            type="submit"
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+        <div className="flex gap-4">
+          <Link
+            href={`/sessions/${id}/edit`}
+            className="bg-[#ff00ff] text-black px-4 py-2 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
           >
-            Delete Session
-          </button>
-        </form>
+            Edit Session
+          </Link>
+          <form action={deleteSessionWithId}>
+            <DeleteSessionButton />
+          </form>
+        </div>
       </div>
 
-      <form action={updateSessionWithId} className="bg-white rounded-lg shadow p-6 space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900">Edit Session</h2>
+      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8 space-y-8">
+        {/* Header Image */}
+        {session.header_image_url && (
+          <div className="relative w-full h-64 rounded border-2 border-[#00ffff] border-opacity-30 overflow-hidden bg-[#0f0f23]">
+            <Image
+              src={session.header_image_url}
+              alt={session.name}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          </div>
+        )}
 
+        {/* Session Name and Info */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            Session Name *
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            defaultValue={session.name}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <h1 className="text-4xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider">{session.name}</h1>
+          <div className="flex flex-wrap gap-4 text-sm">
+            {session.campaign && (
+              <Link 
+                href={`/campaigns/${session.campaign.id}`}
+                className="text-[#ff00ff] hover:text-[#cc00cc] font-mono uppercase tracking-wider"
+              >
+                Campaign: {session.campaign.name}
+              </Link>
+            )}
+            {session.session_date && (
+              <span className="text-gray-400 font-mono uppercase tracking-wider">
+                Date: {new Date(session.session_date).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </span>
+            )}
+          </div>
         </div>
 
-        <div>
-          <label htmlFor="campaign_id" className="block text-sm font-medium text-gray-700 mb-2">
-            Campaign (Optional)
-          </label>
-          <select
-            id="campaign_id"
-            name="campaign_id"
-            defaultValue={session.campaign_id || ''}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">No campaign</option>
-            {campaigns?.map((campaign) => (
-              <option key={campaign.id} value={campaign.id}>
-                {campaign.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="session_date" className="block text-sm font-medium text-gray-700 mb-2">
-            Session Date
-          </label>
-          <input
-            type="date"
-            id="session_date"
-            name="session_date"
-            defaultValue={session.session_date || ''}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-            Session Notes
-          </label>
-          <textarea
-            id="notes"
-            name="notes"
-            rows={8}
-            defaultValue={session.notes || ''}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {allCharacters && allCharacters.length > 0 && (
+        {/* Session Notes */}
+        {session.notes && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Characters Present
-            </label>
-            <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-300 rounded-lg p-4">
-              {allCharacters.map((character) => (
-                <label key={character.id} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="character_ids"
-                    value={character.id}
-                    defaultChecked={characters.some(c => c.id === character.id)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-900">
-                    {character.name}
-                    {character.race && character.class && (
-                      <span className="text-gray-500 text-sm ml-2">
-                        ({character.race} {character.class})
-                      </span>
-                    )}
-                  </span>
-                </label>
-              ))}
+            <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Session Notes</h3>
+            <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-6">
+              <p className="text-gray-300 whitespace-pre-wrap font-mono">{session.notes}</p>
             </div>
           </div>
         )}
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Save Changes
-        </button>
-      </form>
-
-      {characters.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Characters in this Session</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {characters.map((character) => (
-              <Link
-                key={character.id}
-                href={`/characters/${character.id}`}
-                className="p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
-              >
-                <h4 className="font-medium text-gray-900">{character.name}</h4>
-                {character.race && character.class && (
-                  <p className="text-sm text-gray-600">
-                    {character.race} {character.class}
-                    {character.level && ` (Level ${character.level})`}
-                  </p>
-                )}
-              </Link>
-            ))}
+        {/* Characters Present */}
+        {sessionChars.length > 0 && (
+          <div>
+            <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Characters Present</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {sessionChars.map((character) => (
+                <Link
+                  key={character.id}
+                  href={`/characters/${character.id}`}
+                  className="p-4 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                >
+                  <h4 className="font-medium text-[#00ffff] font-mono">{character.name}</h4>
+                  {character.race && character.class && (
+                    <p className="text-sm text-gray-400 font-mono">
+                      {character.race} {character.class}
+                      {character.level && ` (Level ${character.level})`}
+                    </p>
+                  )}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

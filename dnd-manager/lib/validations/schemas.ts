@@ -20,12 +20,6 @@ export const characterSchema = z.object({
   level: z.number().int().min(1).max(20).nullable().optional(),
   backstory: z.string().nullable().optional(),
   image_url: z.string().url().nullable().optional(),
-  strength: z.number().int().min(1).max(30).nullable().optional(),
-  dexterity: z.number().int().min(1).max(30).nullable().optional(),
-  constitution: z.number().int().min(1).max(30).nullable().optional(),
-  intelligence: z.number().int().min(1).max(30).nullable().optional(),
-  wisdom: z.number().int().min(1).max(30).nullable().optional(),
-  charisma: z.number().int().min(1).max(30).nullable().optional(),
 });
 
 export type CampaignFormData = z.infer<typeof campaignSchema>;
