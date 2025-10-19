@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { formatTimestampForDisplay } from "@/lib/utils";
 
 type CampaignRecord = {
   id: string;
@@ -87,7 +88,7 @@ export function CampaignsIndex({ campaigns }: CampaignsIndexProps) {
                 <p className="text-gray-400 line-clamp-3 font-mono text-sm">{campaign.description}</p>
               )}
               <div className="mt-4 text-xs text-gray-500 font-mono uppercase tracking-wider">
-                Created {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : "Unknown"}
+                Created {formatTimestampForDisplay(campaign.created_at) ?? "Unknown"}
               </div>
             </Link>
           ))}

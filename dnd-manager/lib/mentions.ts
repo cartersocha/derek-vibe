@@ -1,4 +1,4 @@
-export type MentionKind = 'character' | 'session' | 'organization'
+export type MentionKind = 'character' | 'session' | 'organization' | 'campaign'
 
 export type MentionTarget = {
   id: string
@@ -12,6 +12,7 @@ export type MentionToken =
   | { type: 'mention'; value: string; target: MentionTarget }
 
 export const mentionBoundaryPattern = /[\s.,!?;:'")\]]/
+export const mentionEndPattern = /[\s.,!?;:'")\]]/
 
 export function isMentionBoundary(character: string | undefined): boolean {
   if (!character) {
@@ -86,7 +87,7 @@ export function tokenizeMentions(text: string, targets: MentionTarget[]): Mentio
       }
 
       const lookahead = text.charAt(atIndex + 1 + nameLength)
-      if (lookahead && !isMentionBoundary(lookahead)) {
+      if (lookahead && !mentionEndPattern.test(lookahead)) {
         continue
       }
 

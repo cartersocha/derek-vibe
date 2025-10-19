@@ -1,16 +1,4 @@
 "use server";
-// List campaigns with pagination, user scoping, and authorization
-export async function getCampaignsList(supabase: SupabaseClient, userId: string, { limit = 20, offset = 0 } = {}): Promise<any[]> {
-  if (!userId) throw new Error('Unauthorized: Missing userId');
-  const { data, error } = await supabase
-    .from('campaigns')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
-  if (error) throw new Error(error.message);
-  return data ?? [];
-}
 
 import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
@@ -20,8 +8,35 @@ import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { campaignSchema } from '@/lib/validations/schemas'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
+import { getString, getStringOrNull, getFile, getIdList, getDateValue } from '@/lib/utils/form-data'
+import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import { resolveOrganizationIds, setCampaignOrganizations } from '@/lib/actions/organizations'
 import { extractOrganizationIds } from '@/lib/organizations/helpers'
+
+// List campaigns with pagination
+export async function getCampaignsList(supabase: SupabaseClient, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('campaigns')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+const isMissingCampaignCharactersTable = (error: { message?: string | null; code?: string | null } | null | undefined) => {
+  if (!error) {
+    return false
+  }
+
+  const code = error.code?.toUpperCase()
+  if (code === '42P01') {
+    return true
+  }
+
+  const message = error.message?.toLowerCase() ?? ''
+  return message.includes('campaign_characters')
+}
 
 export async function createCampaignInline(
   name: string,
@@ -71,11 +86,18 @@ export async function createCampaignInline(
     desiredOrganizationIds
   )
 
-  await setCampaignOrganizations(supabase, created.id, resolvedOrganizationIds)
+  const touchedOrganizationIds = await setCampaignOrganizations(
+    supabase,
+    created.id,
+    resolvedOrganizationIds
+  )
 
   revalidatePath('/campaigns')
-  if (resolvedOrganizationIds.length > 0) {
+  if (touchedOrganizationIds.length > 0) {
     revalidatePath('/organizations')
+    Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+      revalidatePath(`/organizations/${organizationId}`)
+    })
   }
   return created
 }
@@ -124,14 +146,51 @@ export async function createCampaign(formData: FormData): Promise<void> {
   }
 
   const resolvedOrganizationIds = Array.from(new Set(discoveredOrganizationIds))
-  await setCampaignOrganizations(supabase, campaignId, resolvedOrganizationIds)
+  const touchedOrganizationIds = await setCampaignOrganizations(
+    supabase,
+    campaignId,
+    resolvedOrganizationIds
+  )
 
-  await setCampaignSessions(supabase, campaignId, sessionIds)
-  await setCampaignCharacters(supabase, campaignId, characterIds)
+  const { sessionIds: touchedSessionIds, previousCampaignIds } = await setCampaignSessions(
+    supabase,
+    campaignId,
+    sessionIds
+  )
 
-  revalidatePath('/organizations')
-  revalidatePath('/sessions')
-  revalidatePath('/characters')
+  const touchedCharacterIds = await setCampaignCharacters(
+    supabase,
+    campaignId,
+    characterIds
+  )
+
+  if (touchedOrganizationIds.length > 0) {
+    revalidatePath('/organizations')
+    Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+      revalidatePath(`/organizations/${organizationId}`)
+    })
+  }
+
+  if (touchedSessionIds.length > 0) {
+    revalidatePath('/sessions')
+    Array.from(new Set(touchedSessionIds)).forEach((sessionId) => {
+      revalidatePath(`/sessions/${sessionId}`)
+    })
+  }
+
+  if (previousCampaignIds.length > 0) {
+    Array.from(new Set(previousCampaignIds)).forEach((campaignToRefresh) => {
+      revalidatePath(`/campaigns/${campaignToRefresh}`)
+    })
+  }
+
+  if (touchedCharacterIds.length > 0) {
+    revalidatePath('/characters')
+    Array.from(new Set(touchedCharacterIds)).forEach((characterId) => {
+      revalidatePath(`/characters/${characterId}`)
+    })
+  }
+
   revalidatePath('/campaigns')
   redirect('/campaigns')
 }
@@ -180,14 +239,51 @@ export async function updateCampaign(id: string, formData: FormData): Promise<vo
   }
 
   const resolvedOrganizationIds = Array.from(new Set(discoveredOrganizationIds))
-  await setCampaignOrganizations(supabase, id, resolvedOrganizationIds)
+  const touchedOrganizationIds = await setCampaignOrganizations(
+    supabase,
+    id,
+    resolvedOrganizationIds
+  )
 
-  await setCampaignSessions(supabase, id, sessionIds)
-  await setCampaignCharacters(supabase, id, characterIds)
+  const { sessionIds: touchedSessionIds, previousCampaignIds } = await setCampaignSessions(
+    supabase,
+    id,
+    sessionIds
+  )
 
-  revalidatePath('/organizations')
-  revalidatePath('/sessions')
-  revalidatePath('/characters')
+  const touchedCharacterIds = await setCampaignCharacters(
+    supabase,
+    id,
+    characterIds
+  )
+
+  if (touchedOrganizationIds.length > 0) {
+    revalidatePath('/organizations')
+    Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+      revalidatePath(`/organizations/${organizationId}`)
+    })
+  }
+
+  if (touchedSessionIds.length > 0) {
+    revalidatePath('/sessions')
+    Array.from(new Set(touchedSessionIds)).forEach((sessionId) => {
+      revalidatePath(`/sessions/${sessionId}`)
+    })
+  }
+
+  if (previousCampaignIds.length > 0) {
+    Array.from(new Set(previousCampaignIds)).forEach((campaignToRefresh) => {
+      revalidatePath(`/campaigns/${campaignToRefresh}`)
+    })
+  }
+
+  if (touchedCharacterIds.length > 0) {
+    revalidatePath('/characters')
+    Array.from(new Set(touchedCharacterIds)).forEach((characterId) => {
+      revalidatePath(`/characters/${characterId}`)
+    })
+  }
+
   revalidatePath('/campaigns')
   revalidatePath(`/campaigns/${id}`)
   redirect(`/campaigns/${id}`)
@@ -209,62 +305,40 @@ export async function deleteCampaign(id: string): Promise<void> {
   redirect('/campaigns')
 }
 
-function getIdList(formData: FormData, field: string): string[] {
-  const rawValues = formData
-    .getAll(field)
-    .filter((entry): entry is string => typeof entry === 'string')
-    .map((entry) => entry.trim())
-    .filter(Boolean)
-
-  return Array.from(new Set(rawValues))
-}
-
-function getDateValue(formData: FormData, field: string): string | null {
-  const rawValue = formData.get(field)
-  if (typeof rawValue !== 'string') {
-    return null
-  }
-
-  const trimmed = rawValue.trim()
-  if (!trimmed) {
-    return null
-  }
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-    const [year, month, day] = trimmed.split('-').map((value) => Number.parseInt(value, 10))
-    if ([year, month, day].some((value) => Number.isNaN(value))) {
-      return null
-    }
-
-    return new Date(Date.UTC(year, month - 1, day)).toISOString()
-  }
-
-  const parsed = new Date(trimmed)
-  if (Number.isNaN(parsed.getTime())) {
-    return null
-  }
-
-  return parsed.toISOString()
-}
 
 async function setCampaignSessions(
   supabase: SupabaseClient,
   campaignId: string,
   sessionIds: string[],
-): Promise<void> {
-  const uniqueIds = Array.from(new Set(sessionIds))
+): Promise<{ sessionIds: string[]; previousCampaignIds: string[] }> {
+  const uniqueIds = Array.from(new Set(sessionIds)).filter((id): id is string => Boolean(id))
 
   const { data: existingRows, error: existingError } = await supabase
     .from('sessions')
-    .select('id')
+    .select('id, campaign_id')
     .eq('campaign_id', campaignId)
 
   if (existingError) {
     throw new Error(existingError.message)
   }
 
-  const existingIds = (existingRows ?? []).map((row) => row.id)
-  const removalIds = existingIds.filter((current) => !uniqueIds.includes(current))
+  const existingIds = (existingRows ?? [])
+    .map((row) => row.id)
+    .filter((value): value is string => Boolean(value))
+
+  const existingSet = new Set(existingIds)
+  const nextSet = new Set(uniqueIds)
+
+  const touchedIds = new Set<string>()
+  const previousCampaignIds = new Set<string>()
+
+  existingSet.forEach((sessionId) => {
+    if (!nextSet.has(sessionId)) {
+      touchedIds.add(sessionId)
+    }
+  })
+
+  const removalIds = existingIds.filter((current) => !nextSet.has(current))
 
   if (removalIds.length > 0) {
     const { error: detachError } = await supabase
@@ -277,15 +351,46 @@ async function setCampaignSessions(
     }
   }
 
-  if (uniqueIds.length > 0) {
+  const assignmentMap = new Map<string, string | null>()
+  if (nextSet.size > 0) {
+    const { data: targetAssignments, error: assignmentError } = await supabase
+      .from('sessions')
+      .select('id, campaign_id')
+      .in('id', Array.from(nextSet))
+
+    if (assignmentError) {
+      throw new Error(assignmentError.message)
+    }
+
+    targetAssignments?.forEach((row) => {
+      if (row?.id) {
+        assignmentMap.set(row.id, row.campaign_id ?? null)
+      }
+    })
+
+    nextSet.forEach((sessionId) => {
+      if (!existingSet.has(sessionId)) {
+        touchedIds.add(sessionId)
+      }
+      const previousCampaignId = assignmentMap.get(sessionId)
+      if (previousCampaignId && previousCampaignId !== campaignId) {
+        previousCampaignIds.add(previousCampaignId)
+      }
+    })
+
     const { error: attachError } = await supabase
       .from('sessions')
       .update({ campaign_id: campaignId })
-      .in('id', uniqueIds)
+      .in('id', Array.from(nextSet))
 
     if (attachError) {
       throw new Error(attachError.message)
     }
+  }
+
+  return {
+    sessionIds: Array.from(touchedIds),
+    previousCampaignIds: Array.from(previousCampaignIds),
   }
 }
 
@@ -293,8 +398,41 @@ async function setCampaignCharacters(
   supabase: SupabaseClient,
   campaignId: string,
   characterIds: string[],
-): Promise<void> {
-  const uniqueIds = Array.from(new Set(characterIds))
+): Promise<string[]> {
+  const uniqueIds = Array.from(new Set(characterIds)).filter((id): id is string => Boolean(id))
+
+  const { data: existingLinks, error: existingError } = await supabase
+    .from('campaign_characters')
+    .select('character_id')
+    .eq('campaign_id', campaignId)
+
+  if (existingError) {
+    if (isMissingCampaignCharactersTable(existingError)) {
+      return []
+    }
+    throw new Error(existingError.message)
+  }
+
+  const previousIds = new Set<string>()
+  existingLinks?.forEach((link) => {
+    if (link?.character_id) {
+      previousIds.add(link.character_id)
+    }
+  })
+
+  const nextIds = new Set(uniqueIds)
+
+  const touchedIds = new Set<string>()
+  previousIds.forEach((characterId) => {
+    if (!nextIds.has(characterId)) {
+      touchedIds.add(characterId)
+    }
+  })
+  nextIds.forEach((characterId) => {
+    if (!previousIds.has(characterId)) {
+      touchedIds.add(characterId)
+    }
+  })
 
   const { error: deleteError } = await supabase
     .from('campaign_characters')
@@ -302,14 +440,17 @@ async function setCampaignCharacters(
     .eq('campaign_id', campaignId)
 
   if (deleteError) {
+    if (isMissingCampaignCharactersTable(deleteError)) {
+      return []
+    }
     throw new Error(deleteError.message)
   }
 
-  if (uniqueIds.length === 0) {
-    return
+  if (nextIds.size === 0) {
+    return Array.from(touchedIds)
   }
 
-  const inserts = uniqueIds.map((characterId) => ({
+  const inserts = Array.from(nextIds).map((characterId) => ({
     campaign_id: campaignId,
     character_id: characterId,
   }))
@@ -319,6 +460,11 @@ async function setCampaignCharacters(
     .insert(inserts)
 
   if (insertError) {
+    if (isMissingCampaignCharactersTable(insertError)) {
+      return []
+    }
     throw new Error(insertError.message)
   }
+
+  return Array.from(touchedIds)
 }

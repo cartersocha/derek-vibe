@@ -4,8 +4,10 @@ import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import Link from 'next/link'
 import MentionableTextarea from '@/components/ui/mentionable-textarea'
-import { EntityMultiSelect, type EntityOption } from '@/components/ui/entity-multi-select'
+import CharacterMultiSelect, { type CharacterOption } from '@/components/ui/character-multi-select'
+import OrganizationMultiSelect, { type OrganizationOption } from '@/components/ui/organization-multi-select'
 import { collectMentionTargets, type MentionTarget } from '@/lib/mention-utils'
+import { getTodayDateInputValue } from '@/lib/utils'
 import { createCampaignInline } from '@/lib/actions/campaigns'
 
 const ImageUpload = dynamic(() => import('@/components/ui/image-upload'), { ssr: false })
@@ -27,6 +29,7 @@ interface Character {
   name: string
   race: string | null
   class: string | null
+  organizations?: Array<{ id: string; name: string }>
 }
 
 function sortCampaignsByName(list: Campaign[]): Campaign[] {
@@ -51,8 +54,6 @@ interface SessionFormProps {
   submitLabel?: string
   cancelHref?: string
   draftKey?: string
-  newCharacterHref?: string
-  newGroupHref?: string
   preselectedCharacterIds?: string[]
   mentionTargets: MentionTarget[]
 }
@@ -67,19 +68,18 @@ export default function SessionForm({
   submitLabel = 'Create Session',
   cancelHref = '/sessions',
   draftKey,
-  newCharacterHref,
-  newGroupHref,
   preselectedCharacterIds,
   mentionTargets,
 }: SessionFormProps) {
   const draftStorageKey = draftKey ?? DEFAULT_DRAFT_KEY
   const initialName = initialData?.name ?? ''
   const initialNotes = initialData?.notes ?? ''
-  const today = useMemo(() => new Date().toISOString().split('T')[0], [])
+  const today = useMemo(() => getTodayDateInputValue(), [])
   const [nameDraft, setNameDraft] = useState(initialName)
   const [notesDraft, setNotesDraft] = useState(initialNotes)
   const [headerImageDraft, setHeaderImageDraft] = useState<{ dataUrl: string; name?: string | null } | null>(null)
   const [characterList, setCharacterList] = useState(characters)
+const [organizationList, setOrganizationList] = useState(() => [...organizations])
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(mentionTargets)
   const [campaignList, setCampaignList] = useState(() => sortCampaignsByName(campaigns))
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>(() => {
@@ -89,6 +89,8 @@ export default function SessionForm({
   })
   const [selectedGroups, setSelectedGroups] = useState<string[]>(() => initialData?.organizationIds ?? [])
   const [campaignId, setCampaignId] = useState(() => initialData?.campaign_id || defaultCampaignId || '')
+  const manuallySelectedOrgsRef = useRef<Set<string>>(new Set())
+  const [manualOrgTrigger, setManualOrgTrigger] = useState(0)
   const [campaignDropdownKey, setCampaignDropdownKey] = useState(0)
   const [isCampaignCreatorOpen, setIsCampaignCreatorOpen] = useState(false)
   const [newCampaignName, setNewCampaignName] = useState('')
@@ -150,18 +152,22 @@ export default function SessionForm({
     return [...base, ...mapped]
   }, [campaignList])
 
-  const groupOptions: EntityOption[] = useMemo(
+  const organizationSelectOptions = useMemo(
     () =>
-      organizations
+      organizationList
         .filter((organization): organization is { id: string; name: string } => Boolean(organization?.name))
-        .map((organization) => ({ value: organization.id, label: organization.name }))
+        .map((organization) => ({ value: organization.id, label: organization.name ?? 'Untitled Group' }))
         .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' })),
-    [organizations]
+    [organizationList]
   )
 
   useEffect(() => {
     setCharacterList(characters)
   }, [characters])
+
+  useEffect(() => {
+    setOrganizationList([...organizations])
+  }, [organizations])
 
   useEffect(() => {
     setMentionableTargets((previous) => {
@@ -187,8 +193,33 @@ export default function SessionForm({
   }, [defaultCampaignId, initialData?.campaign_id])
 
   useEffect(() => {
-    setSelectedGroups(initialData?.organizationIds ?? [])
-  }, [initialData?.organizationIds])
+    const initialOrgIds = initialData?.organizationIds ?? []
+    setSelectedGroups(initialOrgIds)
+    
+    // Initialize manually selected organizations
+    // These are organizations in initial data that don't come from characters
+    const orgsFromCharacters = new Set<string>()
+    const initialCharIds = initialData?.characterIds ?? []
+    
+    initialCharIds.forEach((characterId) => {
+      const character = characters.find((c) => c.id === characterId)
+      if (character?.organizations) {
+        character.organizations.forEach((org) => {
+          orgsFromCharacters.add(org.id)
+        })
+      }
+    })
+    
+    // Mark any initial organizations that aren't from characters as manually selected
+    const manuallySelected = new Set<string>()
+    initialOrgIds.forEach((orgId) => {
+      if (!orgsFromCharacters.has(orgId)) {
+        manuallySelected.add(orgId)
+      }
+    })
+    
+    manuallySelectedOrgsRef.current = manuallySelected
+  }, [initialData?.organizationIds, initialData?.characterIds, characters])
 
   useEffect(() => {
     if (!isCampaignCreatorOpen) {
@@ -470,23 +501,21 @@ export default function SessionForm({
     window.localStorage.removeItem(headerImageStorageKey)
   }, [cancelDraftUpdate, charactersStorageKey, draftStorageKey, headerImageStorageKey, nameStorageKey])
 
-  const characterOptions: EntityOption[] = useMemo(
-    () =>
-      characterList
-        .filter((character): character is Character => Boolean(character?.name))
-        .map((character) => ({
-          value: character.id,
-          label: character.name,
-          hint: [character.race, character.class].filter(Boolean).join(' • ') || null,
-        }))
-        .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' })),
-    [characterList]
-  )
-
   const sortCharactersByName = useCallback(
     (list: Character[]) => [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
     []
   )
+
+  const characterOptions: CharacterOption[] = useMemo(() => {
+    const sorted = sortCharactersByName(characterList)
+    return sorted
+      .filter((character): character is Character => Boolean(character?.name))
+      .map((character) => ({
+        value: character.id,
+        label: character.name,
+        hint: [character.race, character.class].filter(Boolean).join(' • ') || null,
+      }))
+  }, [characterList, sortCharactersByName])
 
   const handleNotesValueChange = useCallback((nextValue: string) => {
     setNotesDraft(nextValue)
@@ -501,27 +530,98 @@ export default function SessionForm({
         return [...previous, target]
       })
 
-      if (target.kind !== 'character') {
-        return
-      }
+      if (target.kind === 'character') {
+        setSelectedCharacterIds((prev) => {
+          if (prev.includes(target.id)) {
+            return prev
+          }
+          return [...prev, target.id]
+        })
 
-      setSelectedCharacterIds((prev) => {
-        if (prev.includes(target.id)) {
+        setCharacterList((prev) => {
+          if (prev.some((character) => character.id === target.id)) {
+            return prev
+          }
+          const next = [...prev, { id: target.id, name: target.name, race: null, class: null }]
+          return sortCharactersByName(next)
+        })
+      } else if (target.kind === 'organization') {
+        // Add organization to the list if not already present
+        setOrganizationList((prev) => {
+          if (prev.some((org) => org.id === target.id)) {
+            return prev
+          }
+          const next = [...prev, { id: target.id, name: target.name }]
+          return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+        })
+
+        // Mark as manually selected and trigger sync
+        manuallySelectedOrgsRef.current.add(target.id)
+        setManualOrgTrigger((prev) => prev + 1)
+      }
+    },
+    [sortCharactersByName]
+  )
+
+  const handleCharacterCreated = useCallback(
+    (option: CharacterOption) => {
+      setCharacterList((prev) => {
+        if (prev.some((character) => character.id === option.value)) {
           return prev
         }
-        return [...prev, target.id]
+        const next = [...prev, { id: option.value, name: option.label, race: null, class: null }]
+        return sortCharactersByName(next)
       })
 
-      setCharacterList((prev) => {
-        if (prev.some((character) => character.id === target.id)) {
-          return prev
+      setSelectedCharacterIds((prev) => Array.from(new Set([...prev, option.value])))
+
+      setMentionableTargets((previous) => {
+        if (previous.some((entry) => entry.id === option.value)) {
+          return previous
         }
-        const next = [...prev, { id: target.id, name: target.name, race: null, class: null }]
-        return sortCharactersByName(next)
+        return [
+          ...previous,
+          {
+            id: option.value,
+            name: option.label,
+            href: `/characters/${option.value}`,
+            kind: 'character' as const,
+          },
+        ]
       })
     },
     [sortCharactersByName]
   )
+
+  const handleOrganizationCreated = useCallback((option: OrganizationOption) => {
+    setOrganizationList((prev) => {
+      if (prev.some((organization) => organization.id === option.value)) {
+        return prev
+      }
+      const next = [...prev, { id: option.value, name: option.label }]
+      return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+    })
+
+    // Mark newly created organizations as manually selected
+    manuallySelectedOrgsRef.current.add(option.value)
+    // Trigger sync effect to pick up the new manually selected org
+    setManualOrgTrigger((prev) => prev + 1)
+
+    setMentionableTargets((previous) => {
+      if (previous.some((entry) => entry.id === option.value)) {
+        return previous
+      }
+      return [
+        ...previous,
+        {
+          id: option.value,
+          name: option.label,
+          href: `/organizations/${option.value}`,
+          kind: 'organization' as const,
+        },
+      ]
+    })
+  }, [])
 
   useEffect(() => {
     if (!notesDraft) {
@@ -562,6 +662,97 @@ export default function SessionForm({
     })
   }, [mentionableTargets, notesDraft, sortCharactersByName])
 
+  // Automatically sync organizations from selected characters
+  useEffect(() => {
+    // Collect all organization IDs from the selected characters
+    const organizationIdsFromCharacters = new Set<string>()
+    
+    selectedCharacterIds.forEach((characterId) => {
+      const character = characterList.find((c) => c.id === characterId)
+      if (character?.organizations) {
+        character.organizations.forEach((org) => {
+          organizationIdsFromCharacters.add(org.id)
+        })
+      }
+    })
+
+    // Sync selectedGroups to include organizations from characters
+    // and preserve manually selected organizations
+    setSelectedGroups((prev) => {
+      const prevSet = new Set(prev)
+      const manuallySelected = manuallySelectedOrgsRef.current
+      
+      // Combine character organizations with manually selected ones
+      const newSet = new Set([
+        ...organizationIdsFromCharacters,
+        ...manuallySelected
+      ])
+      
+      // Check if there are any changes
+      if (prevSet.size !== newSet.size) {
+        return Array.from(newSet)
+      }
+      
+      for (const orgId of newSet) {
+        if (!prevSet.has(orgId)) {
+          return Array.from(newSet)
+        }
+      }
+      
+      for (const orgId of prevSet) {
+        if (!newSet.has(orgId)) {
+          return Array.from(newSet)
+        }
+      }
+      
+      return prev
+    })
+  }, [selectedCharacterIds, characterList, manualOrgTrigger])
+
+  // Create a wrapped handler for organization selection changes
+  const handleOrganizationSelectionChange = useCallback((newSelectedIds: string[]) => {
+    // Calculate which organizations come from characters
+    const orgsFromCharacters = new Set<string>()
+    selectedCharacterIds.forEach((characterId) => {
+      const character = characterList.find((c) => c.id === characterId)
+      if (character?.organizations) {
+        character.organizations.forEach((org) => {
+          orgsFromCharacters.add(org.id)
+        })
+      }
+    })
+
+    const prevSet = new Set(selectedGroups)
+    const newSet = new Set(newSelectedIds)
+
+    // Update manually selected organizations
+    const manuallySelected = manuallySelectedOrgsRef.current
+    let refChanged = false
+    
+    // Find newly added organizations (not from characters)
+    newSet.forEach((orgId) => {
+      if (!prevSet.has(orgId) && !orgsFromCharacters.has(orgId)) {
+        manuallySelected.add(orgId)
+        refChanged = true
+      }
+    })
+    
+    // Find removed organizations that were manually added
+    prevSet.forEach((orgId) => {
+      if (!newSet.has(orgId) && manuallySelected.has(orgId)) {
+        manuallySelected.delete(orgId)
+        refChanged = true
+      }
+    })
+
+    // Trigger sync if we changed manually selected orgs
+    if (refChanged) {
+      setManualOrgTrigger((prev) => prev + 1)
+    }
+
+    setSelectedGroups(newSelectedIds)
+  }, [selectedCharacterIds, characterList, selectedGroups])
+
   const disableCampaignCreate = newCampaignName.trim().length === 0 || isCreatingCampaignInline
 
   const campaignDropdownFooter = (
@@ -590,7 +781,7 @@ export default function SessionForm({
             className="w-full rounded border border-[#00ffff] border-opacity-20 bg-[#0a0a1f] px-3 py-2 text-xs font-mono text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#ff00ff]"
           />
           {campaignCreationError ? (
-            <p className="text-xs font-mono text-[#ff6ad5]">{campaignCreationError}</p>
+            <p className="text-xs font-mono text-[#ff6b35]">{campaignCreationError}</p>
           ) : null}
           <div className="flex flex-col gap-2 sm:flex-row">
             <button
@@ -671,7 +862,6 @@ export default function SessionForm({
   return (
     <form
       action={action}
-      encType="multipart/form-data"
       onSubmit={handleFormSubmit}
       className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-6"
     >
@@ -735,7 +925,7 @@ export default function SessionForm({
       </div>
 
       {/* Session Notes */}
-      <div>
+      <div style={{ minHeight: 0, overflow: 'visible', contain: 'layout' }}>
         <label htmlFor="notes" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
           Session Notes
         </label>
@@ -750,6 +940,7 @@ export default function SessionForm({
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           placeholder="What happened in this session..."
           spellCheck
+          data-testid="session-notes-textarea"
         />
         <p className="mt-2 text-xs text-gray-500 font-mono uppercase tracking-wider">
           Use @ to mention characters, sessions, or groups. Mentioned items are linked automatically.
@@ -764,7 +955,7 @@ export default function SessionForm({
               Related Characters
             </label>
           </div>
-          <EntityMultiSelect
+          <CharacterMultiSelect
             id="session-characters"
             name="character_ids"
             options={characterOptions}
@@ -772,7 +963,7 @@ export default function SessionForm({
             onChange={setSelectedCharacterIds}
             placeholder={characterOptions.length ? 'Select characters' : 'No characters available'}
             emptyMessage={characterList.length === 0 ? 'No characters yet. Create one to get started.' : 'No matches found'}
-            createOption={newCharacterHref ? { href: newCharacterHref, label: 'New Character' } : undefined}
+            onCreateOption={handleCharacterCreated}
           />
         </div>
         <div className="space-y-3">
@@ -781,15 +972,14 @@ export default function SessionForm({
               Related Groups
             </label>
           </div>
-          <EntityMultiSelect
+          <OrganizationMultiSelect
             id="session-groups"
             name="organization_ids"
-            options={groupOptions}
+            options={organizationSelectOptions}
             value={selectedGroups}
-            onChange={setSelectedGroups}
-            placeholder={groupOptions.length ? 'Select groups' : 'No groups available'}
-            emptyMessage={groupOptions.length === 0 ? 'No groups yet. Create one from the Groups tab.' : 'No matches found'}
-            createOption={newGroupHref ? { href: newGroupHref, label: 'New Group' } : undefined}
+            onChange={handleOrganizationSelectionChange}
+            placeholder={organizationSelectOptions.length ? 'Select groups' : 'No groups available'}
+            onCreateOption={handleOrganizationCreated}
           />
         </div>
       </div>

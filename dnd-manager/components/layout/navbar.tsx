@@ -203,7 +203,7 @@ export default function Navbar() {
   return (
     <div
       className={cn(
-        "relative w-full md:flex md:flex-col md:bg-[#0f0f23] md:border-r md:border-[#00ffff] md:border-opacity-20 md:[width:var(--sidebar-width)] md:[max-width:calc(max-content+1.5rem)]",
+        "relative w-full md:sticky md:top-0 md:self-start md:h-screen md:flex md:flex-col md:flex-shrink-0 md:bg-[#0f0f23] md:border-r md:border-[#00ffff] md:border-opacity-20 md:[width:var(--sidebar-width)] md:[max-width:calc(max-content+1.5rem)]",
         isDragging ? "md:transition-none" : "transition-[width] duration-300 ease-in-out"
       )}
       style={sidebarStyles}

@@ -98,6 +98,28 @@ export function NewCharacterForm({ redirectTo, mentionTargets, organizations }: 
     })
   }, [])
 
+  const handleMentionInsert = useCallback(
+    (target: MentionTarget) => {
+      setMentionableTargets((previous) => {
+        if (previous.some((entry) => entry.id === target.id)) {
+          return previous
+        }
+        return [...previous, target]
+      })
+
+      if (target.kind === 'organization') {
+        // Add organization to the list if not already present
+        setOrganizationIds((prev) => {
+          if (prev.includes(target.id)) {
+            return prev
+          }
+          return [...prev, target.id]
+        })
+      }
+    },
+    []
+  )
+
   const toTitleCase = useCallback((value: string) => {
     const trimmed = value.trim()
     if (!trimmed) {
@@ -268,6 +290,7 @@ export function NewCharacterForm({ redirectTo, mentionTargets, organizations }: 
           rows={6}
           initialValue=""
           mentionTargets={mentionableTargets}
+          onMentionInsert={handleMentionInsert}
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           placeholder="Character background, personality, goals..."
           spellCheck

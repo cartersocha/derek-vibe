@@ -18,6 +18,7 @@ interface SynthwaveDropdownProps {
   disabled?: boolean
   hideSearch?: boolean
   customFooter?: ReactNode
+  colorVariant?: 'default' | 'campaign'
 }
 
 export default function SynthwaveDropdown({
@@ -31,11 +32,31 @@ export default function SynthwaveDropdown({
   disabled = false,
   hideSearch = false,
   customFooter,
+  colorVariant = 'default',
 }: SynthwaveDropdownProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const buttonRef = useRef<HTMLButtonElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  const getColors = () => {
+    if (colorVariant === 'campaign') {
+      return {
+        primary: '#ff6b35',
+        hover: '#ff8a5b',
+        focus: '#ff6b35',
+        shadow: '#ff6b35'
+      }
+    }
+    return {
+      primary: '#00ffff',
+      hover: '#ff00ff',
+      focus: '#00ffff',
+      shadow: '#ff00ff'
+    }
+  }
+
+  const colors = getColors()
 
   const selectedLabel = useMemo(() => {
     const match = options.find((option) => option.value === value)
@@ -121,23 +142,23 @@ export default function SynthwaveDropdown({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={`${id}-dropdown`}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[${colors.focus}] ${
           open
-            ? 'border-[#ff00ff] text-[#ff00ff] shadow-lg shadow-[#ff00ff]/30'
+            ? `border-[${colors.hover}] text-[${colors.hover}] shadow-lg shadow-[${colors.shadow}]/30`
             : value
-              ? 'border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]'
-              : 'border-[#00ffff] text-gray-500 hover:border-[#ff00ff] hover:text-[#ff00ff]'
+              ? `border-[${colors.primary}] text-[${colors.primary}] hover:border-[${colors.hover}] hover:text-[${colors.hover}]`
+              : `border-[${colors.primary}] text-gray-500 hover:border-[${colors.hover}] hover:text-[${colors.hover}]`
         } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
       >
         <span className="truncate">{selectedLabel || placeholder}</span>
-        <span className="text-xs text-[#ff00ff]">{open ? '▲' : '▼'}</span>
+        <span className={`text-xs text-[${colors.hover}]`}>{open ? '▲' : '▼'}</span>
       </button>
 
       {open ? (
         <div
           id={`${id}-dropdown`}
           role="listbox"
-          className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20"
+          className={`absolute z-20 mt-2 w-full overflow-hidden rounded border border-[${colors.primary}] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[${colors.shadow}]/20`}
         >
           {!hideSearch ? (
             <div className="border-b border-[#1a1a3e] px-3 py-2">
@@ -147,7 +168,7 @@ export default function SynthwaveDropdown({
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search"
-                className="w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+                className={`w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[${colors.primary}] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[${colors.hover}]`}
               />
             </div>
           ) : null}
@@ -168,7 +189,7 @@ export default function SynthwaveDropdown({
                         onMouseDown={(event) => event.preventDefault()}
                         onClick={() => handleSelect(option)}
                         className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[#1a1a3e]/60 ${
-                          isSelected ? 'text-[#ff00ff]' : 'text-[#00ffff]'
+                          isSelected ? `text-[${colors.hover}]` : `text-[${colors.primary}]`
                         }`}
                       >
                         <span className="truncate">{option.label}</span>

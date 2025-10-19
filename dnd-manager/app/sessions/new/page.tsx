@@ -1,4 +1,5 @@
 import { createSession } from '@/lib/actions/sessions'
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-utils'
 import { createClient } from '@/lib/supabase/server'
 import SessionForm from '@/components/forms/session-form'
 
@@ -11,8 +12,16 @@ export default async function NewSessionPage({
   const supabase = await createClient()
 
   const [{ data: campaigns }, { data: characters }, { data: sessions }, { data: organizations }] = await Promise.all([
-    supabase.from('campaigns').select('id, name').order('name'),
-    supabase.from('characters').select('id, name, race, class').order('name'),
+    supabase.from('campaigns').select('id, name, created_at').order('created_at', { ascending: false }),
+    supabase.from('characters').select(`
+      id,
+      name,
+      race,
+      class,
+      organization_memberships:organization_characters(
+        organizations(id, name)
+      )
+    `).order('name'),
     supabase.from('sessions').select('id, name').order('name'),
     supabase.from('organizations').select('id, name').order('name'),
   ])
@@ -27,51 +36,45 @@ export default async function NewSessionPage({
 
   const newCharacterId = params.newCharacterId
 
-  const sessionQuery = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (typeof value !== 'string') {
-      return
-    }
-    if (key === 'newCharacterId') {
-      return
-    }
-    sessionQuery.set(key, value)
-  })
-
-  if (!campaignFromParams && defaultCampaignId) {
-    sessionQuery.set('campaign_id', defaultCampaignId)
+  // Transform character data to include organizations
+  type CharacterRow = {
+    id: string
+    name: string
+    race: string | null
+    class: string | null
+    organization_memberships: Array<{
+      organizations: { id: string; name: string } | Array<{ id: string; name: string }>
+    }> | null
   }
 
-  const sessionPath = `/sessions/new${sessionQuery.toString() ? `?${sessionQuery.toString()}` : ''}`
-  const newCharacterHref = `/characters/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
-  const newGroupHref = `/organizations/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
+  const charactersWithOrgs = (characters as CharacterRow[] | null)?.map((character) => {
+    const organizations: Array<{ id: string; name: string }> = []
+    
+    if (character.organization_memberships) {
+      character.organization_memberships.forEach((membership) => {
+        const orgData = membership.organizations
+        const org = Array.isArray(orgData) ? orgData[0] : orgData
+        if (org?.id && org?.name) {
+          organizations.push({ id: org.id, name: org.name })
+        }
+      })
+    }
 
-  const mentionTargets = [
-    ...(characters ?? [])
-      .filter((entry): entry is { id: string; name: string; race: string | null; class: string | null } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/characters/${entry.id}`,
-        kind: 'character' as const,
-      })),
-    ...(sessions ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/sessions/${entry.id}`,
-        kind: 'session' as const,
-      })),
-    ...(organizations ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/organizations/${entry.id}`,
-        kind: 'organization' as const,
-      })),
-  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+    return {
+      id: character.id,
+      name: character.name,
+      race: character.race,
+      class: character.class,
+      organizations,
+    }
+  }) || []
+
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(charactersWithOrgs, 'character', (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(sessions, 'session', (entry) => `/sessions/${entry.id}`),
+    mapEntitiesToMentionTargets(organizations, 'organization', (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(campaigns, 'campaign', (entry) => `/campaigns/${entry.id}`)
+  )
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -82,14 +85,12 @@ export default async function NewSessionPage({
       <SessionForm
         action={createSession}
         campaigns={campaigns || []}
-        characters={characters || []}
+        characters={charactersWithOrgs}
         organizations={organizations || []}
         defaultCampaignId={defaultCampaignId || undefined}
         submitLabel="Create Session"
         cancelHref="/sessions"
         draftKey={draftKey}
-        newCharacterHref={newCharacterHref}
-        newGroupHref={newGroupHref}
         preselectedCharacterIds={newCharacterId ? [newCharacterId] : undefined}
         mentionTargets={mentionTargets}
       />

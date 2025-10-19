@@ -5,6 +5,9 @@ import { deleteCampaign } from '@/lib/actions/campaigns'
 import { DeleteCampaignButton } from '@/components/ui/delete-campaign-button'
 import {
   extractPlayerSummaries,
+  dateStringToLocalDate,
+  formatDateStringForDisplay,
+  formatTimestampForDisplay,
   type SessionCharacterRelation,
 } from '@/lib/utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
@@ -62,14 +65,16 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
 
   if (rawSessions.length > 0) {
     const ordered = [...rawSessions].sort((a, b) => {
-      const aDate = a.session_date ? new Date(a.session_date).getTime() : Number.POSITIVE_INFINITY
-      const bDate = b.session_date ? new Date(b.session_date).getTime() : Number.POSITIVE_INFINITY
-      if (aDate === bDate) {
+      const aDate = dateStringToLocalDate(a.session_date)
+      const bDate = dateStringToLocalDate(b.session_date)
+      const aTime = aDate ? aDate.getTime() : Number.POSITIVE_INFINITY
+      const bTime = bDate ? bDate.getTime() : Number.POSITIVE_INFINITY
+      if (aTime === bTime) {
         const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0
         const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0
         return aCreated - bCreated
       }
-      return aDate - bDate
+      return aTime - bTime
     })
 
     let counter = 1
@@ -132,21 +137,21 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Created</div>
             <div className="text-lg font-bold text-[#00ffff]">
-              {new Date(campaign.created_at).toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric',
-                year: 'numeric'
-              })}
+              {formatTimestampForDisplay(
+                campaign.created_at,
+                'en-US',
+                { month: 'short', day: 'numeric', year: 'numeric' }
+              ) ?? 'Unknown'}
             </div>
           </div>
           <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Last Updated</div>
             <div className="text-lg font-bold text-[#00ffff]">
-              {new Date(campaign.updated_at).toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric',
-                year: 'numeric'
-              })}
+              {formatTimestampForDisplay(
+                campaign.updated_at,
+                'en-US',
+                { month: 'short', day: 'numeric', year: 'numeric' }
+              ) ?? 'Unknown'}
             </div>
           </div>
         </div>
@@ -217,7 +222,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                       </div>
                       <div className="relative z-10 pointer-events-none text-xs text-gray-500 font-mono uppercase tracking-wider sm:ml-4 sm:text-right">
                         {session.session_date ? (
-                          <div>{new Date(session.session_date).toLocaleDateString()}</div>
+                          <div>{formatDateStringForDisplay(session.session_date) ?? 'No date set'}</div>
                         ) : (
                           <div>No date set</div>
                         )}

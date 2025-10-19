@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { OrganizationForm } from "@/components/organizations/organization-form";
 import { updateOrganization } from "@/lib/actions/organizations";
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from "@/lib/mention-utils";
 import { createClient } from "@/lib/supabase/server";
+import { formatDateStringForDisplay } from "@/lib/utils";
 
 export default async function EditOrganizationPage({
   params,
@@ -31,11 +33,12 @@ export default async function EditOrganizationPage({
 
   const organization = data;
 
-  const [campaignsResult, sessionsResult, charactersResult, campaignLinksResult, sessionLinksResult, characterLinksResult] =
+  const [campaignsResult, sessionsResult, charactersResult, organizationsResult, campaignLinksResult, sessionLinksResult, characterLinksResult] =
     await Promise.all([
-      supabase.from("campaigns").select("id, name").order("name"),
+      supabase.from("campaigns").select("id, name, created_at").order("created_at", { ascending: false }),
       supabase.from("sessions").select("id, name, session_date").order("session_date", { ascending: false, nullsFirst: false }),
       supabase.from("characters").select("id, name, player_type, status").order("name"),
+      supabase.from("organizations").select("id, name").order("name"),
       supabase.from("organization_campaigns").select("campaign_id").eq("organization_id", id),
       supabase.from("organization_sessions").select("session_id").eq("organization_id", id),
       supabase.from("organization_characters").select("character_id").eq("organization_id", id),
@@ -49,7 +52,7 @@ export default async function EditOrganizationPage({
   const sessionOptions = (sessionsResult.data ?? []).map((session) => ({
     value: session.id,
     label: session.name ?? "Untitled Session",
-    hint: session.session_date ? new Date(session.session_date).toLocaleDateString() : "Date TBD",
+    hint: formatDateStringForDisplay(session.session_date) ?? "Date TBD",
   }));
 
   const characterOptions = (charactersResult.data ?? []).map((character) => {
@@ -67,6 +70,15 @@ export default async function EditOrganizationPage({
   const defaultCampaignIds = (campaignLinksResult.data ?? []).map((entry) => entry.campaign_id).filter(Boolean);
   const defaultSessionIds = (sessionLinksResult.data ?? []).map((entry) => entry.session_id).filter(Boolean);
   const defaultCharacterIds = (characterLinksResult.data ?? []).map((entry) => entry.character_id).filter(Boolean);
+
+  // Create mention targets for @ mentions
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(charactersResult.data, "character", (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(organizationsResult.data, "organization", (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(campaignsResult.data, "campaign", (entry) => `/campaigns/${entry.id}`),
+    mapEntitiesToMentionTargets(sessionsResult.data, "session", (entry) => `/sessions/${entry.id}`)
+  );
+
 
   async function handleUpdate(formData: FormData) {
     "use server";
@@ -102,6 +114,7 @@ export default async function EditOrganizationPage({
         defaultCampaignIds={defaultCampaignIds}
         defaultSessionIds={defaultSessionIds}
         defaultCharacterIds={defaultCharacterIds}
+        mentionTargets={mentionTargets}
         showLogoRemove
         submitLabel="Save Changes"
       />

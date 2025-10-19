@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import {
   extractPlayerSummaries,
+  dateStringToLocalDate,
+  formatDateStringForDisplay,
   type SessionCharacterRelation,
 } from '@/lib/utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
@@ -84,9 +86,13 @@ export default async function DashboardPage() {
             .filter((session) => Boolean(session.session_date))
             .sort((a, b) => {
               if (a.session_date && b.session_date) {
-                const dateCompare = new Date(a.session_date).getTime() - new Date(b.session_date).getTime()
-                if (dateCompare !== 0) {
-                  return dateCompare
+                const aDate = dateStringToLocalDate(a.session_date)
+                const bDate = dateStringToLocalDate(b.session_date)
+                if (aDate && bDate) {
+                  const dateCompare = aDate.getTime() - bDate.getTime()
+                  if (dateCompare !== 0) {
+                    return dateCompare
+                  }
                 }
               }
 
@@ -191,7 +197,7 @@ export default async function DashboardPage() {
                       {campaignRelation?.name && campaignRelation.id && (
                         <Link
                           href={`/campaigns/${campaignRelation.id}`}
-                          className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff00ff] transition-colors hover:text-[#ff6ad5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6ad5] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                          className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
                         >
                           Campaign: {campaignRelation.name}
                         </Link>
@@ -202,19 +208,19 @@ export default async function DashboardPage() {
                           players={players}
                           className="mt-3 pointer-events-auto"
                         />
-                      )}
-                    </div>
-                    <div className="relative z-10 pointer-events-none text-xs font-mono uppercase tracking-wider text-gray-500 sm:ml-4 sm:text-right">
-                      {session.session_date ? (
-                        <div>{new Date(session.session_date).toLocaleDateString()}</div>
-                      ) : (
-                        <div>No date set</div>
-                      )}
-                    </div>
+                    )}
                   </div>
-                </article>
-              )
-            })}
+                  <div className="relative z-10 pointer-events-none text-xs font-mono uppercase tracking-wider text-gray-500 sm:ml-4 sm:text-right">
+                    {session.session_date ? (
+                      <div>{formatDateStringForDisplay(session.session_date) ?? 'No date set'}</div>
+                    ) : (
+                      <div>No date set</div>
+                    )}
+                  </div>
+                </div>
+              </article>
+            )
+          })}
           </div>
         </div>
       )}

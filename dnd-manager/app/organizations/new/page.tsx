@@ -1,12 +1,14 @@
 import { OrganizationForm } from "@/components/organizations/organization-form";
 import { createOrganization } from "@/lib/actions/organizations";
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from "@/lib/mention-utils";
 import { createClient } from "@/lib/supabase/server";
+import { formatDateStringForDisplay } from "@/lib/utils";
 
 export default async function NewOrganizationPage() {
   const supabase = await createClient();
 
-  const [campaignsResult, sessionsResult, charactersResult] = await Promise.all([
-    supabase.from("campaigns").select("id, name").order("name"),
+  const [campaignsResult, sessionsResult, charactersResult, organizationsResult] = await Promise.all([
+    supabase.from("campaigns").select("id, name, created_at").order("created_at", { ascending: false }),
     supabase
       .from("sessions")
       .select("id, name, session_date")
@@ -15,6 +17,7 @@ export default async function NewOrganizationPage() {
       .from("characters")
       .select("id, name, player_type, status")
       .order("name"),
+    supabase.from("organizations").select("id, name").order("name"),
   ]);
 
   const campaignOptions = (campaignsResult.data ?? []).map((campaign) => ({
@@ -25,7 +28,7 @@ export default async function NewOrganizationPage() {
   const sessionOptions = (sessionsResult.data ?? []).map((session) => ({
     value: session.id,
     label: session.name ?? "Untitled Session",
-    hint: session.session_date ? new Date(session.session_date).toLocaleDateString() : "Date TBD",
+    hint: formatDateStringForDisplay(session.session_date) ?? "Date TBD",
   }));
 
   const characterOptions = (charactersResult.data ?? []).map((character) => {
@@ -40,6 +43,14 @@ export default async function NewOrganizationPage() {
       hint: `${playerTypeLabel} · ${statusLabel}`,
     };
   });
+
+  // Create mention targets for @ mentions
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(charactersResult.data, "character", (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(organizationsResult.data, "organization", (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(campaignsResult.data, "campaign", (entry) => `/campaigns/${entry.id}`),
+    mapEntitiesToMentionTargets(sessionsResult.data, "session", (entry) => `/sessions/${entry.id}`)
+  );
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -56,6 +67,7 @@ export default async function NewOrganizationPage() {
         campaignOptions={campaignOptions}
         sessionOptions={sessionOptions}
         characterOptions={characterOptions}
+        mentionTargets={mentionTargets}
       />
     </div>
   );

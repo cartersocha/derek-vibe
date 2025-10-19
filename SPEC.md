@@ -246,6 +246,48 @@ app/
 - Organization context threads through server actions so downstream mutations enforce affiliation constraints and sanitize text inputs consistently with other entities
 - Switching organizations re-runs dashboard, campaign, session, and character queries using the join tables to keep multi-organization setups isolated
 
+### Recent Feature Additions & UX/Backend Enhancements
+
+- Mention dropdowns in session notes and character backstories are now caret-anchored, appear above or below the caret as needed, and support inline creation of new characters when no match exists.
+- Mention dropdown badges and rendered hyperlinks are color-coded by target type (character, session, organization) for improved scannability.
+- Draft persistence for session notes, selected characters, session name, and header image is managed via a shared idle-aware scheduler, ensuring localStorage-backed autosave and cleanup of abandoned drafts.
+- Session, campaign, and character cards have been unified for consistent layout, responsive design, and overflow handling, including capped attendee chips and `+N more` indicators.
+- Organization sync logic ensures that sessions linked to campaigns inherit organization affiliations, and standalone sessions can be attached directly to organizations for dashboard filtering.
+- All long-form editors (session notes, campaign descriptions, character backstories, organization notes) enable browser spellcheck and use auto-resizing textareas for improved drafting experience.
+- Hydration errors in mention dropdowns are resolved via client-only render guards.
+- Sidebar navigation supports drag-to-resize, double-click collapse, and auto-clamping to the longest label, with width persistence and mobile menu support.
+- All entity actions (create, update) run a uniqueness guard to block case-insensitive duplicates before writes, with database-level unique indexes for defense in depth.
+
+### Data Integrity & Validation
+
+- All form submissions are sanitized server-side using `sanitize-html` before validation or persistence.
+- Switching organizations revalidates dashboard metrics and recent sessions so stats always reflect the active tenant without leaking cross-organization data.
+
+### Technical Implementation Notes
+
+- React Server Components are used for data fetching; Client Components are marked with 'use client' for interactivity.
+- Server Actions handle all mutations (create, update, delete) and form submissions.
+- Data fetching is performed directly from Supabase using createClient(), with cache invalidation via revalidatePath() and navigation via redirect().
+- No client-side state management library is used; all state is managed via React and Server Actions.
+- Tailwind CSS powers the cyberpunk theme, with custom neon colors, backdrop blur, and responsive layouts.
+- Images for characters, sessions, and organizations are uploaded to Vercel Blob Storage and served via CDN.
+
+### Migration & Schema Updates
+
+- Added `campaign_characters` join table to persist campaign-to-character associations and backfilled relationships from existing session-character data.
+- Organization, campaign, session, and character join tables support multi-organization setups and role-based affiliation chips.
+
+### Summary
+
+All features, UI/UX improvements, backend logic, and architectural changes are now reflected in this specification. For implementation details and migration history, see `IMPLEMENTATION_PLAN.md`.
+
+- Create, read, update, and delete organizations that act as the thematic container for campaigns, sessions, and characters
+- Organization descriptions leverage the mentionable textarea so staff can reference sessions and characters inline while drafting notes; optional logos provide quick visual anchors
+- Link campaigns and sessions to multiple organizations through affiliation join tables without duplicating underlying records
+- Associate characters with organizations while denoting whether they appear as `player` or `npc`; chips inherit the role tint whenever rendered under an organization scope
+- Organization context threads through server actions so downstream mutations enforce affiliation constraints and sanitize text inputs consistently with other entities
+- Switching organizations re-runs dashboard, campaign, session, and character queries using the join tables to keep multi-organization setups isolated
+
 ### Campaigns
 
 - Create, read, update, delete campaigns

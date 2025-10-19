@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NewCharacterForm } from '@/components/forms/new-character-form'
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-utils'
 
 type NewCharacterPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>
@@ -15,32 +16,11 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
     supabase.from('organizations').select('id, name').order('name'),
   ])
 
-  const mentionTargets = [
-    ...(allCharacters ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/characters/${entry.id}`,
-        kind: 'character' as const,
-      })),
-    ...(allSessions ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/sessions/${entry.id}`,
-        kind: 'session' as const,
-      })),
-    ...(organizations ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/organizations/${entry.id}`,
-        kind: 'organization' as const,
-      })),
-  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(allCharacters, 'character', (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(allSessions, 'session', (entry) => `/sessions/${entry.id}`),
+    mapEntitiesToMentionTargets(organizations, 'organization', (entry) => `/organizations/${entry.id}`)
+  )
 
   const redirectValue = params?.redirectTo
   const redirectTo = Array.isArray(redirectValue) ? redirectValue[0] ?? null : redirectValue ?? null
@@ -62,4 +42,3 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
     </div>
   )
 }
-

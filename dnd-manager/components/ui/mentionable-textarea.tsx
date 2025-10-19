@@ -12,10 +12,15 @@ import {
   type KeyboardEvent,
   type SyntheticEvent,
 } from "react"
+import { createPortal } from "react-dom"
 import AutoResizeTextarea, { type AutoResizeTextareaProps } from "@/components/ui/auto-resize-textarea"
 import { createCharacterInline } from "@/lib/actions/characters"
+import { createOrganizationInline } from "@/lib/actions/organizations"
+import { createSessionInline } from "@/lib/actions/sessions"
+import { createCampaignInline } from "@/lib/actions/campaigns"
 import { cn } from "@/lib/utils"
 import { isMentionBoundary, type MentionTarget } from "@/lib/mention-utils"
+import { mentionEndPattern } from "@/lib/mentions"
 
 type MentionableTextareaProps = Omit<AutoResizeTextareaProps, "defaultValue" | "value" | "onChange" | "onKeyDown" | "onSelect" | "onBlur"> & {
   initialValue?: string | null
@@ -39,6 +44,8 @@ function MentionKindLabel({ kind }: MentionKindLabelProps) {
         return "Session"
       case "organization":
         return "Organization"
+      case "campaign":
+        return "Campaign"
       default:
         return "Mention"
     }
@@ -52,6 +59,8 @@ function MentionKindLabel({ kind }: MentionKindLabelProps) {
         return "border-[#ff6ad5] text-[#ff6ad5]"
       case "organization":
         return "border-[#fcee0c] text-[#fcee0c]"
+      case "campaign":
+        return "border-[#ff6b35] text-[#ff6b35]"
       default:
         return "border-[#94a3b8] text-[#94a3b8]"
     }
@@ -83,7 +92,13 @@ export default function MentionableTextarea({
   const [mentionStart, setMentionStart] = useState<number | null>(null)
   const [mentionQuery, setMentionQuery] = useState("")
   const [mentionHighlightIndex, setMentionHighlightIndex] = useState(0)
-  const [mentionDropdownPosition, setMentionDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null)
+  const [mentionDropdownPosition, setMentionDropdownPosition] = useState<{
+    viewportTop: number
+    viewportLeft: number
+    width: number
+    maxHeight: number
+    placement: "above" | "below"
+  } | null>(null)
   const [availableTargets, setAvailableTargets] = useState<MentionTarget[]>(mentionTargets)
   const [isCreatingMentionCharacter, setIsCreatingMentionCharacter] = useState(false)
   const [mentionCreationError, setMentionCreationError] = useState<string | null>(null)
@@ -173,16 +188,51 @@ export default function MentionableTextarea({
     [sortedTargets]
   )
 
+  const organizationTargets = useMemo(
+    () => sortedTargets.filter((target) => target.kind === "organization"),
+    [sortedTargets]
+  )
+
+  const sessionTargets = useMemo(
+    () => sortedTargets.filter((target) => target.kind === "session"),
+    [sortedTargets]
+  )
+
+  const campaignTargets = useMemo(
+    () => sortedTargets.filter((target) => target.kind === "campaign"),
+    [sortedTargets]
+  )
+
   const hasExactCharacterMatch = useMemo(
     () => characterTargets.some((target) => target.name.toLowerCase() === normalizedMentionQuery),
     [characterTargets, normalizedMentionQuery]
   )
 
-  const showInlineCreateOption = trimmedMentionQuery.length > 0 && !hasExactCharacterMatch
+  const hasExactOrganizationMatch = useMemo(
+    () => organizationTargets.some((target) => target.name.toLowerCase() === normalizedMentionQuery),
+    [organizationTargets, normalizedMentionQuery]
+  )
+
+  const hasExactSessionMatch = useMemo(
+    () => sessionTargets.some((target) => target.name.toLowerCase() === normalizedMentionQuery),
+    [sessionTargets, normalizedMentionQuery]
+  )
+
+  const hasExactCampaignMatch = useMemo(
+    () => campaignTargets.some((target) => target.name.toLowerCase() === normalizedMentionQuery),
+    [campaignTargets, normalizedMentionQuery]
+  )
+
+  const showCreateCharacterOption = trimmedMentionQuery.length > 0 && !hasExactCharacterMatch
+  const showCreateOrganizationOption = trimmedMentionQuery.length > 0 && !hasExactOrganizationMatch
+  const showCreateSessionOption = trimmedMentionQuery.length > 0 && !hasExactSessionMatch
+  const showCreateCampaignOption = trimmedMentionQuery.length > 0 && !hasExactCampaignMatch
+
+  const createOptionsCount = (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0) + (showCreateCampaignOption ? 1 : 0)
 
   const totalMentionChoices = useMemo(
-    () => mentionOptions.length + (showInlineCreateOption ? 1 : 0),
-    [mentionOptions, showInlineCreateOption]
+    () => mentionOptions.length + createOptionsCount,
+    [mentionOptions, createOptionsCount]
   )
 
   const closeMentionMenu = useCallback(() => {
@@ -265,21 +315,81 @@ export default function MentionableTextarea({
       const approxCharWidth = fontSize * 0.6
       const longestLabelLength = labels.length > 0 ? labels.reduce((max, label) => Math.max(max, label.length), 0) : 12
       const desiredWidth = Math.ceil(longestLabelLength * approxCharWidth + fontSize * 2)
-  const minWidthBase = Math.max(fontSize * 8, 240)
-  const minWidth = Math.min(minWidthBase, textarea.clientWidth || minWidthBase)
-      const dropdownWidth = Math.min(Math.max(desiredWidth, minWidth), textarea.clientWidth || desiredWidth)
+      const minWidthBase = Math.max(fontSize * 8, 240)
+      const fallbackWidth = textarea.clientWidth || desiredWidth
+
+      const textareaRect = textarea.getBoundingClientRect()
+      const viewportWidth = (typeof window !== "undefined" ? window.innerWidth : undefined) ?? textareaRect.width
+      const viewportHeight = (typeof window !== "undefined" ? window.innerHeight : undefined) ?? textareaRect.height
+
+      let dropdownWidth = Math.max(desiredWidth, Math.min(minWidthBase, fallbackWidth))
+      dropdownWidth = Math.min(dropdownWidth, fallbackWidth)
+      dropdownWidth = Math.max(dropdownWidth, 160)
+      if (dropdownWidth > viewportWidth - 16) {
+        dropdownWidth = Math.max(viewportWidth - 16, 160)
+      }
+
+      const scrollTop = textarea.scrollTop || 0
+      const scrollLeft = textarea.scrollLeft || 0
       const availableLeft = Math.max((textarea.clientWidth || dropdownWidth) - dropdownWidth, 0)
-      const left = Math.min(Math.max(metrics.left, 0), availableLeft)
-      const top = metrics.top + metrics.lineHeight + 6
+      const leftWithinTextarea = Math.min(Math.max(metrics.left - scrollLeft, 0), availableLeft)
+
+      const viewportLeft = textareaRect.left + leftWithinTextarea
+      const maxViewportLeft = Math.max(viewportWidth - dropdownWidth - 8, 8)
+      const safeViewportLeft = Math.min(Math.max(viewportLeft, 8), maxViewportLeft)
+
+      const caretTopViewport = textareaRect.top + metrics.top - scrollTop
+      const caretBottomViewport = caretTopViewport + metrics.lineHeight
+
+      const baseGap = Math.max(metrics.lineHeight * 0.35, 16)
+      const anchorBelow = caretBottomViewport + baseGap
+      const anchorAbove = caretTopViewport - baseGap
+
+      const availableBelow = viewportHeight - anchorBelow - 12
+      const availableAbove = anchorAbove - 12
+
+      const MIN_MENU_HEIGHT = 140
+      const MAX_MENU_HEIGHT = 360
+
+      const clampHeight = (value: number) => {
+        const clipped = Math.min(value, MAX_MENU_HEIGHT)
+        const bounded = Math.max(clipped, 120)
+        return Number.isFinite(bounded) ? bounded : 160
+      }
+
+      let placement: "above" | "below" = "below"
+      if (availableBelow < MIN_MENU_HEIGHT && availableAbove > availableBelow) {
+        placement = "above"
+      }
+
+      let viewportTop: number
+      let maxHeight: number
+
+      if (placement === "below") {
+        viewportTop = Math.min(anchorBelow, viewportHeight - 8)
+        maxHeight = clampHeight(availableBelow)
+      } else {
+        viewportTop = Math.max(anchorAbove, 8)
+        maxHeight = clampHeight(availableAbove)
+      }
 
       setMentionDropdownPosition((prev) => {
-        if (prev && prev.top === top && prev.left === left && prev.width === dropdownWidth) {
+        if (
+          prev &&
+          prev.viewportTop === viewportTop &&
+          prev.viewportLeft === safeViewportLeft &&
+          prev.width === dropdownWidth &&
+          prev.maxHeight === maxHeight &&
+          prev.placement === placement
+        ) {
           return prev
         }
         return {
-          top,
-          left,
+          viewportTop,
+          viewportLeft: safeViewportLeft,
           width: dropdownWidth,
+          maxHeight,
+          placement,
         }
       })
     },
@@ -304,7 +414,9 @@ export default function MentionableTextarea({
 
       const query = preceding.slice(atIndex + 1)
 
-      if (/[\s\n\r\t]/.test(query)) {
+      // Allow spaces in mention queries for multi-word names
+      // Only close menu on newlines or tabs
+      if (/[\n\r\t]/.test(query)) {
         closeMentionMenu()
         return
       }
@@ -347,7 +459,7 @@ export default function MentionableTextarea({
       const before = rawValue.slice(0, safeStart)
       const after = rawValue.slice(safeEnd)
       const mentionText = `@${target.name}`
-      const needsSpace = after.length === 0 ? true : !isMentionBoundary(after.charAt(0))
+      const needsSpace = after.length === 0 ? true : !mentionEndPattern.test(after.charAt(0))
       const insertion = needsSpace ? `${mentionText} ` : mentionText
       const nextValue = `${before}${insertion}${after}`
 
@@ -378,7 +490,7 @@ export default function MentionableTextarea({
     [updateMentionState]
   )
 
-  const handleCreateMention = useCallback(async () => {
+  const handleCreateCharacter = useCallback(async () => {
     if (isCreatingMentionCharacter) {
       return
     }
@@ -416,6 +528,121 @@ export default function MentionableTextarea({
     }
   }, [hasExactCharacterMatch, insertMention, isCreatingMentionCharacter, trimmedMentionQuery])
 
+  const handleCreateOrganization = useCallback(async () => {
+    if (isCreatingMentionCharacter) {
+      return
+    }
+
+    if (!trimmedMentionQuery || hasExactOrganizationMatch) {
+      return
+    }
+
+    setIsCreatingMentionCharacter(true)
+    setMentionCreationError(null)
+
+    try {
+      const result = await createOrganizationInline(trimmedMentionQuery)
+      const newTarget: MentionOption = {
+        id: result.id,
+        name: result.name,
+        href: `/organizations/${result.id}`,
+        kind: "organization",
+      }
+
+      setAvailableTargets((previous) => {
+        const exists = previous.some((entry) => entry.id === newTarget.id)
+        if (exists) {
+          return previous
+        }
+        return [...previous, newTarget]
+      })
+
+      insertMention(newTarget)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to create organization"
+      setMentionCreationError(message)
+    } finally {
+      setIsCreatingMentionCharacter(false)
+    }
+  }, [hasExactOrganizationMatch, insertMention, isCreatingMentionCharacter, trimmedMentionQuery])
+
+  const handleCreateSession = useCallback(async () => {
+    if (isCreatingMentionCharacter) {
+      return
+    }
+
+    if (!trimmedMentionQuery || hasExactSessionMatch) {
+      return
+    }
+
+    setIsCreatingMentionCharacter(true)
+    setMentionCreationError(null)
+
+    try {
+      const result = await createSessionInline(trimmedMentionQuery)
+      const newTarget: MentionOption = {
+        id: result.id,
+        name: result.name,
+        href: `/sessions/${result.id}`,
+        kind: "session",
+      }
+
+      setAvailableTargets((previous) => {
+        const exists = previous.some((entry) => entry.id === newTarget.id)
+        if (exists) {
+          return previous
+        }
+        return [...previous, newTarget]
+      })
+
+      insertMention(newTarget)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to create session"
+      setMentionCreationError(message)
+    } finally {
+      setIsCreatingMentionCharacter(false)
+    }
+  }, [hasExactSessionMatch, insertMention, isCreatingMentionCharacter, trimmedMentionQuery])
+
+  const handleCreateCampaign = useCallback(async () => {
+    if (isCreatingMentionCharacter) {
+      return
+    }
+
+    if (!trimmedMentionQuery || hasExactCampaignMatch) {
+      return
+    }
+
+    setIsCreatingMentionCharacter(true)
+    setMentionCreationError(null)
+
+    try {
+      const result = await createCampaignInline(trimmedMentionQuery)
+      const newTarget: MentionOption = {
+        id: result.id,
+        name: result.name,
+        href: `/campaigns/${result.id}`,
+        kind: "campaign",
+      }
+
+      setAvailableTargets((previous) => {
+        const exists = previous.some((entry) => entry.id === newTarget.id)
+        if (exists) {
+          return previous
+        }
+        return [...previous, newTarget]
+      })
+
+      insertMention(newTarget)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to create campaign"
+      setMentionCreationError(message)
+    } finally {
+      setIsCreatingMentionCharacter(false)
+    }
+  }, [hasExactCampaignMatch, insertMention, isCreatingMentionCharacter, trimmedMentionQuery])
+
+
   const handleTextareaKeyDown = useCallback(
     (event: KeyboardEvent<HTMLTextAreaElement>) => {
       if (!isMentionMenuOpen) {
@@ -449,8 +676,39 @@ export default function MentionableTextarea({
           if (option) {
             insertMention(option)
           }
-        } else if (showInlineCreateOption) {
-          void handleCreateMention()
+        } else {
+          // Handle create options
+          const createIndex = mentionHighlightIndex - mentionOptions.length
+          
+          // Determine which create option is at this index
+          let currentIndex = 0
+          if (showCreateCharacterOption) {
+            if (createIndex === currentIndex) {
+              void handleCreateCharacter()
+              return
+            }
+            currentIndex++
+          }
+          if (showCreateOrganizationOption) {
+            if (createIndex === currentIndex) {
+              void handleCreateOrganization()
+              return
+            }
+            currentIndex++
+          }
+          if (showCreateSessionOption) {
+            if (createIndex === currentIndex) {
+              void handleCreateSession()
+              return
+            }
+            currentIndex++
+          }
+          if (showCreateCampaignOption) {
+            if (createIndex === currentIndex) {
+              void handleCreateCampaign()
+              return
+            }
+          }
         }
         return
       }
@@ -460,7 +718,7 @@ export default function MentionableTextarea({
         closeMentionMenu()
       }
     },
-    [closeMentionMenu, handleCreateMention, insertMention, isMentionMenuOpen, mentionHighlightIndex, mentionOptions, showInlineCreateOption, totalMentionChoices]
+    [closeMentionMenu, handleCreateCharacter, handleCreateOrganization, handleCreateSession, handleCreateCampaign, insertMention, isMentionMenuOpen, mentionHighlightIndex, mentionOptions, showCreateCharacterOption, showCreateOrganizationOption, showCreateSessionOption, showCreateCampaignOption, totalMentionChoices]
   )
 
   const handleMentionClick = useCallback(
@@ -486,6 +744,23 @@ export default function MentionableTextarea({
     })
   }, [isMentionMenuOpen, totalMentionChoices])
 
+  const mentionMenuLabels = useMemo(() => {
+    const labels = mentionOptions.map((option) => option.name)
+    if (showCreateCharacterOption) {
+      labels.push(`Create "${trimmedMentionQuery}" (Character)`)
+    }
+    if (showCreateOrganizationOption) {
+      labels.push(`Create "${trimmedMentionQuery}" (Organization)`)
+    }
+    if (showCreateSessionOption) {
+      labels.push(`Create "${trimmedMentionQuery}" (Session)`)
+    }
+    if (showCreateCampaignOption) {
+      labels.push(`Create "${trimmedMentionQuery}" (Campaign)`)
+    }
+    return labels
+  }, [mentionOptions, showCreateCharacterOption, showCreateOrganizationOption, showCreateSessionOption, showCreateCampaignOption, trimmedMentionQuery])
+
   useEffect(() => {
     if (!isMentionMenuOpen) {
       return
@@ -497,12 +772,27 @@ export default function MentionableTextarea({
     }
 
     const anchorIndex = mentionStart ?? (typeof textarea.selectionStart === "number" ? textarea.selectionStart : 0)
-    const labels = mentionOptions.map((option) => option.name)
-    if (showInlineCreateOption) {
-      labels.push(`Create "${trimmedMentionQuery}"`)
+    const reposition = () => {
+      updateMentionMenuPosition(textarea, anchorIndex, mentionMenuLabels)
     }
-    updateMentionMenuPosition(textarea, anchorIndex, labels)
-  }, [isMentionMenuOpen, mentionOptions, mentionStart, showInlineCreateOption, trimmedMentionQuery, updateMentionMenuPosition])
+
+    reposition()
+
+    textarea.addEventListener('scroll', reposition, { passive: true })
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('scroll', reposition, { passive: true })
+      window.addEventListener('resize', reposition)
+    }
+
+    return () => {
+      textarea.removeEventListener('scroll', reposition)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('scroll', reposition)
+        window.removeEventListener('resize', reposition)
+      }
+    }
+  }, [isMentionMenuOpen, mentionMenuLabels, mentionStart, updateMentionMenuPosition])
 
   const mentionDropdownStyle = useMemo<CSSProperties>(() => {
     if (!mentionDropdownPosition) {
@@ -516,11 +806,13 @@ export default function MentionableTextarea({
     }
 
     return {
-      top: mentionDropdownPosition.top,
-      left: mentionDropdownPosition.left,
+      top: mentionDropdownPosition.viewportTop,
+      left: mentionDropdownPosition.viewportLeft,
       width: mentionDropdownPosition.width,
       minWidth: mentionDropdownPosition.width,
       maxWidth: mentionDropdownPosition.width,
+      transform: mentionDropdownPosition.placement === "above" ? "translateY(-100%)" : undefined,
+      transformOrigin: mentionDropdownPosition.placement === "above" ? "bottom left" : undefined,
     }
   }, [mentionDropdownPosition])
 
@@ -537,16 +829,22 @@ export default function MentionableTextarea({
         aria-expanded={isMentionMenuOpen}
         aria-controls={isMentionMenuOpen ? mentionListId : undefined}
         className={cn("pr-3", className)}
+        maxHeight={400}
       />
 
-      {isMentionMenuOpen && (
-        <div
-          id={mentionListId}
-          className="absolute z-20 max-h-56 overflow-y-auto rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-lg"
-          role="listbox"
-          style={mentionDropdownStyle}
-        >
-          {mentionOptions.length === 0 && !showInlineCreateOption ? (
+      {isMentionMenuOpen && mentionDropdownPosition && typeof window !== "undefined" &&
+        createPortal(
+          <div
+            id={mentionListId}
+            className="fixed overflow-y-auto rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20"
+            role="listbox"
+            style={{
+              ...mentionDropdownStyle,
+              maxHeight: `${mentionDropdownPosition.maxHeight}px`,
+              zIndex: 2147483647,
+            }}
+          >
+          {mentionOptions.length === 0 && !showCreateCharacterOption && !showCreateOrganizationOption && !showCreateSessionOption && !showCreateCampaignOption ? (
             <p className="px-3 py-2 text-xs font-mono uppercase tracking-widest text-gray-500">
               No matches
             </p>
@@ -570,6 +868,11 @@ export default function MentionableTextarea({
                       return {
                         baseTextColor: "text-[#fcee0c]",
                         activeTextColor: "text-[#fff89c]",
+                      }
+                    case "campaign":
+                      return {
+                        baseTextColor: "text-[#ff6b35]",
+                        activeTextColor: "text-[#ff8a5b]",
                       }
                     default:
                       return {
@@ -596,13 +899,13 @@ export default function MentionableTextarea({
                   </button>
                 )
               })}
-              {showInlineCreateOption ? (
+              {showCreateCharacterOption ? (
                 <button
                   type="button"
                   role="option"
                   aria-selected={mentionHighlightIndex === mentionOptions.length}
                   onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => void handleCreateMention()}
+                  onClick={() => void handleCreateCharacter()}
                   onMouseEnter={() => handleMentionHover(mentionOptions.length)}
                   disabled={isCreatingMentionCharacter}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
@@ -619,10 +922,80 @@ export default function MentionableTextarea({
                   </span>
                 </button>
               ) : null}
+              {showCreateOrganizationOption ? (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0))}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => void handleCreateOrganization()}
+                  onMouseEnter={() => handleMentionHover(mentionOptions.length + (showCreateCharacterOption ? 1 : 0))}
+                  disabled={isCreatingMentionCharacter}
+                  className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
+                    mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0))
+                      ? "bg-[#1a1a3e] text-[#fff89c]"
+                      : "text-[#fcee0c] hover:bg-[#11112b]"
+                  } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
+                >
+                  <span className="font-semibold">
+                    {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
+                  </span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#fcee0c]">
+                    New Organization
+                  </span>
+                </button>
+              ) : null}
+              {showCreateSessionOption ? (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0))}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => void handleCreateSession()}
+                  onMouseEnter={() => handleMentionHover(mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0))}
+                  disabled={isCreatingMentionCharacter}
+                  className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
+                    mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0))
+                      ? "bg-[#1a1a3e] text-[#ff94e3]"
+                      : "text-[#ff6ad5] hover:bg-[#11112b]"
+                  } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
+                >
+                  <span className="font-semibold">
+                    {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
+                  </span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#ff6ad5]">
+                    New Session
+                  </span>
+                </button>
+              ) : null}
+              {showCreateCampaignOption ? (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0))}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => void handleCreateCampaign()}
+                  onMouseEnter={() => handleMentionHover(mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0))}
+                  disabled={isCreatingMentionCharacter}
+                  className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
+                    mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0))
+                      ? "bg-[#1a1a3e] text-[#ff8a5b]"
+                      : "text-[#ff6b35] hover:bg-[#11112b]"
+                  } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
+                >
+                  <span className="font-semibold">
+                    {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
+                  </span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#ff6b35]">
+                    New Campaign
+                  </span>
+                </button>
+              ) : null}
             </>
           )}
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
       {mentionCreationError ? (
         <p className="mt-2 text-xs font-mono text-[#ff6ad5]">
           {mentionCreationError}

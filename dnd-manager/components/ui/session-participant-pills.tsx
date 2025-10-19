@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { type ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { cn, type PlayerSummary } from '@/lib/utils'
 
 const playerWeight = (value: PlayerSummary['player_type']) => (value === 'player' ? 0 : value === 'npc' ? 1 : 2)
@@ -10,12 +10,12 @@ type SessionParticipantPillsProps = {
   className?: string
 }
 
-export function SessionParticipantPills({ sessionId, players, className }: SessionParticipantPillsProps) {
-  if (!players || players.length === 0) {
+export function SessionParticipantPills({ sessionId, players: rawPlayers, className }: SessionParticipantPillsProps) {
+  if (!rawPlayers || rawPlayers.length === 0) {
     return null
   }
 
-  const sortedPlayers = [...players].sort((a, b) => {
+  const sortedPlayers = [...rawPlayers].sort((a, b) => {
     const diff = playerWeight(a.player_type) - playerWeight(b.player_type)
     if (diff !== 0) {
       return diff
@@ -23,31 +23,21 @@ export function SessionParticipantPills({ sessionId, players, className }: Sessi
     return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
   })
 
-  const organizationPills: ReactNode[] = []
-
-  const playerPills = sortedPlayers.map((player) => {
-    if (Array.isArray(player.organizations)) {
-      const seenOrganizations = new Set<string>()
-      for (const organization of player.organizations) {
-        if (!organization?.id || !organization?.name) {
-          continue
+  const uniqueOrganizations = useMemo(() => {
+    const seen = new Set<string>()
+    const result: { id: string; name: string }[] = []
+    for (const player of sortedPlayers) {
+      for (const org of player.organizations) {
+        if (!seen.has(org.id)) {
+          seen.add(org.id)
+          result.push(org)
         }
-        if (seenOrganizations.has(organization.id)) {
-          continue
-        }
-        seenOrganizations.add(organization.id)
-        organizationPills.push(
-          <Link
-            key={`${sessionId}-${player.id}-${organization.id}`}
-            href={`/organizations/${organization.id}`}
-            className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
-          >
-            {organization.name}
-          </Link>
-        )
       }
     }
+    return result.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+  }, [sortedPlayers])
 
+  const playerPills = sortedPlayers.map((player) => {
     return (
       <Link
         key={`${sessionId}-${player.id}`}
@@ -63,6 +53,16 @@ export function SessionParticipantPills({ sessionId, players, className }: Sessi
       </Link>
     )
   })
+
+  const organizationPills = uniqueOrganizations.map((organization) => (
+    <Link
+      key={`${sessionId}-org-${organization.id}`}
+      href={`/organizations/${organization.id}`}
+      className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+    >
+      {organization.name}
+    </Link>
+  ))
 
   return (
     <div className={cn('flex flex-wrap gap-2', className)} aria-label="Players present">

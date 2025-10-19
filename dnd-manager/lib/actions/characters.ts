@@ -1,16 +1,4 @@
 "use server";
-// List characters with pagination, user scoping, and authorization
-export async function getCharactersList(supabase: SupabaseClient, userId: string, { limit = 20, offset = 0 } = {}): Promise<any[]> {
-  if (!userId) throw new Error('Unauthorized: Missing userId');
-  const { data, error } = await supabase
-    .from('characters')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
-  if (error) throw new Error(error.message);
-  return data ?? [];
-}
 
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
@@ -19,6 +7,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { collectMentionTargets } from "@/lib/mentions";
 import { assertUniqueValue } from "@/lib/supabase/ensure-unique";
 import { createClient } from "@/lib/supabase/server";
+import { getString, getStringOrNull, getFile, getIdList, getDateValue } from '@/lib/utils/form-data'
+import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import {
   deleteImage,
   getStoragePathFromUrl,
@@ -31,11 +21,23 @@ import { toTitleCase } from "@/lib/utils";
 import {
   resolveOrganizationIds,
   setCharacterOrganizations,
+  syncSessionOrganizationsFromCharacters,
 } from "@/lib/actions/organizations";
 import { extractOrganizationIds } from "@/lib/organizations/helpers";
 import type { CharacterOrganizationAffiliationInput } from "@/lib/validations/organization";
 
-const CHARACTER_BUCKET = "character-images" as const;
+// List characters with pagination
+export async function getCharactersList(supabase: SupabaseClient, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('characters')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+const CHARACTER_BUCKET = STORAGE_BUCKETS.CHARACTERS;
 
 export async function createCharacter(formData: FormData): Promise<void> {
   const supabase = await createClient();
@@ -120,8 +122,17 @@ export async function createCharacter(formData: FormData): Promise<void> {
   }
 
   if (organizationAffiliations.length > 0 || organizationFieldTouched) {
-    await setCharacterOrganizations(supabase, characterId, organizationAffiliations);
-    revalidatePath("/organizations");
+    const touchedOrganizationIds = await setCharacterOrganizations(
+      supabase,
+      characterId,
+      organizationAffiliations
+    );
+    if (touchedOrganizationIds.length > 0) {
+      revalidatePath("/organizations");
+      Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+        revalidatePath(`/organizations/${organizationId}`);
+      });
+    }
   }
 
   const newlyLinkedSessions = await ensureMentionedSessionsLinked(
@@ -209,8 +220,17 @@ export async function createCharacterInline(
       role: "npc" as CharacterOrganizationAffiliationInput["role"],
     }));
 
-    await setCharacterOrganizations(supabase, characterId, affiliations);
-    revalidatePath("/organizations");
+    const touchedOrganizationIds = await setCharacterOrganizations(
+      supabase,
+      characterId,
+      affiliations
+    );
+    if (touchedOrganizationIds.length > 0) {
+      revalidatePath("/organizations");
+      Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+        revalidatePath(`/organizations/${organizationId}`);
+      });
+    }
   }
 
   revalidatePath("/characters");
@@ -331,8 +351,33 @@ export async function updateCharacter(
   }
 
   if (organizationFieldTouched || organizationAffiliations.length > 0) {
-    await setCharacterOrganizations(supabase, id, organizationAffiliations);
-    revalidatePath("/organizations");
+    const touchedOrganizationIds = await setCharacterOrganizations(
+      supabase,
+      id,
+      organizationAffiliations
+    );
+    if (touchedOrganizationIds.length > 0) {
+      revalidatePath("/organizations");
+      Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+        revalidatePath(`/organizations/${organizationId}`);
+      });
+
+      // Sync organizations to ALL sessions this character is in
+      const { data: characterSessions } = await supabase
+        .from('session_characters')
+        .select('session_id')
+        .eq('character_id', id);
+
+      const sessionIds = characterSessions?.map(sc => sc.session_id) || [];
+      
+      if (sessionIds.length > 0) {
+        revalidatePath("/sessions");
+        for (const sessionId of sessionIds) {
+          await syncSessionOrganizationsFromCharacters(supabase, sessionId);
+          revalidatePath(`/sessions/${sessionId}`);
+        }
+      }
+    }
   }
 
   const newlyLinkedSessions = await ensureMentionedSessionsLinked(
@@ -343,12 +388,13 @@ export async function updateCharacter(
 
   if (newlyLinkedSessions.length > 0) {
     revalidatePath("/sessions");
-    newlyLinkedSessions.forEach(({ id: sessionId, campaign_id }) => {
+    for (const { id: sessionId, campaign_id } of newlyLinkedSessions) {
+      await syncSessionOrganizationsFromCharacters(supabase, sessionId);
       revalidatePath(`/sessions/${sessionId}`);
       if (campaign_id) {
         revalidatePath(`/campaigns/${campaign_id}`);
       }
-    });
+    }
   }
 
   revalidatePath("/characters");
@@ -435,10 +481,12 @@ export async function updateCharacterSessions(
   revalidatePath(`/characters/${id}`);
   revalidatePath("/sessions");
 
+  // Sync organizations for all affected sessions
   const sessionsToRevalidate = new Set([...previousSessionIds, ...sessionIds]);
-  sessionsToRevalidate.forEach((sessionId) => {
+  for (const sessionId of sessionsToRevalidate) {
+    await syncSessionOrganizationsFromCharacters(supabase, sessionId);
     revalidatePath(`/sessions/${sessionId}`);
-  });
+  }
 }
 
 async function ensureMentionedSessionsLinked(
@@ -526,27 +574,3 @@ async function ensureMentionedSessionsLinked(
   }));
 }
 
-function getString(formData: FormData, key: string): string {
-  const value = formData.get(key);
-  if (typeof value !== "string") {
-    return "";
-  }
-
-  return sanitizeText(value).trim();
-}
-
-function getStringOrNull(formData: FormData, key: string): string | null {
-  const value = formData.get(key);
-
-  return sanitizeNullableText(value);
-}
-
-function getFile(formData: FormData, key: string): File | null {
-  const value = formData.get(key);
-
-  if (value instanceof File && value.size > 0) {
-    return value;
-  }
-
-  return null;
-}
