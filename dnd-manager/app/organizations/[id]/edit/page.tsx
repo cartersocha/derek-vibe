@@ -73,7 +73,7 @@ export default async function EditOrganizationPage({
   // Create mention targets for @ mentions
   const mentionTargets = [
     ...(charactersResult.data ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .filter((entry) => Boolean(entry?.name))
       .map((entry) => ({
         id: entry.id,
         name: entry.name,
