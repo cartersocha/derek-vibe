@@ -209,7 +209,7 @@ export default function CharacterEditForm({
         })
 
         // Auto-assign the organization to the character
-        setSelectedOrganizationIds((prev) => {
+        setOrganizationIds((prev) => {
           if (prev.includes(target.id)) {
             return prev
           }
