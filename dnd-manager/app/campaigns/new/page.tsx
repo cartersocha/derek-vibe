@@ -1,6 +1,7 @@
 import { createCampaign } from '@/lib/actions/campaigns'
 import { createClient } from '@/lib/supabase/server'
 import { CampaignForm } from '@/components/forms/campaign-form'
+import { getTodayDateInputValue } from '@/lib/utils'
 
 export default async function NewCampaignPage() {
   const supabase = await createClient()
@@ -44,7 +45,7 @@ export default async function NewCampaignPage() {
       .join(' • '),
   }))
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = getTodayDateInputValue()
 
   return (
     <div className="max-w-3xl mx-auto">

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { deleteSession } from '@/lib/actions/sessions'
 import { DeleteSessionButton } from '@/components/ui/delete-session-button'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
+import { formatDateStringForDisplay } from '@/lib/utils'
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -191,6 +192,11 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const deleteSessionWithId = deleteSession.bind(null, id)
 
   const campaignSessionNumber = sessionNumberMap.get(session.id)
+  const sessionDateLabel = formatDateStringForDisplay(
+    session.session_date,
+    'en-US',
+    { year: 'numeric', month: 'long', day: 'numeric' }
+  )
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -244,13 +250,9 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
                 Campaign: {session.campaign.name}
               </Link>
             )}
-            {session.session_date && (
+            {sessionDateLabel && (
               <span className="text-gray-400 font-mono uppercase tracking-wider">
-                Date: {new Date(session.session_date).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
+                Date: {sessionDateLabel}
               </span>
             )}
           </div>

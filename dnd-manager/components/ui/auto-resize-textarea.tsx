@@ -15,6 +15,31 @@ import { cn } from "@/lib/utils"
 
 export type AutoResizeTextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement>
 
+const SCROLLABLE_OVERFLOW_PATTERN = /(auto|scroll)/i
+
+const getScrollableAncestor = (element: HTMLTextAreaElement | null): HTMLElement | null => {
+  if (!element || typeof window === "undefined") {
+    return null
+  }
+
+  let parent: HTMLElement | null = element.parentElement
+  while (parent) {
+    const style = window.getComputedStyle(parent)
+    if (
+      SCROLLABLE_OVERFLOW_PATTERN.test(style.overflowY) ||
+      SCROLLABLE_OVERFLOW_PATTERN.test(style.overflow) ||
+      SCROLLABLE_OVERFLOW_PATTERN.test(style.overflowX)
+    ) {
+      return parent
+    }
+    parent = parent.parentElement
+  }
+
+  const ownerDocument = element.ownerDocument
+  const scrollingElement = ownerDocument?.scrollingElement
+  return scrollingElement instanceof HTMLElement ? scrollingElement : null
+}
+
 const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeTextareaProps>(
   ({ className, onInput, onChange, ...rest }, ref) => {
     const innerRef = useRef<HTMLTextAreaElement | null>(null)
@@ -88,7 +113,7 @@ const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeTextareaPro
         ref={combinedRef}
         onInput={handleInput}
         onChange={handleChange}
-        className={cn("resize-none", className)}
+        className={cn("resize-none overflow-hidden", className)}
       />
     )
   }

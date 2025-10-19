@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { type PlayerSummary } from "@/lib/utils";
+import { formatDateStringForDisplay, type PlayerSummary } from "@/lib/utils";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 import { SessionParticipantPills } from "@/components/ui/session-participant-pills";
 
@@ -103,6 +103,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
         <div className="space-y-4">
           {filteredSessions.map((session) => {
             const players = session.players;
+            const sessionDateLabel = formatDateStringForDisplay(session.session_date);
 
             return (
               <article
@@ -150,8 +151,8 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                     )}
                   </div>
                   <div className="relative z-10 pointer-events-none text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">
-                    {session.session_date ? (
-                      <div>{new Date(session.session_date).toLocaleDateString()}</div>
+                    {sessionDateLabel ? (
+                      <div>{sessionDateLabel}</div>
                     ) : (
                       <div>No date set</div>
                     )}

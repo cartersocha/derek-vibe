@@ -1,39 +1,40 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
-import { createOrganizationInline } from "@/lib/actions/organizations"
+import { createCharacterInline } from "@/lib/actions/characters"
 
-export type OrganizationOption = {
+export type CharacterOption = {
   value: string
   label: string
+  hint?: string | null
 }
 
-type OrganizationMultiSelectProps = {
+type CharacterMultiSelectProps = {
   id: string
   name: string
   value: string[]
   onChange: (next: string[]) => void
-  options: readonly OrganizationOption[]
+  options: readonly CharacterOption[]
   placeholder?: string
   className?: string
   emptyMessage?: string
-  onCreateOption?: (option: OrganizationOption) => void
+  onCreateOption?: (option: CharacterOption) => void
 }
 
-export default function OrganizationMultiSelect({
+export default function CharacterMultiSelect({
   id,
   name,
   value,
   onChange,
   options,
-  placeholder = "Select organizations",
+  placeholder = "Select characters",
   className = "",
-  emptyMessage = "No organizations found",
+  emptyMessage = "No characters found",
   onCreateOption,
-}: OrganizationMultiSelectProps) {
+}: CharacterMultiSelectProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
-  const [localOptions, setLocalOptions] = useState<OrganizationOption[]>(() => [...options])
+  const [localOptions, setLocalOptions] = useState<CharacterOption[]>(() => [...options])
   const [creationError, setCreationError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -42,7 +43,7 @@ export default function OrganizationMultiSelect({
   useEffect(() => {
     setLocalOptions((current) => {
       const seen = new Set<string>()
-      const merged: OrganizationOption[] = []
+      const merged: CharacterOption[] = []
 
       options.forEach((option) => {
         if (!seen.has(option.value)) {
@@ -63,7 +64,7 @@ export default function OrganizationMultiSelect({
   }, [options])
 
   const optionMap = useMemo(() => {
-    const map = new Map<string, OrganizationOption>()
+    const map = new Map<string, CharacterOption>()
     localOptions.forEach((option) => {
       map.set(option.value, option)
     })
@@ -106,7 +107,6 @@ export default function OrganizationMultiSelect({
     if (!trimmedSearch) {
       return false
     }
-
     return !localOptions.some((option) => option.label.toLowerCase() === trimmedSearch.toLowerCase())
   }, [localOptions, trimmedSearch])
 
@@ -114,9 +114,7 @@ export default function OrganizationMultiSelect({
     setOpen(false)
     setSearch("")
     setCreationError(null)
-    requestAnimationFrame(() => {
-      buttonRef.current?.focus()
-    })
+    requestAnimationFrame(() => buttonRef.current?.focus())
   }, [])
 
   useEffect(() => {
@@ -152,7 +150,6 @@ export default function OrganizationMultiSelect({
       closeMenu()
       return
     }
-
     setCreationError(null)
     setSearch("")
     setOpen(true)
@@ -163,35 +160,33 @@ export default function OrganizationMultiSelect({
       if (!selection) {
         return
       }
-
       if (normalizedSelections.includes(selection)) {
         onChange(normalizedSelections.filter((entry) => entry !== selection))
         return
       }
-
       onChange([...normalizedSelections, selection])
     },
     [normalizedSelections, onChange]
   )
 
-  const handleCreateNewOrganization = useCallback(() => {
+  const handleCreateNewCharacter = useCallback(() => {
     if (!trimmedSearch || !canCreateNew || isPending) {
       return
     }
 
     setCreationError(null)
     startTransition(() => {
-      void createOrganizationInline(trimmedSearch)
+      void createCharacterInline(trimmedSearch)
         .then((result) => {
-          setCreationError(null)
+          const createdOption: CharacterOption = { value: result.id, label: result.name }
+
           setLocalOptions((current) => {
             if (current.some((option) => option.value === result.id)) {
               return current
             }
-            return [...current, { value: result.id, label: result.name }]
+            return [...current, createdOption]
           })
 
-          const createdOption = { value: result.id, label: result.name }
           onCreateOption?.(createdOption)
 
           const nextSelections = normalizedSelections.includes(result.id)
@@ -202,8 +197,8 @@ export default function OrganizationMultiSelect({
           setSearch("")
         })
         .catch((error) => {
-          console.error("Failed to create organization", error)
-          setCreationError(error instanceof Error ? error.message : "Failed to create organization")
+          console.error("Failed to create character", error)
+          setCreationError(error instanceof Error ? error.message : "Failed to create character")
         })
     })
   }, [canCreateNew, isPending, normalizedSelections, onChange, onCreateOption, trimmedSearch])
@@ -265,7 +260,7 @@ export default function OrganizationMultiSelect({
                 }
                 setSearch(event.target.value)
               }}
-              placeholder="Search organizations"
+              placeholder="Search characters"
               className="w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
               disabled={isPending}
             />
@@ -289,7 +284,16 @@ export default function OrganizationMultiSelect({
                           onChange={() => toggleSelection(option.value)}
                           className="h-4 w-4 rounded border-[#00ffff]/40 bg-[#0f0f23] text-[#ff00ff] focus:ring-[#ff00ff]"
                         />
-                        <span className="truncate font-semibold uppercase tracking-[0.25em]">{option.label}</span>
+                        <span className="flex-1">
+                          <span className="block truncate font-semibold uppercase tracking-[0.25em]">
+                            {option.label}
+                          </span>
+                          {option.hint ? (
+                            <span className="text-[10px] uppercase tracking-[0.3em] text-[#64748b]">
+                              {option.hint}
+                            </span>
+                          ) : null}
+                        </span>
                       </label>
                     </li>
                   )
@@ -301,12 +305,12 @@ export default function OrganizationMultiSelect({
               <div className="border-t border-[#1a1a3e]">
                 <button
                   type="button"
-                  onClick={handleCreateNewOrganization}
+                  onClick={handleCreateNewCharacter}
                   disabled={isPending}
                   className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[#ff00ff] transition-colors duration-150 hover:bg-[#1a1a3e]/60 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="truncate">Create {trimmedSearch}</span>
-                  <span className="text-xs uppercase tracking-wider">New</span>
+                  <span className="text-xs uppercase tracking-wider">New Character</span>
                 </button>
               </div>
             ) : null}

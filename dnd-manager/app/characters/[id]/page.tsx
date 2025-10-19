@@ -7,8 +7,9 @@ import { DeleteCharacterButton } from '@/components/ui/delete-character-button'
 import MultiSelectDropdown from '@/components/ui/multi-select-dropdown'
 import {
   extractPlayerSummaries,
+  dateStringToLocalDate,
+  formatDateStringForDisplay,
   type PlayerSummary,
-  type SessionCharacterRelation,
 } from '@/lib/utils'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
@@ -225,9 +226,13 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
           .filter((session) => Boolean(session.session_date))
           .sort((a, b) => {
             if (a.session_date && b.session_date) {
-              const dateCompare = new Date(a.session_date).getTime() - new Date(b.session_date).getTime()
-              if (dateCompare !== 0) {
-                return dateCompare
+              const aDate = dateStringToLocalDate(a.session_date)
+              const bDate = dateStringToLocalDate(b.session_date)
+              if (aDate && bDate) {
+                const dateCompare = aDate.getTime() - bDate.getTime()
+                if (dateCompare !== 0) {
+                  return dateCompare
+                }
               }
             }
 
@@ -281,7 +286,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     id: session.id,
     label: session.name,
     subLabel: session.session_date
-      ? new Date(session.session_date).toLocaleDateString()
+      ? formatDateStringForDisplay(session.session_date)
       : null,
     checked: linkedSessionIds.has(session.id),
   }))
@@ -437,6 +442,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                 const players = session.players
                 const sessionNumber = sessionNumberMap.get(session.id)
                 const campaignRelation = session.campaign
+                const sessionDateLabel = formatDateStringForDisplay(session.session_date)
                 return (
                   <article
                     key={session.id}
@@ -478,11 +484,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                         )}
                       </div>
                       <div className="relative z-10 pointer-events-none text-xs text-gray-500 font-mono uppercase tracking-wider sm:ml-4 sm:text-right">
-                        {session.session_date ? (
-                          <div>{new Date(session.session_date).toLocaleDateString()}</div>
-                        ) : (
-                          <div>No date set</div>
-                        )}
+                        {sessionDateLabel ? <div>{sessionDateLabel}</div> : <div>No date set</div>}
                       </div>
                     </div>
                   </article>

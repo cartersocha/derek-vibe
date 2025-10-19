@@ -31,6 +31,7 @@ import { toTitleCase } from "@/lib/utils";
 import {
   resolveOrganizationIds,
   setCharacterOrganizations,
+  syncSessionOrganizationsFromCharacters,
 } from "@/lib/actions/organizations";
 import { extractOrganizationIds } from "@/lib/organizations/helpers";
 import type { CharacterOrganizationAffiliationInput } from "@/lib/validations/organization";
@@ -120,8 +121,17 @@ export async function createCharacter(formData: FormData): Promise<void> {
   }
 
   if (organizationAffiliations.length > 0 || organizationFieldTouched) {
-    await setCharacterOrganizations(supabase, characterId, organizationAffiliations);
-    revalidatePath("/organizations");
+    const touchedOrganizationIds = await setCharacterOrganizations(
+      supabase,
+      characterId,
+      organizationAffiliations
+    );
+    if (touchedOrganizationIds.length > 0) {
+      revalidatePath("/organizations");
+      Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+        revalidatePath(`/organizations/${organizationId}`);
+      });
+    }
   }
 
   const newlyLinkedSessions = await ensureMentionedSessionsLinked(
@@ -209,8 +219,17 @@ export async function createCharacterInline(
       role: "npc" as CharacterOrganizationAffiliationInput["role"],
     }));
 
-    await setCharacterOrganizations(supabase, characterId, affiliations);
-    revalidatePath("/organizations");
+    const touchedOrganizationIds = await setCharacterOrganizations(
+      supabase,
+      characterId,
+      affiliations
+    );
+    if (touchedOrganizationIds.length > 0) {
+      revalidatePath("/organizations");
+      Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+        revalidatePath(`/organizations/${organizationId}`);
+      });
+    }
   }
 
   revalidatePath("/characters");
@@ -331,8 +350,17 @@ export async function updateCharacter(
   }
 
   if (organizationFieldTouched || organizationAffiliations.length > 0) {
-    await setCharacterOrganizations(supabase, id, organizationAffiliations);
-    revalidatePath("/organizations");
+    const touchedOrganizationIds = await setCharacterOrganizations(
+      supabase,
+      id,
+      organizationAffiliations
+    );
+    if (touchedOrganizationIds.length > 0) {
+      revalidatePath("/organizations");
+      Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+        revalidatePath(`/organizations/${organizationId}`);
+      });
+    }
   }
 
   const newlyLinkedSessions = await ensureMentionedSessionsLinked(
@@ -343,12 +371,13 @@ export async function updateCharacter(
 
   if (newlyLinkedSessions.length > 0) {
     revalidatePath("/sessions");
-    newlyLinkedSessions.forEach(({ id: sessionId, campaign_id }) => {
+    for (const { id: sessionId, campaign_id } of newlyLinkedSessions) {
+      await syncSessionOrganizationsFromCharacters(supabase, sessionId);
       revalidatePath(`/sessions/${sessionId}`);
       if (campaign_id) {
         revalidatePath(`/campaigns/${campaign_id}`);
       }
-    });
+    }
   }
 
   revalidatePath("/characters");
@@ -435,10 +464,12 @@ export async function updateCharacterSessions(
   revalidatePath(`/characters/${id}`);
   revalidatePath("/sessions");
 
+  // Sync organizations for all affected sessions
   const sessionsToRevalidate = new Set([...previousSessionIds, ...sessionIds]);
-  sessionsToRevalidate.forEach((sessionId) => {
+  for (const sessionId of sessionsToRevalidate) {
+    await syncSessionOrganizationsFromCharacters(supabase, sessionId);
     revalidatePath(`/sessions/${sessionId}`);
-  });
+  }
 }
 
 async function ensureMentionedSessionsLinked(

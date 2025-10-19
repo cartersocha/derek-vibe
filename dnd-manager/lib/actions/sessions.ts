@@ -31,6 +31,46 @@ import { extractOrganizationIds } from '@/lib/organizations/helpers'
 
 const SESSION_BUCKET = 'session-images' as const
 
+export async function createSessionInline(name: string, campaignId?: string | null): Promise<{ id: string; name: string }> {
+  const supabase = await createClient()
+  const sanitized = sanitizeText(name).trim()
+
+  if (!sanitized) {
+    throw new Error('Session name is required')
+  }
+
+  const normalizedName = toTitleCase(sanitized)
+  await assertUniqueValue(supabase, {
+    table: 'sessions',
+    column: 'name',
+    value: normalizedName,
+    errorMessage: 'Session name already exists. Choose a different name.',
+  })
+
+  const sessionId = randomUUID()
+
+  const { error } = await supabase
+    .from('sessions')
+    .insert({
+      id: sessionId,
+      name: normalizedName,
+      campaign_id: campaignId ?? null,
+    })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  revalidatePath('/sessions')
+  revalidatePath('/campaigns')
+
+  if (campaignId) {
+    revalidatePath(`/campaigns/${campaignId}`)
+  }
+
+  return { id: sessionId, name: normalizedName }
+}
+
 export async function createSession(formData: FormData): Promise<void> {
   const supabase = await createClient()
   const sessionId = randomUUID()
@@ -93,12 +133,20 @@ export async function createSession(formData: FormData): Promise<void> {
 
   const characterIds = formData.getAll('character_ids') as string[]
   if (characterIds.length > 0) {
-    const sessionCharacters = characterIds.map(characterId => ({
+    const sessionCharacters = characterIds.map((characterId) => ({
       session_id: sessionId,
       character_id: characterId,
     }))
 
     await supabase.from('session_characters').insert(sessionCharacters)
+
+    const uniqueCharacterIds = Array.from(new Set(characterIds)).filter(Boolean)
+    if (uniqueCharacterIds.length > 0) {
+      revalidatePath('/characters')
+      uniqueCharacterIds.forEach((characterId) => {
+        revalidatePath(`/characters/${characterId}`)
+      })
+    }
   }
 
   let preferredOrganizationIds = Array.from(new Set(directOrganizationIds))
@@ -121,8 +169,24 @@ export async function createSession(formData: FormData): Promise<void> {
     organizationFieldProvided ||
     campaignOrganizationIds.length > 0
   ) {
-    await setSessionOrganizations(supabase, sessionId, finalOrganizationIds)
-    revalidatePath('/organizations')
+    const touchedOrganizationIds = await setSessionOrganizations(
+      supabase,
+      sessionId,
+      finalOrganizationIds
+    )
+    if (touchedOrganizationIds.length > 0) {
+      revalidatePath('/organizations')
+      Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+        if (organizationId) {
+          revalidatePath(`/organizations/${organizationId}`)
+        }
+      })
+    }
+  }
+
+  if (result.data.campaign_id) {
+    revalidatePath('/campaigns')
+    revalidatePath(`/campaigns/${result.data.campaign_id}`)
   }
 
   revalidatePath('/sessions')
@@ -220,17 +284,52 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
     throw new Error(error.message)
   }
 
+  const { data: existingSessionCharacters, error: existingCharactersError } = await supabase
+    .from('session_characters')
+    .select('character_id')
+    .eq('session_id', id)
+
+  if (existingCharactersError) {
+    throw new Error(existingCharactersError.message)
+  }
+
+  const previousCharacterIds = new Set(
+    (existingSessionCharacters ?? [])
+      .map((entry) => entry?.character_id)
+      .filter((value): value is string => Boolean(value))
+  )
+
   const characterIds = formData.getAll('character_ids') as string[]
+  const nextCharacterIds = new Set(characterIds.filter(Boolean))
+
+  const touchedCharacterIds = new Set<string>()
+  previousCharacterIds.forEach((characterId) => {
+    if (!nextCharacterIds.has(characterId)) {
+      touchedCharacterIds.add(characterId)
+    }
+  })
+  nextCharacterIds.forEach((characterId) => {
+    if (!previousCharacterIds.has(characterId)) {
+      touchedCharacterIds.add(characterId)
+    }
+  })
 
   await supabase.from('session_characters').delete().eq('session_id', id)
 
   if (characterIds.length > 0) {
-    const sessionCharacters = characterIds.map(characterId => ({
+    const sessionCharacters = characterIds.map((characterId) => ({
       session_id: id,
       character_id: characterId,
     }))
 
     await supabase.from('session_characters').insert(sessionCharacters)
+  }
+
+  if (touchedCharacterIds.size > 0) {
+    revalidatePath('/characters')
+    touchedCharacterIds.forEach((characterId) => {
+      revalidatePath(`/characters/${characterId}`)
+    })
   }
 
   let preferredOrganizationIds: string[]
@@ -265,8 +364,33 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
     new Set([...preferredOrganizationIds, ...campaignOrganizationIds])
   )
 
-  await setSessionOrganizations(supabase, id, finalOrganizationIds)
-  revalidatePath('/organizations')
+  const touchedOrganizationIds = await setSessionOrganizations(
+    supabase,
+    id,
+    finalOrganizationIds
+  )
+  if (touchedOrganizationIds.length > 0) {
+    revalidatePath('/organizations')
+    Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+      if (organizationId) {
+        revalidatePath(`/organizations/${organizationId}`)
+      }
+    })
+  }
+
+  const campaignIdsToRevalidate = new Set<string>()
+  if (existing.campaign_id) {
+    campaignIdsToRevalidate.add(existing.campaign_id)
+  }
+  if (result.data.campaign_id) {
+    campaignIdsToRevalidate.add(result.data.campaign_id)
+  }
+  if (campaignIdsToRevalidate.size > 0) {
+    revalidatePath('/campaigns')
+    campaignIdsToRevalidate.forEach((campaignId) => {
+      revalidatePath(`/campaigns/${campaignId}`)
+    })
+  }
 
   revalidatePath('/sessions')
   revalidatePath(`/sessions/${id}`)
@@ -278,13 +402,47 @@ export async function deleteSession(id: string): Promise<void> {
 
   const { data: existing, error: fetchError } = await supabase
     .from('sessions')
-    .select('header_image_url')
+    .select('header_image_url, campaign_id')
     .eq('id', id)
     .single()
 
   if (fetchError && fetchError.code !== 'PGRST116') {
     throw new Error(fetchError.message)
   }
+
+  const { data: linkedOrganizations, error: organizationError } = await supabase
+    .from('organization_sessions')
+    .select('organization_id')
+    .eq('session_id', id)
+
+  if (organizationError) {
+    throw new Error(organizationError.message)
+  }
+
+  const { data: linkedCharacters, error: charactersError } = await supabase
+    .from('session_characters')
+    .select('character_id')
+    .eq('session_id', id)
+
+  if (charactersError) {
+    throw new Error(charactersError.message)
+  }
+
+  const touchedOrganizationIds = Array.from(
+    new Set(
+      (linkedOrganizations ?? [])
+        .map((entry) => entry?.organization_id)
+        .filter((value): value is string => Boolean(value))
+    )
+  )
+
+  const touchedCharacterIds = Array.from(
+    new Set(
+      (linkedCharacters ?? [])
+        .map((entry) => entry?.character_id)
+        .filter((value): value is string => Boolean(value))
+    )
+  )
 
   const { error } = await supabase
     .from('sessions')
@@ -302,6 +460,25 @@ export async function deleteSession(id: string): Promise<void> {
     if (deleteError) {
       console.error('Failed to remove session image from storage', deleteError)
     }
+  }
+
+  if (existing?.campaign_id) {
+    revalidatePath('/campaigns')
+    revalidatePath(`/campaigns/${existing.campaign_id}`)
+  }
+
+  if (touchedOrganizationIds.length > 0) {
+    revalidatePath('/organizations')
+    touchedOrganizationIds.forEach((organizationId) => {
+      revalidatePath(`/organizations/${organizationId}`)
+    })
+  }
+
+  if (touchedCharacterIds.length > 0) {
+    revalidatePath('/characters')
+    touchedCharacterIds.forEach((characterId) => {
+      revalidatePath(`/characters/${characterId}`)
+    })
   }
 
   revalidatePath('/sessions')

@@ -27,25 +27,6 @@ export default async function NewSessionPage({
 
   const newCharacterId = params.newCharacterId
 
-  const sessionQuery = new URLSearchParams()
-  Object.entries(params).forEach(([key, value]) => {
-    if (typeof value !== 'string') {
-      return
-    }
-    if (key === 'newCharacterId') {
-      return
-    }
-    sessionQuery.set(key, value)
-  })
-
-  if (!campaignFromParams && defaultCampaignId) {
-    sessionQuery.set('campaign_id', defaultCampaignId)
-  }
-
-  const sessionPath = `/sessions/new${sessionQuery.toString() ? `?${sessionQuery.toString()}` : ''}`
-  const newCharacterHref = `/characters/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
-  const newGroupHref = `/organizations/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
-
   const mentionTargets = [
     ...(characters ?? [])
       .filter((entry): entry is { id: string; name: string; race: string | null; class: string | null } => Boolean(entry?.name))
@@ -88,8 +69,6 @@ export default async function NewSessionPage({
         submitLabel="Create Session"
         cancelHref="/sessions"
         draftKey={draftKey}
-        newCharacterHref={newCharacterHref}
-        newGroupHref={newGroupHref}
         preselectedCharacterIds={newCharacterId ? [newCharacterId] : undefined}
         mentionTargets={mentionTargets}
       />

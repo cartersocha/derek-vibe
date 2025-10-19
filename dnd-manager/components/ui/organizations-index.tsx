@@ -87,7 +87,7 @@ export function OrganizationsIndex({ organizations }: OrganizationsIndexProps) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 xl:grid-cols-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredOrganizations.map((organization) => (
             <Link
               key={organization.id}
@@ -105,11 +105,7 @@ export function OrganizationsIndex({ organizations }: OrganizationsIndexProps) {
                       className="object-contain"
                     />
                   </div>
-                ) : (
-                  <div className="flex h-14 w-14 items-center justify-center rounded border border-[#00ffff]/20 bg-[#050517] text-xl text-[#00ffff]">
-                    🏛
-                  </div>
-                )}
+                ) : null}
                 <div className="min-w-0">
                   <h2 className="text-lg font-bold uppercase tracking-wider text-[#00ffff] transition-colors group-hover:text-[#ff00ff] break-words leading-tight">
                     {organization.name}

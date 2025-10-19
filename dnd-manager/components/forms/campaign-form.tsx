@@ -1,24 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { EntityMultiSelect, type EntityOption } from "@/components/ui/entity-multi-select";
+import { coerceDateInputValue } from "@/lib/utils";
+import OrganizationMultiSelect from "@/components/ui/organization-multi-select";
+import CharacterMultiSelect, { type CharacterOption } from "@/components/ui/character-multi-select";
+import SessionMultiSelect, { type SessionOption } from "@/components/ui/session-multi-select";
 
 const dedupe = (values?: string[]) => Array.from(new Set((values ?? []).filter(Boolean)));
 const listsMatch = (a: string[], b: string[]) => a.length === b.length && a.every((value, index) => value === b[index]);
-
-const toLocalDateValue = (iso?: string | null): string => {
-  if (!iso) {
-    return "";
-  }
-
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return date.toISOString().slice(0, 10);
-};
 
 type OptionInput = {
   id: string;
@@ -41,6 +31,7 @@ interface CampaignFormProps {
   defaultOrganizationIds?: string[];
   defaultSessionIds?: string[];
   defaultCharacterIds?: string[];
+  campaignId?: string;
 }
 
 export function CampaignForm({
@@ -54,11 +45,21 @@ export function CampaignForm({
   defaultOrganizationIds,
   defaultSessionIds,
   defaultCharacterIds,
+  campaignId,
 }: CampaignFormProps) {
+  const sortOptionInputs = useCallback(
+    (list: OptionInput[]) =>
+      [...list].sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "", undefined, { sensitivity: "base" })),
+    []
+  );
+
   const [organizationIds, setOrganizationIds] = useState<string[]>(() => dedupe(defaultOrganizationIds));
   const [sessionIds, setSessionIds] = useState<string[]>(() => dedupe(defaultSessionIds));
   const [characterIds, setCharacterIds] = useState<string[]>(() => dedupe(defaultCharacterIds));
-  const defaultCreatedAtValue = useMemo(() => toLocalDateValue(defaultValues?.createdAt ?? null), [defaultValues?.createdAt]);
+  const [organizationList, setOrganizationList] = useState<OptionInput[]>(() => sortOptionInputs([...organizations]));
+  const [sessionList, setSessionList] = useState<OptionInput[]>(() => sortOptionInputs([...sessions]));
+  const [characterList, setCharacterList] = useState<OptionInput[]>(() => sortOptionInputs([...characters]));
+  const defaultCreatedAtValue = useMemo(() => coerceDateInputValue(defaultValues?.createdAt ?? null), [defaultValues?.createdAt]);
 
   useEffect(() => {
     const next = dedupe(defaultOrganizationIds);
@@ -75,26 +76,71 @@ export function CampaignForm({
     setCharacterIds((current) => (listsMatch(current, next) ? current : next));
   }, [defaultCharacterIds]);
 
-  const organizationOptions: EntityOption[] = useMemo(() => {
-    return organizations
-      .filter((entry): entry is OptionInput & { id: string; name: string } => Boolean(entry?.id && entry?.name))
-      .map((entry) => ({ value: entry.id, label: entry.name, hint: entry.hint ?? null }))
-      .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
-  }, [organizations]);
+  useEffect(() => {
+    setOrganizationList(sortOptionInputs([...organizations]));
+  }, [organizations, sortOptionInputs]);
 
-  const sessionOptions: EntityOption[] = useMemo(() => {
-    return sessions
-      .filter((entry): entry is OptionInput & { id: string; name: string } => Boolean(entry?.id && entry?.name))
-      .map((entry) => ({ value: entry.id, label: entry.name, hint: entry.hint ?? null }))
-      .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
-  }, [sessions]);
+  useEffect(() => {
+    setSessionList(sortOptionInputs([...sessions]));
+  }, [sessions, sortOptionInputs]);
 
-  const characterOptions: EntityOption[] = useMemo(() => {
-    return characters
+  useEffect(() => {
+    setCharacterList(sortOptionInputs([...characters]));
+  }, [characters, sortOptionInputs]);
+
+  const handleOrganizationCreated = useCallback((option: { value: string; label: string }) => {
+    setOrganizationList((prev) => {
+      if (prev.some((entry) => entry.id === option.value)) {
+        return prev;
+      }
+      const next = [...prev, { id: option.value, name: option.label }];
+      return sortOptionInputs(next);
+    });
+
+    setOrganizationIds((prev) => (prev.includes(option.value) ? prev : [...prev, option.value]));
+  }, [sortOptionInputs]);
+
+  const handleSessionCreated = useCallback((option: SessionOption) => {
+    setSessionList((prev) => {
+      if (prev.some((entry) => entry.id === option.value)) {
+        return prev;
+      }
+      const next = [...prev, { id: option.value, name: option.label, hint: option.hint ?? null }];
+      return sortOptionInputs(next);
+    });
+
+    setSessionIds((prev) => (prev.includes(option.value) ? prev : [...prev, option.value]));
+  }, [sortOptionInputs]);
+
+  const handleCharacterCreated = useCallback((option: CharacterOption) => {
+    setCharacterList((prev) => {
+      if (prev.some((entry) => entry.id === option.value)) {
+        return prev;
+      }
+      const next = [...prev, { id: option.value, name: option.label, hint: option.hint ?? null }];
+      return sortOptionInputs(next);
+    });
+
+    setCharacterIds((prev) => (prev.includes(option.value) ? prev : [...prev, option.value]));
+  }, [sortOptionInputs]);
+
+  const organizationOptions = useMemo(() => {
+    return organizationList
       .filter((entry): entry is OptionInput & { id: string; name: string } => Boolean(entry?.id && entry?.name))
-      .map((entry) => ({ value: entry.id, label: entry.name, hint: entry.hint ?? null }))
-      .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
-  }, [characters]);
+      .map((entry) => ({ value: entry.id, label: entry.name ?? "Untitled Group" }));
+  }, [organizationList]);
+
+  const sessionOptions = useMemo<SessionOption[]>(() => {
+    return sessionList
+      .filter((entry): entry is OptionInput & { id: string; name: string } => Boolean(entry?.id && entry?.name))
+      .map((entry) => ({ value: entry.id, label: entry.name ?? "Untitled Session", hint: entry.hint ?? null }));
+  }, [sessionList]);
+
+  const characterOptions = useMemo<CharacterOption[]>(() => {
+    return characterList
+      .filter((entry): entry is OptionInput & { id: string; name: string } => Boolean(entry?.id && entry?.name))
+      .map((entry) => ({ value: entry.id, label: entry.name ?? "Unnamed Character", hint: entry.hint ?? null }));
+  }, [characterList]);
 
   return (
     <form
@@ -159,14 +205,14 @@ export function CampaignForm({
           <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
             Groups
           </span>
-          <EntityMultiSelect
+          <OrganizationMultiSelect
             id="campaign-organizations"
             name="organization_ids"
             options={organizationOptions}
             value={organizationIds}
             onChange={setOrganizationIds}
-            placeholder="Select groups"
-            emptyMessage="No groups available"
+            placeholder={organizationOptions.length ? "Select groups" : "No groups available"}
+            onCreateOption={handleOrganizationCreated}
           />
         </section>
 
@@ -174,14 +220,15 @@ export function CampaignForm({
           <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
             Sessions
           </span>
-          <EntityMultiSelect
+          <SessionMultiSelect
             id="campaign-sessions"
             name="session_ids"
             options={sessionOptions}
             value={sessionIds}
             onChange={setSessionIds}
-            placeholder="Select sessions"
-            emptyMessage="No sessions available"
+            placeholder={sessionOptions.length ? "Select sessions" : "No sessions available"}
+            onCreateOption={handleSessionCreated}
+            campaignId={campaignId ?? null}
           />
         </section>
 
@@ -189,14 +236,14 @@ export function CampaignForm({
           <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
             Characters
           </span>
-          <EntityMultiSelect
+          <CharacterMultiSelect
             id="campaign-characters"
             name="character_ids"
             options={characterOptions}
             value={characterIds}
             onChange={setCharacterIds}
-            placeholder="Select characters"
-            emptyMessage="No characters available"
+            placeholder={characterOptions.length ? "Select characters" : "No characters available"}
+            onCreateOption={handleCharacterCreated}
           />
         </section>
       </div>

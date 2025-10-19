@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { SessionsIndex } from '@/components/ui/sessions-index'
 import { type MentionTarget } from '@/lib/mention-utils'
-import { extractPlayerSummaries, type SessionCharacterRelation } from '@/lib/utils'
+import { extractPlayerSummaries, dateStringToLocalDate, type SessionCharacterRelation } from '@/lib/utils'
 
 export default async function SessionsPage() {
   const supabase = await createClient()
@@ -54,14 +54,16 @@ export default async function SessionsPage() {
 
     for (const [, campaignSessions] of sessionsByCampaign) {
       campaignSessions.sort((a, b) => {
-        const aDate = a.session_date ? new Date(a.session_date).getTime() : Number.POSITIVE_INFINITY
-        const bDate = b.session_date ? new Date(b.session_date).getTime() : Number.POSITIVE_INFINITY
-        if (aDate === bDate) {
+        const aDate = dateStringToLocalDate(a.session_date)
+        const bDate = dateStringToLocalDate(b.session_date)
+        const aTime = aDate ? aDate.getTime() : Number.POSITIVE_INFINITY
+        const bTime = bDate ? bDate.getTime() : Number.POSITIVE_INFINITY
+        if (aTime === bTime) {
           const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0
           const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0
           return aCreated - bCreated
         }
-        return aDate - bDate
+        return aTime - bTime
       })
 
       let counter = 1

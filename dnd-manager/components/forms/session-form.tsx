@@ -4,8 +4,10 @@ import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import Link from 'next/link'
 import MentionableTextarea from '@/components/ui/mentionable-textarea'
-import { EntityMultiSelect, type EntityOption } from '@/components/ui/entity-multi-select'
+import CharacterMultiSelect, { type CharacterOption } from '@/components/ui/character-multi-select'
+import OrganizationMultiSelect, { type OrganizationOption } from '@/components/ui/organization-multi-select'
 import { collectMentionTargets, type MentionTarget } from '@/lib/mention-utils'
+import { getTodayDateInputValue } from '@/lib/utils'
 import { createCampaignInline } from '@/lib/actions/campaigns'
 
 const ImageUpload = dynamic(() => import('@/components/ui/image-upload'), { ssr: false })
@@ -51,8 +53,6 @@ interface SessionFormProps {
   submitLabel?: string
   cancelHref?: string
   draftKey?: string
-  newCharacterHref?: string
-  newGroupHref?: string
   preselectedCharacterIds?: string[]
   mentionTargets: MentionTarget[]
 }
@@ -67,19 +67,18 @@ export default function SessionForm({
   submitLabel = 'Create Session',
   cancelHref = '/sessions',
   draftKey,
-  newCharacterHref,
-  newGroupHref,
   preselectedCharacterIds,
   mentionTargets,
 }: SessionFormProps) {
   const draftStorageKey = draftKey ?? DEFAULT_DRAFT_KEY
   const initialName = initialData?.name ?? ''
   const initialNotes = initialData?.notes ?? ''
-  const today = useMemo(() => new Date().toISOString().split('T')[0], [])
+  const today = useMemo(() => getTodayDateInputValue(), [])
   const [nameDraft, setNameDraft] = useState(initialName)
   const [notesDraft, setNotesDraft] = useState(initialNotes)
   const [headerImageDraft, setHeaderImageDraft] = useState<{ dataUrl: string; name?: string | null } | null>(null)
   const [characterList, setCharacterList] = useState(characters)
+const [organizationList, setOrganizationList] = useState(() => [...organizations])
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(mentionTargets)
   const [campaignList, setCampaignList] = useState(() => sortCampaignsByName(campaigns))
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>(() => {
@@ -150,18 +149,22 @@ export default function SessionForm({
     return [...base, ...mapped]
   }, [campaignList])
 
-  const groupOptions: EntityOption[] = useMemo(
+  const organizationSelectOptions = useMemo(
     () =>
-      organizations
+      organizationList
         .filter((organization): organization is { id: string; name: string } => Boolean(organization?.name))
-        .map((organization) => ({ value: organization.id, label: organization.name }))
+        .map((organization) => ({ value: organization.id, label: organization.name ?? 'Untitled Group' }))
         .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' })),
-    [organizations]
+    [organizationList]
   )
 
   useEffect(() => {
     setCharacterList(characters)
   }, [characters])
+
+  useEffect(() => {
+    setOrganizationList([...organizations])
+  }, [organizations])
 
   useEffect(() => {
     setMentionableTargets((previous) => {
@@ -470,23 +473,21 @@ export default function SessionForm({
     window.localStorage.removeItem(headerImageStorageKey)
   }, [cancelDraftUpdate, charactersStorageKey, draftStorageKey, headerImageStorageKey, nameStorageKey])
 
-  const characterOptions: EntityOption[] = useMemo(
-    () =>
-      characterList
-        .filter((character): character is Character => Boolean(character?.name))
-        .map((character) => ({
-          value: character.id,
-          label: character.name,
-          hint: [character.race, character.class].filter(Boolean).join(' • ') || null,
-        }))
-        .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' })),
-    [characterList]
-  )
-
   const sortCharactersByName = useCallback(
     (list: Character[]) => [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
     []
   )
+
+  const characterOptions: CharacterOption[] = useMemo(() => {
+    const sorted = sortCharactersByName(characterList)
+    return sorted
+      .filter((character): character is Character => Boolean(character?.name))
+      .map((character) => ({
+        value: character.id,
+        label: character.name,
+        hint: [character.race, character.class].filter(Boolean).join(' • ') || null,
+      }))
+  }, [characterList, sortCharactersByName])
 
   const handleNotesValueChange = useCallback((nextValue: string) => {
     setNotesDraft(nextValue)
@@ -522,6 +523,63 @@ export default function SessionForm({
     },
     [sortCharactersByName]
   )
+
+  const handleCharacterCreated = useCallback(
+    (option: CharacterOption) => {
+      setCharacterList((prev) => {
+        if (prev.some((character) => character.id === option.value)) {
+          return prev
+        }
+        const next = [...prev, { id: option.value, name: option.label, race: null, class: null }]
+        return sortCharactersByName(next)
+      })
+
+      setSelectedCharacterIds((prev) => Array.from(new Set([...prev, option.value])))
+
+      setMentionableTargets((previous) => {
+        if (previous.some((entry) => entry.id === option.value)) {
+          return previous
+        }
+        return [
+          ...previous,
+          {
+            id: option.value,
+            name: option.label,
+            href: `/characters/${option.value}`,
+            kind: 'character' as const,
+          },
+        ]
+      })
+    },
+    [sortCharactersByName]
+  )
+
+  const handleOrganizationCreated = useCallback((option: OrganizationOption) => {
+    setOrganizationList((prev) => {
+      if (prev.some((organization) => organization.id === option.value)) {
+        return prev
+      }
+      const next = [...prev, { id: option.value, name: option.label }]
+      return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+    })
+
+    setSelectedGroups((prev) => Array.from(new Set([...prev, option.value])))
+
+    setMentionableTargets((previous) => {
+      if (previous.some((entry) => entry.id === option.value)) {
+        return previous
+      }
+      return [
+        ...previous,
+        {
+          id: option.value,
+          name: option.label,
+          href: `/organizations/${option.value}`,
+          kind: 'organization' as const,
+        },
+      ]
+    })
+  }, [])
 
   useEffect(() => {
     if (!notesDraft) {
@@ -735,7 +793,7 @@ export default function SessionForm({
       </div>
 
       {/* Session Notes */}
-      <div>
+      <div style={{ minHeight: 0, overflow: 'visible' }}>
         <label htmlFor="notes" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
           Session Notes
         </label>
@@ -750,6 +808,7 @@ export default function SessionForm({
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           placeholder="What happened in this session..."
           spellCheck
+          data-testid="session-notes-textarea"
         />
         <p className="mt-2 text-xs text-gray-500 font-mono uppercase tracking-wider">
           Use @ to mention characters, sessions, or groups. Mentioned items are linked automatically.
@@ -764,7 +823,7 @@ export default function SessionForm({
               Related Characters
             </label>
           </div>
-          <EntityMultiSelect
+          <CharacterMultiSelect
             id="session-characters"
             name="character_ids"
             options={characterOptions}
@@ -772,7 +831,7 @@ export default function SessionForm({
             onChange={setSelectedCharacterIds}
             placeholder={characterOptions.length ? 'Select characters' : 'No characters available'}
             emptyMessage={characterList.length === 0 ? 'No characters yet. Create one to get started.' : 'No matches found'}
-            createOption={newCharacterHref ? { href: newCharacterHref, label: 'New Character' } : undefined}
+            onCreateOption={handleCharacterCreated}
           />
         </div>
         <div className="space-y-3">
@@ -781,15 +840,14 @@ export default function SessionForm({
               Related Groups
             </label>
           </div>
-          <EntityMultiSelect
+          <OrganizationMultiSelect
             id="session-groups"
             name="organization_ids"
-            options={groupOptions}
+            options={organizationSelectOptions}
             value={selectedGroups}
             onChange={setSelectedGroups}
-            placeholder={groupOptions.length ? 'Select groups' : 'No groups available'}
-            emptyMessage={groupOptions.length === 0 ? 'No groups yet. Create one from the Groups tab.' : 'No matches found'}
-            createOption={newGroupHref ? { href: newGroupHref, label: 'New Group' } : undefined}
+            placeholder={organizationSelectOptions.length ? 'Select groups' : 'No groups available'}
+            onCreateOption={handleOrganizationCreated}
           />
         </div>
       </div>

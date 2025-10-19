@@ -1,6 +1,7 @@
 import { OrganizationForm } from "@/components/organizations/organization-form";
 import { createOrganization } from "@/lib/actions/organizations";
 import { createClient } from "@/lib/supabase/server";
+import { formatDateStringForDisplay } from "@/lib/utils";
 
 export default async function NewOrganizationPage() {
   const supabase = await createClient();
@@ -25,7 +26,7 @@ export default async function NewOrganizationPage() {
   const sessionOptions = (sessionsResult.data ?? []).map((session) => ({
     value: session.id,
     label: session.name ?? "Untitled Session",
-    hint: session.session_date ? new Date(session.session_date).toLocaleDateString() : "Date TBD",
+    hint: formatDateStringForDisplay(session.session_date) ?? "Date TBD",
   }));
 
   const characterOptions = (charactersResult.data ?? []).map((character) => {

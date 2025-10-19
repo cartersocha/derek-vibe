@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { DeleteOrganizationButton } from "@/components/ui/delete-organization-button";
 import { deleteOrganization } from "@/lib/actions/organizations";
 import { createClient } from "@/lib/supabase/server";
+import { formatDateStringForDisplay, formatTimestampForDisplay } from "@/lib/utils";
 
 interface OrganizationRecord {
   id: string;
@@ -208,14 +209,7 @@ export default async function OrganizationDetailPage({
                     {organization.name}
                   </p>
                 </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-3 rounded border border-dashed border-[#00ffff]/40 bg-[#050517] py-10 text-[#00ffff]">
-                  <span className="text-4xl" aria-hidden>
-                    🏛
-                  </span>
-                  <p className="text-xs uppercase tracking-widest text-[#00ffff]">No logo uploaded</p>
-                </div>
-              )}
+              ) : null}
               <div className="mt-auto" />
             </div>
           </aside>
@@ -255,7 +249,7 @@ export default async function OrganizationDetailPage({
                         {campaign.name}
                       </span>
                       <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5] border border-[#ff00ff]/40 bg-[#211027]">
-                        {new Date(campaign.created_at).toLocaleDateString()}
+                        {formatTimestampForDisplay(campaign.created_at) ?? 'Unknown'}
                       </span>
                     </div>
                   </div>
@@ -289,9 +283,7 @@ export default async function OrganizationDetailPage({
                         {session.name}
                       </span>
                       <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#00ffff] border border-[#00ffff]/40 bg-[#0f0f23]">
-                        {session.session_date
-                          ? new Date(session.session_date).toLocaleDateString()
-                          : "Date TBD"}
+                        {formatDateStringForDisplay(session.session_date) ?? "Date TBD"}
                       </span>
                     </div>
                     {session.campaign?.name ? (

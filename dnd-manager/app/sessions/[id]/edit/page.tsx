@@ -56,22 +56,6 @@ export default async function SessionEditPage({
 
   const newCharacterId = typeof query?.newCharacterId === 'string' ? query.newCharacterId : undefined
 
-  const sessionQuery = new URLSearchParams()
-  if (query) {
-    Object.entries(query).forEach(([key, value]) => {
-      if (key === 'newCharacterId') {
-        return
-      }
-      if (typeof value === 'string') {
-        sessionQuery.set(key, value)
-      }
-    })
-  }
-
-  const sessionPath = `/sessions/${id}/edit${sessionQuery.toString() ? `?${sessionQuery.toString()}` : ''}`
-  const newCharacterHref = `/characters/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
-  const newGroupHref = `/organizations/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
-
   const mentionTargets = [
     ...(allCharacters ?? [])
       .filter((entry): entry is { id: string; name: string; race: string | null; class: string | null } => Boolean(entry?.name))
@@ -126,8 +110,6 @@ export default async function SessionEditPage({
         submitLabel="Save Changes"
         cancelHref={`/sessions/${id}`}
         draftKey={`session-notes:${id}`}
-        newCharacterHref={newCharacterHref}
-        newGroupHref={newGroupHref}
         preselectedCharacterIds={newCharacterId ? [newCharacterId] : undefined}
         mentionTargets={mentionTargets}
       />

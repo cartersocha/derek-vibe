@@ -1,39 +1,42 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
-import { createOrganizationInline } from "@/lib/actions/organizations"
+import { createSessionInline } from "@/lib/actions/sessions"
 
-export type OrganizationOption = {
+export type SessionOption = {
   value: string
   label: string
+  hint?: string | null
 }
 
-type OrganizationMultiSelectProps = {
+type SessionMultiSelectProps = {
   id: string
   name: string
   value: string[]
   onChange: (next: string[]) => void
-  options: readonly OrganizationOption[]
+  options: readonly SessionOption[]
   placeholder?: string
   className?: string
   emptyMessage?: string
-  onCreateOption?: (option: OrganizationOption) => void
+  onCreateOption?: (option: SessionOption) => void
+  campaignId?: string | null
 }
 
-export default function OrganizationMultiSelect({
+export default function SessionMultiSelect({
   id,
   name,
   value,
   onChange,
   options,
-  placeholder = "Select organizations",
+  placeholder = "Select sessions",
   className = "",
-  emptyMessage = "No organizations found",
+  emptyMessage = "No sessions found",
   onCreateOption,
-}: OrganizationMultiSelectProps) {
+  campaignId = null,
+}: SessionMultiSelectProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
-  const [localOptions, setLocalOptions] = useState<OrganizationOption[]>(() => [...options])
+  const [localOptions, setLocalOptions] = useState<SessionOption[]>(() => [...options])
   const [creationError, setCreationError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -42,7 +45,7 @@ export default function OrganizationMultiSelect({
   useEffect(() => {
     setLocalOptions((current) => {
       const seen = new Set<string>()
-      const merged: OrganizationOption[] = []
+      const merged: SessionOption[] = []
 
       options.forEach((option) => {
         if (!seen.has(option.value)) {
@@ -63,7 +66,7 @@ export default function OrganizationMultiSelect({
   }, [options])
 
   const optionMap = useMemo(() => {
-    const map = new Map<string, OrganizationOption>()
+    const map = new Map<string, SessionOption>()
     localOptions.forEach((option) => {
       map.set(option.value, option)
     })
@@ -114,9 +117,7 @@ export default function OrganizationMultiSelect({
     setOpen(false)
     setSearch("")
     setCreationError(null)
-    requestAnimationFrame(() => {
-      buttonRef.current?.focus()
-    })
+    requestAnimationFrame(() => buttonRef.current?.focus())
   }, [])
 
   useEffect(() => {
@@ -174,24 +175,24 @@ export default function OrganizationMultiSelect({
     [normalizedSelections, onChange]
   )
 
-  const handleCreateNewOrganization = useCallback(() => {
+  const handleCreateNewSession = useCallback(() => {
     if (!trimmedSearch || !canCreateNew || isPending) {
       return
     }
 
     setCreationError(null)
     startTransition(() => {
-      void createOrganizationInline(trimmedSearch)
+      void createSessionInline(trimmedSearch, campaignId ?? undefined)
         .then((result) => {
-          setCreationError(null)
+          const createdOption: SessionOption = { value: result.id, label: result.name }
+
           setLocalOptions((current) => {
             if (current.some((option) => option.value === result.id)) {
               return current
             }
-            return [...current, { value: result.id, label: result.name }]
+            return [...current, createdOption]
           })
 
-          const createdOption = { value: result.id, label: result.name }
           onCreateOption?.(createdOption)
 
           const nextSelections = normalizedSelections.includes(result.id)
@@ -202,11 +203,11 @@ export default function OrganizationMultiSelect({
           setSearch("")
         })
         .catch((error) => {
-          console.error("Failed to create organization", error)
-          setCreationError(error instanceof Error ? error.message : "Failed to create organization")
+          console.error("Failed to create session", error)
+          setCreationError(error instanceof Error ? error.message : "Failed to create session")
         })
     })
-  }, [canCreateNew, isPending, normalizedSelections, onChange, onCreateOption, trimmedSearch])
+  }, [campaignId, canCreateNew, isPending, normalizedSelections, onChange, onCreateOption, trimmedSearch])
 
   const clearSelections = useCallback(() => {
     if (isPending) {
@@ -265,7 +266,7 @@ export default function OrganizationMultiSelect({
                 }
                 setSearch(event.target.value)
               }}
-              placeholder="Search organizations"
+              placeholder="Search sessions"
               className="w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
               disabled={isPending}
             />
@@ -289,7 +290,16 @@ export default function OrganizationMultiSelect({
                           onChange={() => toggleSelection(option.value)}
                           className="h-4 w-4 rounded border-[#00ffff]/40 bg-[#0f0f23] text-[#ff00ff] focus:ring-[#ff00ff]"
                         />
-                        <span className="truncate font-semibold uppercase tracking-[0.25em]">{option.label}</span>
+                        <span className="flex-1">
+                          <span className="block truncate font-semibold uppercase tracking-[0.25em]">
+                            {option.label}
+                          </span>
+                          {option.hint ? (
+                            <span className="text-[10px] uppercase tracking-[0.3em] text-[#64748b]">
+                              {option.hint}
+                            </span>
+                          ) : null}
+                        </span>
                       </label>
                     </li>
                   )
@@ -301,12 +311,12 @@ export default function OrganizationMultiSelect({
               <div className="border-t border-[#1a1a3e]">
                 <button
                   type="button"
-                  onClick={handleCreateNewOrganization}
+                  onClick={handleCreateNewSession}
                   disabled={isPending}
                   className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[#ff00ff] transition-colors duration-150 hover:bg-[#1a1a3e]/60 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="truncate">Create {trimmedSearch}</span>
-                  <span className="text-xs uppercase tracking-wider">New</span>
+                  <span className="text-xs uppercase tracking-wider">New Session</span>
                 </button>
               </div>
             ) : null}

@@ -174,9 +174,36 @@ export async function updateOrganization(id: string, formData: FormData): Promis
   const sessionIds = getIdList(formData, 'session_ids')
   const characterIds = getIdList(formData, 'character_ids')
 
-  await syncOrganizationCampaigns(supabase, id, campaignIds)
-  await syncOrganizationSessions(supabase, id, sessionIds)
-  await syncOrganizationCharacters(supabase, id, characterIds)
+  const touchedCampaignIds = await syncOrganizationCampaigns(supabase, id, campaignIds)
+  const touchedSessionIds = await syncOrganizationSessions(supabase, id, sessionIds)
+  const touchedCharacterIds = await syncOrganizationCharacters(supabase, id, characterIds)
+
+  if (touchedCampaignIds.length > 0) {
+    revalidatePath('/campaigns')
+    Array.from(new Set(touchedCampaignIds)).forEach((campaignId) => {
+      if (campaignId) {
+        revalidatePath(`/campaigns/${campaignId}`)
+      }
+    })
+  }
+
+  if (touchedSessionIds.length > 0) {
+    revalidatePath('/sessions')
+    Array.from(new Set(touchedSessionIds)).forEach((sessionId) => {
+      if (sessionId) {
+        revalidatePath(`/sessions/${sessionId}`)
+      }
+    })
+  }
+
+  if (touchedCharacterIds.length > 0) {
+    revalidatePath('/characters')
+    touchedCharacterIds.forEach((characterId) => {
+      if (characterId) {
+        revalidatePath(`/characters/${characterId}`)
+      }
+    })
+  }
 
   revalidatePath('/organizations')
   revalidatePath(`/organizations/${id}`)
@@ -195,6 +222,55 @@ export async function deleteOrganization(id: string): Promise<void> {
   if (fetchError && fetchError.code !== 'PGRST116') {
     throw new Error(fetchError.message)
   }
+
+  const { data: linkedCampaigns, error: campaignsError } = await supabase
+    .from('organization_campaigns')
+    .select('campaign_id')
+    .eq('organization_id', id)
+
+  if (campaignsError) {
+    throw new Error(campaignsError.message)
+  }
+
+  const { data: linkedSessions, error: sessionsError } = await supabase
+    .from('organization_sessions')
+    .select('session_id')
+    .eq('organization_id', id)
+
+  if (sessionsError) {
+    throw new Error(sessionsError.message)
+  }
+
+  const { data: linkedCharacters, error: charactersError } = await supabase
+    .from('organization_characters')
+    .select('character_id')
+    .eq('organization_id', id)
+
+  if (charactersError) {
+    throw new Error(charactersError.message)
+  }
+
+  const touchedCampaignIds = Array.from(
+    new Set(
+      (linkedCampaigns ?? [])
+        .map((entry) => entry?.campaign_id)
+        .filter((value): value is string => Boolean(value))
+    )
+  )
+  const touchedSessionIds = Array.from(
+    new Set(
+      (linkedSessions ?? [])
+        .map((entry) => entry?.session_id)
+        .filter((value): value is string => Boolean(value))
+    )
+  )
+  const touchedCharacterIds = Array.from(
+    new Set(
+      (linkedCharacters ?? [])
+        .map((entry) => entry?.character_id)
+        .filter((value): value is string => Boolean(value))
+    )
+  )
 
   const { error } = await supabase
     .from('organizations')
@@ -215,6 +291,28 @@ export async function deleteOrganization(id: string): Promise<void> {
   }
 
   revalidatePath('/organizations')
+
+  if (touchedCampaignIds.length > 0) {
+    revalidatePath('/campaigns')
+    touchedCampaignIds.forEach((campaignId) => {
+      revalidatePath(`/campaigns/${campaignId}`)
+    })
+  }
+
+  if (touchedSessionIds.length > 0) {
+    revalidatePath('/sessions')
+    touchedSessionIds.forEach((sessionId) => {
+      revalidatePath(`/sessions/${sessionId}`)
+    })
+  }
+
+  if (touchedCharacterIds.length > 0) {
+    revalidatePath('/characters')
+    touchedCharacterIds.forEach((characterId) => {
+      revalidatePath(`/characters/${characterId}`)
+    })
+  }
+
   redirect('/organizations')
 }
 
@@ -276,8 +374,38 @@ export async function setCampaignOrganizations(
   supabase: SupabaseClient,
   campaignId: string,
   organizationIds: string[]
-): Promise<void> {
-  const unique = Array.from(new Set(organizationIds))
+): Promise<string[]> {
+  const unique = Array.from(new Set(organizationIds)).filter((id): id is string => Boolean(id))
+
+  const { data: existingLinks, error: existingError } = await supabase
+    .from('organization_campaigns')
+    .select('organization_id')
+    .eq('campaign_id', campaignId)
+
+  if (existingError) {
+    throw new Error(existingError.message)
+  }
+
+  const previousIds = new Set<string>()
+  existingLinks?.forEach((link) => {
+    if (link?.organization_id) {
+      previousIds.add(link.organization_id)
+    }
+  })
+
+  const nextIds = new Set(unique)
+
+  const touchedIds = new Set<string>()
+  previousIds.forEach((organizationId) => {
+    if (!nextIds.has(organizationId)) {
+      touchedIds.add(organizationId)
+    }
+  })
+  nextIds.forEach((organizationId) => {
+    if (!previousIds.has(organizationId)) {
+      touchedIds.add(organizationId)
+    }
+  })
 
   const { error: deleteError } = await supabase
     .from('organization_campaigns')
@@ -288,11 +416,11 @@ export async function setCampaignOrganizations(
     throw new Error(deleteError.message)
   }
 
-  if (unique.length === 0) {
-    return
+  if (nextIds.size === 0) {
+    return Array.from(touchedIds)
   }
 
-  const inserts = unique.map((organizationId) => ({
+  const inserts = Array.from(nextIds).map((organizationId) => ({
     organization_id: organizationId,
     campaign_id: campaignId,
   }))
@@ -304,6 +432,8 @@ export async function setCampaignOrganizations(
   if (insertError) {
     throw new Error(insertError.message)
   }
+
+  return Array.from(touchedIds)
 }
 
 export async function getCampaignOrganizationIds(
@@ -330,8 +460,38 @@ export async function setSessionOrganizations(
   supabase: SupabaseClient,
   sessionId: string,
   organizationIds: string[]
-): Promise<void> {
-  const unique = Array.from(new Set(organizationIds))
+): Promise<string[]> {
+  const unique = Array.from(new Set(organizationIds)).filter((id): id is string => Boolean(id))
+
+  const { data: existingLinks, error: existingError } = await supabase
+    .from('organization_sessions')
+    .select('organization_id')
+    .eq('session_id', sessionId)
+
+  if (existingError) {
+    throw new Error(existingError.message)
+  }
+
+  const previousIds = new Set<string>()
+  existingLinks?.forEach((link) => {
+    if (link?.organization_id) {
+      previousIds.add(link.organization_id)
+    }
+  })
+
+  const nextIds = new Set(unique)
+
+  const touchedIds = new Set<string>()
+  previousIds.forEach((organizationId) => {
+    if (!nextIds.has(organizationId)) {
+      touchedIds.add(organizationId)
+    }
+  })
+  nextIds.forEach((organizationId) => {
+    if (!previousIds.has(organizationId)) {
+      touchedIds.add(organizationId)
+    }
+  })
 
   const { error: deleteError } = await supabase
     .from('organization_sessions')
@@ -342,11 +502,11 @@ export async function setSessionOrganizations(
     throw new Error(deleteError.message)
   }
 
-  if (unique.length === 0) {
-    return
+  if (nextIds.size === 0) {
+    return Array.from(touchedIds)
   }
 
-  const inserts = unique.map((organizationId) => ({
+  const inserts = Array.from(nextIds).map((organizationId) => ({
     organization_id: organizationId,
     session_id: sessionId,
   }))
@@ -358,19 +518,63 @@ export async function setSessionOrganizations(
   if (insertError) {
     throw new Error(insertError.message)
   }
+
+  return Array.from(touchedIds)
 }
 
 export async function setCharacterOrganizations(
   supabase: SupabaseClient,
   characterId: string,
   affiliations: CharacterOrganizationAffiliationInput[]
-): Promise<void> {
+): Promise<string[]> {
   const deduped = new Map<string, CharacterOrganizationAffiliationInput>()
   affiliations.forEach((affiliation) => {
     deduped.set(affiliation.organizationId, affiliation)
   })
 
   const finalAffiliations = Array.from(deduped.values())
+
+  const { data: existingLinks, error: existingError } = await supabase
+    .from('organization_characters')
+    .select('organization_id, role')
+    .eq('character_id', characterId)
+
+  if (existingError) {
+    throw new Error(existingError.message)
+  }
+
+  const previousIds = new Set<string>()
+  const previousRoles = new Map<string, string>()
+  existingLinks?.forEach((link) => {
+    if (link?.organization_id) {
+      previousIds.add(link.organization_id)
+      previousRoles.set(link.organization_id, link.role ?? 'npc')
+    }
+  })
+
+  const nextIds = new Set(finalAffiliations.map((affiliation) => affiliation.organizationId))
+  const nextRoles = new Map<string, string>()
+  finalAffiliations.forEach((affiliation) => {
+    nextRoles.set(affiliation.organizationId, affiliation.role)
+  })
+
+  const touchedIds = new Set<string>()
+  previousIds.forEach((organizationId) => {
+    if (!nextIds.has(organizationId)) {
+      touchedIds.add(organizationId)
+    }
+  })
+  nextIds.forEach((organizationId) => {
+    if (!previousIds.has(organizationId)) {
+      touchedIds.add(organizationId)
+    }
+  })
+  previousRoles.forEach((previousRole, organizationId) => {
+    const nextRole = nextRoles.get(organizationId)
+    if (nextRole && nextRole !== previousRole) {
+      touchedIds.add(organizationId)
+    }
+  })
 
   const { error: deleteError } = await supabase
     .from('organization_characters')
@@ -381,8 +585,8 @@ export async function setCharacterOrganizations(
     throw new Error(deleteError.message)
   }
 
-  if (finalAffiliations.length === 0) {
-    return
+  if (nextIds.size === 0) {
+    return Array.from(touchedIds)
   }
 
   const inserts = finalAffiliations.map(({ organizationId, role }) => ({
@@ -398,6 +602,8 @@ export async function setCharacterOrganizations(
   if (insertError) {
     throw new Error(insertError.message)
   }
+
+  return Array.from(touchedIds)
 }
 
 function getString(formData: FormData, key: string): string {
@@ -430,8 +636,38 @@ async function syncOrganizationCampaigns(
   supabase: SupabaseClient,
   organizationId: string,
   campaignIds: string[]
-): Promise<void> {
-  const uniqueIds = Array.from(new Set(campaignIds))
+): Promise<string[]> {
+  const uniqueIds = Array.from(new Set(campaignIds)).filter((id): id is string => Boolean(id))
+
+  const { data: existingLinks, error: existingError } = await supabase
+    .from('organization_campaigns')
+    .select('campaign_id')
+    .eq('organization_id', organizationId)
+
+  if (existingError) {
+    throw new Error(existingError.message)
+  }
+
+  const previousIds = new Set<string>()
+  existingLinks?.forEach((link) => {
+    if (link?.campaign_id) {
+      previousIds.add(link.campaign_id)
+    }
+  })
+
+  const nextIds = new Set(uniqueIds)
+
+  const touchedIds = new Set<string>()
+  previousIds.forEach((campaignId) => {
+    if (!nextIds.has(campaignId)) {
+      touchedIds.add(campaignId)
+    }
+  })
+  nextIds.forEach((campaignId) => {
+    if (!previousIds.has(campaignId)) {
+      touchedIds.add(campaignId)
+    }
+  })
 
   const { error: deleteError } = await supabase
     .from('organization_campaigns')
@@ -442,11 +678,11 @@ async function syncOrganizationCampaigns(
     throw new Error(deleteError.message)
   }
 
-  if (uniqueIds.length === 0) {
-    return
+  if (nextIds.size === 0) {
+    return Array.from(touchedIds)
   }
 
-  const inserts = uniqueIds.map((campaignId) => ({
+  const inserts = Array.from(nextIds).map((campaignId) => ({
     organization_id: organizationId,
     campaign_id: campaignId,
   }))
@@ -458,14 +694,46 @@ async function syncOrganizationCampaigns(
   if (insertError) {
     throw new Error(insertError.message)
   }
+
+  return Array.from(touchedIds)
 }
 
 async function syncOrganizationSessions(
   supabase: SupabaseClient,
   organizationId: string,
   sessionIds: string[]
-): Promise<void> {
-  const uniqueIds = Array.from(new Set(sessionIds))
+): Promise<string[]> {
+  const uniqueIds = Array.from(new Set(sessionIds)).filter((id): id is string => Boolean(id))
+
+  const { data: existingLinks, error: existingError } = await supabase
+    .from('organization_sessions')
+    .select('session_id')
+    .eq('organization_id', organizationId)
+
+  if (existingError) {
+    throw new Error(existingError.message)
+  }
+
+  const previousIds = new Set<string>()
+  existingLinks?.forEach((link) => {
+    if (link?.session_id) {
+      previousIds.add(link.session_id)
+    }
+  })
+
+  const nextIds = new Set(uniqueIds)
+
+  const touchedIds = new Set<string>()
+  previousIds.forEach((sessionId) => {
+    if (!nextIds.has(sessionId)) {
+      touchedIds.add(sessionId)
+    }
+  })
+  nextIds.forEach((sessionId) => {
+    if (!previousIds.has(sessionId)) {
+      touchedIds.add(sessionId)
+    }
+  })
 
   const { error: deleteError } = await supabase
     .from('organization_sessions')
@@ -476,11 +744,11 @@ async function syncOrganizationSessions(
     throw new Error(deleteError.message)
   }
 
-  if (uniqueIds.length === 0) {
-    return
+  if (nextIds.size === 0) {
+    return Array.from(touchedIds)
   }
 
-  const inserts = uniqueIds.map((sessionId) => ({
+  const inserts = Array.from(nextIds).map((sessionId) => ({
     organization_id: organizationId,
     session_id: sessionId,
   }))
@@ -492,13 +760,15 @@ async function syncOrganizationSessions(
   if (insertError) {
     throw new Error(insertError.message)
   }
+
+  return Array.from(touchedIds)
 }
 
 async function syncOrganizationCharacters(
   supabase: SupabaseClient,
   organizationId: string,
   characterIds: string[]
-): Promise<void> {
+): Promise<string[]> {
   const uniqueIds = Array.from(new Set(characterIds))
 
   const { data: existingLinks, error: existingError } = await supabase
@@ -510,10 +780,26 @@ async function syncOrganizationCharacters(
     throw new Error(existingError.message)
   }
 
+  const previousIds = new Set<string>()
   const roleMap = new Map<string, string>()
   existingLinks?.forEach((link) => {
     if (link?.character_id) {
+      previousIds.add(link.character_id)
       roleMap.set(link.character_id, link.role ?? 'npc')
+    }
+  })
+
+  const nextIds = new Set(uniqueIds.filter(Boolean))
+
+  const touchedIds = new Set<string>()
+  previousIds.forEach((characterId) => {
+    if (!nextIds.has(characterId)) {
+      touchedIds.add(characterId)
+    }
+  })
+  nextIds.forEach((characterId) => {
+    if (!previousIds.has(characterId)) {
+      touchedIds.add(characterId)
     }
   })
 
@@ -527,7 +813,7 @@ async function syncOrganizationCharacters(
   }
 
   if (uniqueIds.length === 0) {
-    return
+    return Array.from(touchedIds)
   }
 
   const inserts = uniqueIds.map((characterId) => ({
@@ -543,4 +829,45 @@ async function syncOrganizationCharacters(
   if (insertError) {
     throw new Error(insertError.message)
   }
+
+  return Array.from(touchedIds)
+}
+
+export async function syncSessionOrganizationsFromCharacters(
+  supabase: SupabaseClient,
+  sessionId: string
+): Promise<string[]> {
+  // Get all characters in this session
+  const { data: sessionCharacters, error: charsError } = await supabase
+    .from('session_characters')
+    .select('character_id')
+    .eq('session_id', sessionId)
+
+  if (charsError) {
+    throw new Error(charsError.message)
+  }
+
+  const characterIds = sessionCharacters?.map(sc => sc.character_id) || []
+
+  if (characterIds.length === 0) {
+    // No characters, so no organizations
+    return await setSessionOrganizations(supabase, sessionId, [])
+  }
+
+  // Get all organizations of these characters
+  const { data: organizationLinks, error: orgsError } = await supabase
+    .from('organization_characters')
+    .select('organization_id')
+    .in('character_id', characterIds)
+
+  if (orgsError) {
+    throw new Error(orgsError.message)
+  }
+
+  const organizationIds = Array.from(new Set(
+    organizationLinks?.map(link => link.organization_id).filter(Boolean) || []
+  ))
+
+  // Update session organizations
+  return await setSessionOrganizations(supabase, sessionId, organizationIds)
 }
