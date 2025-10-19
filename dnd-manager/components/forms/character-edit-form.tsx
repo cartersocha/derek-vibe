@@ -81,14 +81,15 @@ export default function CharacterEditForm({
   const [characterClass, setCharacterClass] = useState(() => toTitleCase(character.class ?? ''))
   const [lastKnownLocation, setLastKnownLocation] = useState(() => toTitleCase(character.last_known_location ?? ''))
   const [status, setStatus] = useState<CharacterStatus>(character.status ?? 'alive')
+  const [organizationList, setOrganizationList] = useState(() => [...organizations])
   const allowedOrganizationIds = useMemo(() => {
-    const allowed = new Set(organizations.map((organization) => organization.id))
+    const allowed = new Set(organizationList.map((organization) => organization.id))
     return (organizationAffiliations ?? []).filter((organizationId) => allowed.has(organizationId))
-  }, [organizationAffiliations, organizations])
+  }, [organizationAffiliations, organizationList])
   const [organizationIds, setOrganizationIds] = useState<string[]>(allowedOrganizationIds)
 
   const organizationMentionTargets = useMemo(() => {
-    return organizations
+    return organizationList
       .filter((organization) => Boolean(organization.name))
       .map((organization) => ({
         id: organization.id,
@@ -96,7 +97,7 @@ export default function CharacterEditForm({
         href: `/organizations/${organization.id}`,
         kind: 'organization' as const,
       }))
-  }, [organizations])
+  }, [organizationList])
 
   const baseMentionTargets = useMemo(() => {
     const merged = new Map<string, MentionTarget>()
@@ -112,7 +113,29 @@ export default function CharacterEditForm({
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(baseMentionTargets)
 
   useEffect(() => {
-    setOrganizationIds(allowedOrganizationIds)
+    setOrganizationList((previous) => {
+      const merged = new Map(previous.map((organization) => [organization.id, organization]))
+      organizations.forEach((organization) => {
+        if (organization?.id) {
+          merged.set(organization.id, { id: organization.id, name: organization.name })
+        }
+      })
+      return Array.from(merged.values()).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+    })
+  }, [organizations])
+
+  useEffect(() => {
+    setOrganizationIds((prev) => {
+      const merged = new Set(prev)
+      let updated = false
+      for (const id of allowedOrganizationIds) {
+        if (!merged.has(id)) {
+          merged.add(id)
+          updated = true
+        }
+      }
+      return updated ? Array.from(merged) : prev
+    })
   }, [allowedOrganizationIds])
 
   useEffect(() => {
@@ -131,11 +154,11 @@ export default function CharacterEditForm({
   }, [baseMentionTargets])
 
   const organizationOptions = useMemo(() => {
-    return organizations.map((organization) => ({
+    return organizationList.map((organization) => ({
       value: organization.id,
       label: organization.name || 'Untitled Organization',
     }))
-  }, [organizations])
+  }, [organizationList])
 
   const handleRaceChange = useCallback((next: string) => {
     setRace(next ? toTitleCase(next) : '')
