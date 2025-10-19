@@ -128,7 +128,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                 const details: Array<{ label: string; value: string }> = [
                   {
                     label: "Type",
-                    value: character.player_type === "player" ? "Player Character" : "NPC",
+                    value: character.player_type === "player" ? "Player" : "NPC",
                   },
                   {
                     label: "Status",

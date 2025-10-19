@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { cn, type PlayerSummary } from "@/lib/utils";
+import { type PlayerSummary } from "@/lib/utils";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
+import { SessionParticipantPills } from "@/components/ui/session-participant-pills";
 
 type CampaignInfo = {
   name: string | null;
@@ -23,9 +24,10 @@ type SessionRecord = {
 
 type SessionsIndexProps = {
   sessions: SessionRecord[];
+  mentionTargets: MentionTarget[];
 };
 
-export function SessionsIndex({ sessions }: SessionsIndexProps) {
+export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) {
   const [query, setQuery] = useState("");
 
   const hasSessions = sessions.length > 0;
@@ -128,34 +130,11 @@ export function SessionsIndex({ sessions }: SessionsIndexProps) {
                     )}
                     {session.notes && (
                       <div className="text-gray-400 line-clamp-2 font-mono text-sm whitespace-pre-line break-words">
-                        {renderNotesWithMentions(
-                          session.notes,
-                          session.players.map<MentionTarget>((player) => ({
-                            id: player.id,
-                            name: player.name,
-                            href: `/characters/${player.id}`,
-                            kind: "character",
-                          }))
-                        )}
+                        {renderNotesWithMentions(session.notes, mentionTargets)}
                       </div>
                     )}
                     {players.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
-                        {players.map((player) => (
-                          <Link
-                            key={`${session.id}-${player.id}`}
-                            href={`/characters/${player.id}`}
-                            className={cn(
-                              "rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2",
-                              player.player_type === "player"
-                                ? "border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]"
-                                : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]"
-                            )}
-                          >
-                            {player.name}
-                          </Link>
-                        ))}
-                      </div>
+                      <SessionParticipantPills sessionId={session.id} players={players} className="mt-3" />
                     )}
                   </div>
                   <div className="text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">

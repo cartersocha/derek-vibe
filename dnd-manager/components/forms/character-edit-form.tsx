@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback, useState } from 'react'
-import ImageUpload from '@/components/ui/image-upload'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import ImageUpload from '@/components/ui/image-upload'
 import CreatableSelect from '@/components/ui/creatable-select'
 import SynthwaveDropdown from '@/components/ui/synthwave-dropdown'
+import OrganizationMultiSelect from '@/components/ui/organization-multi-select'
 import {
   CHARACTER_STATUS_OPTIONS,
   CLASS_OPTIONS,
@@ -34,13 +35,22 @@ interface CharacterEditFormProps {
   character: Character
   cancelHref?: string
   mentionTargets: MentionTarget[]
+  organizations: { id: string; name: string }[]
+  organizationAffiliations?: string[]
 }
 
 const RACE_STORAGE_KEY = 'character-race-options'
 const CLASS_STORAGE_KEY = 'character-class-options'
 const LOCATION_STORAGE_KEY = 'character-location-options'
 
-export default function CharacterEditForm({ action, character, cancelHref, mentionTargets }: CharacterEditFormProps) {
+export default function CharacterEditForm({
+  action,
+  character,
+  cancelHref,
+  mentionTargets,
+  organizations,
+  organizationAffiliations,
+}: CharacterEditFormProps) {
   const toTitleCase = useCallback((value: string) => {
     const trimmed = value.trim()
     if (!trimmed) {
@@ -71,6 +81,61 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
   const [characterClass, setCharacterClass] = useState(() => toTitleCase(character.class ?? ''))
   const [lastKnownLocation, setLastKnownLocation] = useState(() => toTitleCase(character.last_known_location ?? ''))
   const [status, setStatus] = useState<CharacterStatus>(character.status ?? 'alive')
+  const allowedOrganizationIds = useMemo(() => {
+    const allowed = new Set(organizations.map((organization) => organization.id))
+    return (organizationAffiliations ?? []).filter((organizationId) => allowed.has(organizationId))
+  }, [organizationAffiliations, organizations])
+  const [organizationIds, setOrganizationIds] = useState<string[]>(allowedOrganizationIds)
+
+  const organizationMentionTargets = useMemo(() => {
+    return organizations
+      .filter((organization) => Boolean(organization.name))
+      .map((organization) => ({
+        id: organization.id,
+        name: organization.name,
+        href: `/organizations/${organization.id}`,
+        kind: 'organization' as const,
+      }))
+  }, [organizations])
+
+  const baseMentionTargets = useMemo(() => {
+    const merged = new Map<string, MentionTarget>()
+    mentionTargets.forEach((target) => {
+      merged.set(target.id, target)
+    })
+    organizationMentionTargets.forEach((target) => {
+      merged.set(target.id, target)
+    })
+    return Array.from(merged.values())
+  }, [mentionTargets, organizationMentionTargets])
+
+  const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(baseMentionTargets)
+
+  useEffect(() => {
+    setOrganizationIds(allowedOrganizationIds)
+  }, [allowedOrganizationIds])
+
+  useEffect(() => {
+    setMentionableTargets((previous) => {
+      const merged = new Map<string, MentionTarget>()
+      baseMentionTargets.forEach((target) => {
+        merged.set(target.id, target)
+      })
+      previous.forEach((target) => {
+        if (!merged.has(target.id)) {
+          merged.set(target.id, target)
+        }
+      })
+      return Array.from(merged.values())
+    })
+  }, [baseMentionTargets])
+
+  const organizationOptions = useMemo(() => {
+    return organizations.map((organization) => ({
+      value: organization.id,
+      label: organization.name || 'Untitled Organization',
+    }))
+  }, [organizations])
 
   const handleRaceChange = useCallback((next: string) => {
     setRace(next ? toTitleCase(next) : '')
@@ -84,14 +149,31 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
     setLastKnownLocation(next ? toTitleCase(next) : '')
   }, [toTitleCase])
 
+  const handleOrganizationCreated = useCallback((option: { value: string; label: string }) => {
+    setMentionableTargets((previous) => {
+      if (previous.some((target) => target.id === option.value)) {
+        return previous
+      }
+      return [
+        ...previous,
+        {
+          id: option.value,
+          name: option.label,
+          href: `/organizations/${option.value}`,
+          kind: 'organization' as const,
+        },
+      ]
+    })
+  }, [])
+
   const levelLabel = playerType === 'player' ? 'Level' : 'Challenge Rating'
 
   return (
     <form
       action={action}
-      encType="multipart/form-data"
       className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-8"
     >
+      <input type="hidden" name="organization_field_present" value="true" />
       <ImageUpload
         name="image"
         label="Character Portrait"
@@ -192,20 +274,36 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
         </div>
       </div>
 
-      <div>
-        <label htmlFor="last_known_location" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
-          Last Known Location
-        </label>
-        <CreatableSelect
-          id="last_known_location"
-          name="last_known_location"
-          value={lastKnownLocation}
-          onChange={handleLocationChange}
-          options={LOCATION_SUGGESTIONS}
-          placeholder="Select or create a location"
-          storageKey={LOCATION_STORAGE_KEY}
-          normalizeOption={toTitleCase}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="last_known_location" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+            Last Known Location
+          </label>
+          <CreatableSelect
+            id="last_known_location"
+            name="last_known_location"
+            value={lastKnownLocation}
+            onChange={handleLocationChange}
+            options={LOCATION_SUGGESTIONS}
+            placeholder="Select or create a location"
+            storageKey={LOCATION_STORAGE_KEY}
+            normalizeOption={toTitleCase}
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="organization_ids" className="block text-sm font-bold text-[#00ffff] uppercase tracking-wider">
+            Organization Affiliation
+          </label>
+          <OrganizationMultiSelect
+            id="organization_ids"
+            name="organization_ids"
+            value={organizationIds}
+            onChange={setOrganizationIds}
+            options={organizationOptions}
+            placeholder="Select organizations"
+            onCreateOption={handleOrganizationCreated}
+          />
+        </div>
       </div>
 
       <div>
@@ -217,7 +315,7 @@ export default function CharacterEditForm({ action, character, cancelHref, menti
           name="backstory"
           rows={6}
           initialValue={character.backstory || ''}
-          mentionTargets={mentionTargets}
+          mentionTargets={mentionableTargets}
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           spellCheck
         />

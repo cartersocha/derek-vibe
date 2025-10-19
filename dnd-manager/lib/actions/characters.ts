@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { collectMentionTargets } from "@/lib/mentions";
+import { assertUniqueValue } from "@/lib/supabase/ensure-unique";
 import { createClient } from "@/lib/supabase/server";
 import {
   deleteImage,
@@ -15,6 +16,12 @@ import { characterSchema } from "@/lib/validations/schemas";
 import { sanitizeNullableText, sanitizeText } from "@/lib/security/sanitize";
 import { CharacterStatus, PlayerType } from "@/lib/characters/constants";
 import { toTitleCase } from "@/lib/utils";
+import {
+  resolveOrganizationIds,
+  setCharacterOrganizations,
+} from "@/lib/actions/organizations";
+import { extractOrganizationIds } from "@/lib/organizations/helpers";
+import type { CharacterOrganizationAffiliationInput } from "@/lib/validations/organization";
 
 const CHARACTER_BUCKET = "character-images" as const;
 
@@ -22,8 +29,25 @@ export async function createCharacter(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const characterId = randomUUID();
 
+  const organizationFieldTouched =
+    formData.get("organization_field_present") === "true" ||
+    formData.has("organization_roles") ||
+    formData.has("organization_ids") ||
+    formData.has("organization_id");
+
+  const selectedOrganizationIds = extractOrganizationIds(formData);
+
   const imageFile = getFile(formData, "image");
   let imageUrl: string | null = null;
+
+  const normalizedName = toTitleCase(getString(formData, "name"));
+
+  await assertUniqueValue(supabase, {
+    table: "characters",
+    column: "name",
+    value: normalizedName,
+    errorMessage: "Character name already exists. Choose a different name.",
+  });
 
   if (imageFile) {
     const { url, error } = await uploadImage(
@@ -38,8 +62,6 @@ export async function createCharacter(formData: FormData): Promise<void> {
 
     imageUrl = url;
   }
-
-  const normalizedName = toTitleCase(getString(formData, "name"));
 
   const data = {
     name: normalizedName,
@@ -58,6 +80,21 @@ export async function createCharacter(formData: FormData): Promise<void> {
     throw new Error("Validation failed");
   }
 
+  let organizationAffiliations: CharacterOrganizationAffiliationInput[] = selectedOrganizationIds.map(
+    (organizationId) => ({
+      organizationId,
+      role: result.data.player_type,
+    })
+  );
+
+  if (organizationAffiliations.length === 0 && !organizationFieldTouched) {
+    const fallbackOrganizationIds = await resolveOrganizationIds(supabase, []);
+    organizationAffiliations = fallbackOrganizationIds.map((organizationId) => ({
+      organizationId,
+      role: result.data.player_type,
+    }));
+  }
+
   const { error } = await supabase
     .from("characters")
     .insert({ id: characterId, ...result.data });
@@ -68,6 +105,11 @@ export async function createCharacter(formData: FormData): Promise<void> {
       await deleteImage(CHARACTER_BUCKET, path);
     }
     throw new Error(error.message);
+  }
+
+  if (organizationAffiliations.length > 0 || organizationFieldTouched) {
+    await setCharacterOrganizations(supabase, characterId, organizationAffiliations);
+    revalidatePath("/organizations");
   }
 
   const newlyLinkedSessions = await ensureMentionedSessionsLinked(
@@ -106,7 +148,10 @@ export async function createCharacter(formData: FormData): Promise<void> {
   redirect("/characters");
 }
 
-export async function createCharacterInline(name: string): Promise<{
+export async function createCharacterInline(
+  name: string,
+  organizationIds?: string[]
+): Promise<{
   id: string;
   name: string;
 }> {
@@ -119,6 +164,12 @@ export async function createCharacterInline(name: string): Promise<{
 
   const normalized = toTitleCase(sanitized);
   const truncated = normalized.slice(0, 100);
+  await assertUniqueValue(supabase, {
+    table: "characters",
+    column: "name",
+    value: truncated,
+    errorMessage: "Character name already exists. Choose a different name.",
+  });
   const characterId = randomUUID();
   const { error } = await supabase.from("characters").insert({
     id: characterId,
@@ -129,6 +180,25 @@ export async function createCharacterInline(name: string): Promise<{
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  const desiredOrganizationIds = Array.isArray(organizationIds)
+    ? organizationIds
+    : [];
+
+  const resolvedOrganizationIds = await resolveOrganizationIds(
+    supabase,
+    desiredOrganizationIds
+  );
+
+  if (resolvedOrganizationIds.length > 0) {
+    const affiliations = resolvedOrganizationIds.map((organizationId) => ({
+      organizationId,
+      role: "npc" as CharacterOrganizationAffiliationInput["role"],
+    }));
+
+    await setCharacterOrganizations(supabase, characterId, affiliations);
+    revalidatePath("/organizations");
   }
 
   revalidatePath("/characters");
@@ -145,6 +215,14 @@ export async function updateCharacter(
 ): Promise<void> {
   const supabase = await createClient();
 
+  const organizationFieldTouched =
+    formData.get("organization_field_present") === "true" ||
+    formData.has("organization_roles") ||
+    formData.has("organization_ids") ||
+    formData.has("organization_id");
+
+  const selectedOrganizationIds = extractOrganizationIds(formData);
+
   const { data: existing, error: fetchError } = await supabase
     .from("characters")
     .select("image_url")
@@ -158,6 +236,16 @@ export async function updateCharacter(
   const imageFile = getFile(formData, "image");
   const removeImage = formData.get("image_remove") === "true";
   let imageUrl = existing.image_url;
+
+  const normalizedName = toTitleCase(getString(formData, "name"));
+
+  await assertUniqueValue(supabase, {
+    table: "characters",
+    column: "name",
+    value: normalizedName,
+    excludeId: id,
+    errorMessage: "Character name already exists. Choose a different name.",
+  });
 
   if (imageFile) {
     const { url, path, error } = await uploadImage(
@@ -197,8 +285,6 @@ export async function updateCharacter(
     imageUrl = null;
   }
 
-  const normalizedName = toTitleCase(getString(formData, "name"));
-
   const data = {
     name: normalizedName,
     race: getStringOrNull(formData, "race"),
@@ -216,6 +302,13 @@ export async function updateCharacter(
     throw new Error("Validation failed");
   }
 
+  const organizationAffiliations: CharacterOrganizationAffiliationInput[] = selectedOrganizationIds.map(
+    (organizationId) => ({
+      organizationId,
+      role: result.data.player_type,
+    })
+  );
+
   const { error } = await supabase
     .from("characters")
     .update(result.data)
@@ -223,6 +316,11 @@ export async function updateCharacter(
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (organizationFieldTouched || organizationAffiliations.length > 0) {
+    await setCharacterOrganizations(supabase, id, organizationAffiliations);
+    revalidatePath("/organizations");
   }
 
   const newlyLinkedSessions = await ensureMentionedSessionsLinked(

@@ -4,10 +4,17 @@ import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
 import { sessionSchema } from '@/lib/validations/schemas'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
 import { toTitleCase } from '@/lib/utils'
+import {
+  getCampaignOrganizationIds,
+  resolveOrganizationIds,
+  setSessionOrganizations,
+} from '@/lib/actions/organizations'
+import { extractOrganizationIds } from '@/lib/organizations/helpers'
 
 const SESSION_BUCKET = 'session-images' as const
 
@@ -15,9 +22,20 @@ export async function createSession(formData: FormData): Promise<void> {
   const supabase = await createClient()
   const sessionId = randomUUID()
 
+  const organizationFieldProvided =
+    formData.has('organization_ids') || formData.has('organization_id')
+  const directOrganizationIds = extractOrganizationIds(formData)
+
   const headerImageFile = getFile(formData, 'header_image')
 
   const sessionName = toTitleCase(getString(formData, 'name'))
+
+  await assertUniqueValue(supabase, {
+    table: 'sessions',
+    column: 'name',
+    value: sessionName,
+    errorMessage: 'Session name already exists. Choose a different name.',
+  })
 
   const baseData = {
     name: sessionName,
@@ -70,6 +88,30 @@ export async function createSession(formData: FormData): Promise<void> {
     await supabase.from('session_characters').insert(sessionCharacters)
   }
 
+  let preferredOrganizationIds = Array.from(new Set(directOrganizationIds))
+
+  if (preferredOrganizationIds.length === 0 && !organizationFieldProvided) {
+    preferredOrganizationIds = await resolveOrganizationIds(supabase, [])
+  }
+
+  const campaignOrganizationIds = await getCampaignOrganizationIds(
+    supabase,
+    result.data.campaign_id ?? null
+  )
+
+  const finalOrganizationIds = Array.from(
+    new Set([...preferredOrganizationIds, ...campaignOrganizationIds])
+  )
+
+  if (
+    finalOrganizationIds.length > 0 ||
+    organizationFieldProvided ||
+    campaignOrganizationIds.length > 0
+  ) {
+    await setSessionOrganizations(supabase, sessionId, finalOrganizationIds)
+    revalidatePath('/organizations')
+  }
+
   revalidatePath('/sessions')
   redirect('/sessions')
 }
@@ -79,7 +121,7 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
 
   const { data: existing, error: fetchError } = await supabase
     .from('sessions')
-    .select('header_image_url')
+    .select('header_image_url, campaign_id')
     .eq('id', id)
     .single()
 
@@ -87,9 +129,23 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
     throw new Error('Session not found')
   }
 
+  const organizationFieldProvided =
+    formData.has('organization_ids') || formData.has('organization_id')
+  const directOrganizationIds = extractOrganizationIds(formData)
+
   const headerImageFile = getFile(formData, 'header_image')
   const removeHeader = formData.get('header_image_remove') === 'true'
   let headerImageUrl = existing.header_image_url
+
+  const sessionName = toTitleCase(getString(formData, 'name'))
+
+  await assertUniqueValue(supabase, {
+    table: 'sessions',
+    column: 'name',
+    value: sessionName,
+    excludeId: id,
+    errorMessage: 'Session name already exists. Choose a different name.',
+  })
 
   if (headerImageFile) {
     const { url, path, error: uploadError } = await uploadImage(
@@ -129,8 +185,6 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
     headerImageUrl = null
   }
 
-  const sessionName = toTitleCase(getString(formData, 'name'))
-
   const data = {
     name: sessionName,
     campaign_id: getStringOrNull(formData, 'campaign_id'),
@@ -165,6 +219,41 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
 
     await supabase.from('session_characters').insert(sessionCharacters)
   }
+
+  let preferredOrganizationIds: string[]
+
+  if (organizationFieldProvided) {
+    preferredOrganizationIds = Array.from(new Set(directOrganizationIds))
+  } else {
+    const { data: existingSessionOrganizations, error: existingOrgError } = await supabase
+      .from('organization_sessions')
+      .select('organization_id')
+      .eq('session_id', id)
+
+    if (existingOrgError) {
+      throw new Error(existingOrgError.message)
+    }
+
+    preferredOrganizationIds = Array.from(
+      new Set(existingSessionOrganizations?.map((row) => row.organization_id) ?? [])
+    )
+
+    if (preferredOrganizationIds.length === 0) {
+      preferredOrganizationIds = await resolveOrganizationIds(supabase, [])
+    }
+  }
+
+  const campaignOrganizationIds = await getCampaignOrganizationIds(
+    supabase,
+    result.data.campaign_id ?? null
+  )
+
+  const finalOrganizationIds = Array.from(
+    new Set([...preferredOrganizationIds, ...campaignOrganizationIds])
+  )
+
+  await setSessionOrganizations(supabase, id, finalOrganizationIds)
+  revalidatePath('/organizations')
 
   revalidatePath('/sessions')
   revalidatePath(`/sessions/${id}`)

@@ -1,10 +1,11 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import ImageUpload from "@/components/ui/image-upload"
 import CreatableSelect from "@/components/ui/creatable-select"
 import SynthwaveDropdown from "@/components/ui/synthwave-dropdown"
+import OrganizationMultiSelect from "@/components/ui/organization-multi-select"
 import MentionableTextarea from "@/components/ui/mentionable-textarea"
 import { createCharacter } from "@/lib/actions/characters"
 import {
@@ -24,14 +25,78 @@ const LOCATION_STORAGE_KEY = "character-location-options"
 type NewCharacterFormProps = {
   redirectTo?: string | null
   mentionTargets: MentionTarget[]
+  organizations: { id: string; name: string }[]
 }
 
-export function NewCharacterForm({ redirectTo, mentionTargets }: NewCharacterFormProps) {
+export function NewCharacterForm({ redirectTo, mentionTargets, organizations }: NewCharacterFormProps) {
   const [playerType, setPlayerType] = useState<"npc" | "player">("npc")
   const [race, setRace] = useState("")
   const [characterClass, setCharacterClass] = useState("")
   const [lastKnownLocation, setLastKnownLocation] = useState("")
   const [status, setStatus] = useState<CharacterStatus>("alive")
+  const [organizationIds, setOrganizationIds] = useState<string[]>([])
+  const organizationMentionTargets = useMemo(() => {
+    return organizations
+      .filter((organization) => Boolean(organization.name))
+      .map((organization) => ({
+        id: organization.id,
+        name: organization.name,
+        href: `/organizations/${organization.id}`,
+        kind: "organization" as const,
+      }))
+  }, [organizations])
+
+  const baseMentionTargets = useMemo(() => {
+    const merged = new Map<string, MentionTarget>()
+    mentionTargets.forEach((target) => {
+      merged.set(target.id, target)
+    })
+    organizationMentionTargets.forEach((target) => {
+      merged.set(target.id, target)
+    })
+    return Array.from(merged.values())
+  }, [mentionTargets, organizationMentionTargets])
+
+  const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(baseMentionTargets)
+
+  const organizationOptions = useMemo(() => {
+    return organizations.map((organization) => ({
+      value: organization.id,
+      label: organization.name || "Untitled Organization",
+    }))
+  }, [organizations])
+
+  useEffect(() => {
+    setMentionableTargets((previous) => {
+      const merged = new Map<string, MentionTarget>()
+      baseMentionTargets.forEach((target) => {
+        merged.set(target.id, target)
+      })
+      previous.forEach((target) => {
+        if (!merged.has(target.id)) {
+          merged.set(target.id, target)
+        }
+      })
+      return Array.from(merged.values())
+    })
+  }, [baseMentionTargets])
+
+  const handleOrganizationCreated = useCallback((option: { value: string; label: string }) => {
+    setMentionableTargets((previous) => {
+      if (previous.some((target) => target.id === option.value)) {
+        return previous
+      }
+      return [
+        ...previous,
+        {
+          id: option.value,
+          name: option.label,
+          href: `/organizations/${option.value}`,
+          kind: "organization" as const,
+        },
+      ]
+    })
+  }, [])
 
   const toTitleCase = useCallback((value: string) => {
     const trimmed = value.trim()
@@ -63,10 +128,10 @@ export function NewCharacterForm({ redirectTo, mentionTargets }: NewCharacterFor
   return (
     <form
       action={createCharacter}
-      encType="multipart/form-data"
       className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-8"
     >
       {redirectTo ? <input type="hidden" name="redirect_to" value={redirectTo} /> : null}
+      <input type="hidden" name="organization_field_present" value="true" />
 
       <ImageUpload name="image" label="Character Portrait" maxSize={5} />
 
@@ -161,22 +226,38 @@ export function NewCharacterForm({ redirectTo, mentionTargets }: NewCharacterFor
         </div>
       </div>
 
-      <div>
-        <label htmlFor="last_known_location" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
-          Last Known Location
-        </label>
-        <CreatableSelect
-          id="last_known_location"
-          name="last_known_location"
-          value={lastKnownLocation}
-          onChange={(next) => setLastKnownLocation(next ? toTitleCase(next) : "")}
-          options={LOCATION_SUGGESTIONS}
-          placeholder="Select or create a location"
-          storageKey={LOCATION_STORAGE_KEY}
-          normalizeOption={toTitleCase}
-        />
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="last_known_location" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+            Last Known Location
+          </label>
+          <CreatableSelect
+            id="last_known_location"
+            name="last_known_location"
+            value={lastKnownLocation}
+            onChange={(next) => setLastKnownLocation(next ? toTitleCase(next) : "")}
+            options={LOCATION_SUGGESTIONS}
+            placeholder="Select or create a location"
+            storageKey={LOCATION_STORAGE_KEY}
+            normalizeOption={toTitleCase}
+          />
+        </div>
 
+        <div className="space-y-2">
+          <label htmlFor="organization_ids" className="block text-sm font-bold text-[#00ffff] uppercase tracking-wider">
+            Organization Affiliation
+          </label>
+          <OrganizationMultiSelect
+            id="organization_ids"
+            name="organization_ids"
+            value={organizationIds}
+            onChange={setOrganizationIds}
+            options={organizationOptions}
+            placeholder="Select organizations"
+            onCreateOption={handleOrganizationCreated}
+          />
+        </div>
+      </div>
       <div>
         <label htmlFor="backstory" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
           Backstory & Notes
@@ -186,7 +267,7 @@ export function NewCharacterForm({ redirectTo, mentionTargets }: NewCharacterFor
           name="backstory"
           rows={6}
           initialValue=""
-          mentionTargets={mentionTargets}
+          mentionTargets={mentionableTargets}
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           placeholder="Character background, personality, goals..."
           spellCheck

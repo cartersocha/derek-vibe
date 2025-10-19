@@ -21,6 +21,7 @@ type MentionableTextareaProps = Omit<AutoResizeTextareaProps, "defaultValue" | "
   initialValue?: string | null
   mentionTargets: MentionTarget[]
   onValueChange?: (value: string) => void
+  onMentionInsert?: (target: MentionTarget) => void
 }
 
 type MentionOption = MentionTarget
@@ -30,11 +31,31 @@ type MentionKindLabelProps = {
 }
 
 function MentionKindLabel({ kind }: MentionKindLabelProps) {
-  const label = kind === "character" ? "Character" : "Session"
-  const colorClasses =
-    kind === "character"
-      ? "border-[#2de2e6] text-[#2de2e6]"
-      : "border-[#ff6ad5] text-[#ff6ad5]"
+  const label = (() => {
+    switch (kind) {
+      case "character":
+        return "Character"
+      case "session":
+        return "Session"
+      case "organization":
+        return "Organization"
+      default:
+        return "Mention"
+    }
+  })()
+
+  const colorClasses = (() => {
+    switch (kind) {
+      case "character":
+        return "border-[#2de2e6] text-[#2de2e6]"
+      case "session":
+        return "border-[#ff6ad5] text-[#ff6ad5]"
+      case "organization":
+        return "border-[#fcee0c] text-[#fcee0c]"
+      default:
+        return "border-[#94a3b8] text-[#94a3b8]"
+    }
+  })()
 
   return (
     <span
@@ -52,6 +73,7 @@ export default function MentionableTextarea({
   initialValue,
   mentionTargets,
   onValueChange,
+  onMentionInsert,
   className,
   ...rest
 }: MentionableTextareaProps) {
@@ -95,10 +117,55 @@ export default function MentionableTextarea({
   )
 
   const mentionOptions = useMemo(() => {
+    const MAX_OPTIONS = 12
+    const priorityOrder: Array<MentionOption["kind"]> = ["character", "organization", "session"]
+
     const entries = normalizedMentionQuery
       ? sortedTargets.filter((target) => target.name.toLowerCase().includes(normalizedMentionQuery))
       : sortedTargets
-    return entries.slice(0, 8)
+
+    if (entries.length <= MAX_OPTIONS) {
+      return entries
+    }
+
+    const bucketMap = new Map<MentionOption["kind"], MentionOption[]>(
+      priorityOrder.map((kind) => [kind, entries.filter((target) => target.kind === kind)])
+    )
+
+    const fallbackBucket = entries.filter((target) => !priorityOrder.includes(target.kind))
+
+    const cursors = new Map<string, number>()
+    const orderedBuckets: Array<{ key: string; items: MentionOption[] }> = [
+      ...priorityOrder.map((kind) => ({ key: kind, items: bucketMap.get(kind) ?? [] })),
+      { key: "__fallback__", items: fallbackBucket },
+    ]
+
+    const results: MentionOption[] = []
+
+    while (results.length < MAX_OPTIONS) {
+      let addedThisRound = false
+
+      for (const bucket of orderedBuckets) {
+        if (results.length >= MAX_OPTIONS) {
+          break
+        }
+
+        const cursor = cursors.get(bucket.key) ?? 0
+        if (cursor >= bucket.items.length) {
+          continue
+        }
+
+        results.push(bucket.items[cursor])
+        cursors.set(bucket.key, cursor + 1)
+        addedThisRound = true
+      }
+
+      if (!addedThisRound) {
+        break
+      }
+    }
+
+    return results.length > 0 ? results : entries.slice(0, MAX_OPTIONS)
   }, [normalizedMentionQuery, sortedTargets])
 
   const characterTargets = useMemo(
@@ -286,6 +353,7 @@ export default function MentionableTextarea({
 
       setValue(nextValue)
       onValueChange?.(nextValue)
+      onMentionInsert?.(target)
       closeMentionMenu()
 
       requestAnimationFrame(() => {
@@ -299,7 +367,7 @@ export default function MentionableTextarea({
         updateMentionState(nextValue, cursor, node)
       })
     },
-    [closeMentionMenu, mentionStart, onValueChange, updateMentionState, value]
+    [closeMentionMenu, mentionStart, onMentionInsert, onValueChange, updateMentionState, value]
   )
 
   const handleTextareaSelect = useCallback(
@@ -486,8 +554,30 @@ export default function MentionableTextarea({
             <>
               {mentionOptions.map((option, index) => {
                 const isActive = index === mentionHighlightIndex
-                const baseTextColor = option.kind === "character" ? "text-[#2de2e6]" : "text-[#ff6ad5]"
-                const activeTextColor = option.kind === "character" ? "text-[#65f8ff]" : "text-[#ff94e3]"
+                const { baseTextColor, activeTextColor } = (() => {
+                  switch (option.kind) {
+                    case "character":
+                      return {
+                        baseTextColor: "text-[#2de2e6]",
+                        activeTextColor: "text-[#65f8ff]",
+                      }
+                    case "session":
+                      return {
+                        baseTextColor: "text-[#ff6ad5]",
+                        activeTextColor: "text-[#ff94e3]",
+                      }
+                    case "organization":
+                      return {
+                        baseTextColor: "text-[#fcee0c]",
+                        activeTextColor: "text-[#fff89c]",
+                      }
+                    default:
+                      return {
+                        baseTextColor: "text-[#94a3b8]",
+                        activeTextColor: "text-white",
+                      }
+                  }
+                })()
                 return (
                   <button
                     key={`${option.kind}-${option.id}`}

@@ -37,9 +37,11 @@ export default async function SessionEditPage({
   const characterIds = sessionCharacters?.map(sc => sc.character_id) || []
 
   // Fetch all campaigns and characters for the form
-  const [{ data: campaigns }, { data: allCharacters }] = await Promise.all([
+  const [{ data: campaigns }, { data: allCharacters }, { data: allSessions }, { data: organizations }] = await Promise.all([
     supabase.from('campaigns').select('id, name').order('name'),
     supabase.from('characters').select('id, name, race, class').order('name'),
+    supabase.from('sessions').select('id, name').order('name'),
+    supabase.from('organizations').select('id, name').order('name'),
   ])
 
   const updateSessionWithId = updateSession.bind(null, id)
@@ -60,6 +62,33 @@ export default async function SessionEditPage({
 
   const sessionPath = `/sessions/${id}/edit${sessionQuery.toString() ? `?${sessionQuery.toString()}` : ''}`
   const newCharacterHref = `/characters/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
+
+  const mentionTargets = [
+    ...(allCharacters ?? [])
+      .filter((entry): entry is { id: string; name: string; race: string | null; class: string | null } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/characters/${entry.id}`,
+        kind: 'character' as const,
+      })),
+    ...(allSessions ?? [])
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/sessions/${entry.id}`,
+        kind: 'session' as const,
+      })),
+    ...(organizations ?? [])
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/organizations/${entry.id}`,
+        kind: 'organization' as const,
+      })),
+  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -88,6 +117,7 @@ export default async function SessionEditPage({
         draftKey={`session-notes:${id}`}
         newCharacterHref={newCharacterHref}
         preselectedCharacterIds={newCharacterId ? [newCharacterId] : undefined}
+        mentionTargets={mentionTargets}
       />
     </div>
   )

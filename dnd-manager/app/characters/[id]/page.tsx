@@ -6,12 +6,12 @@ import { deleteCharacter, updateCharacterSessions } from '@/lib/actions/characte
 import { DeleteCharacterButton } from '@/components/ui/delete-character-button'
 import MultiSelectDropdown from '@/components/ui/multi-select-dropdown'
 import {
-  cn,
   extractPlayerSummaries,
   type PlayerSummary,
   type SessionCharacterRelation,
 } from '@/lib/utils'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
+import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
 
 type SessionSummary = {
   id: string
@@ -46,11 +46,27 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     notFound()
   }
 
-  const { data: mentionCharacters } = await supabase
-    .from('characters')
-    .select('id, name')
+  const [{ data: mentionCharacters }, { data: organizationLinks }, { data: allOrganizations }] = await Promise.all([
+    supabase
+      .from('characters')
+      .select('id, name'),
+    supabase
+      .from('organization_characters')
+      .select(`
+        organization_id,
+        role,
+        organizations (
+          id,
+          name
+        )
+      `)
+      .eq('character_id', id),
+    supabase
+      .from('organizations')
+      .select('id, name'),
+  ])
 
-  const playerTypeLabel = character.player_type === 'player' ? 'Player Character' : 'NPC'
+  const playerTypeLabel = character.player_type === 'player' ? 'Player' : 'NPC'
   const statusLabel = (() => {
     switch (character.status) {
       case 'dead':
@@ -65,6 +81,56 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
   const locationLabel = character.last_known_location || 'Unknown'
   const levelLabel = character.player_type === 'player' ? 'Level' : 'Challenge Rating'
   const levelValue = character.level || '—'
+
+  const formatRoleLabel = (role: string | null | undefined) => {
+    if (!role) {
+      return null
+    }
+    if (role === 'npc') {
+      return 'NPC'
+    }
+    if (role === 'player') {
+      return 'Player'
+    }
+
+    return role
+      .split(/[_\s-]+/)
+      .filter(Boolean)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(' ')
+  }
+
+  const organizationAffiliationMap = new Map<string, { id: string; name: string; role: string | null; roleLabel: string | null }>()
+
+  for (const link of organizationLinks ?? []) {
+    const organization = Array.isArray(link.organizations)
+      ? link.organizations[0]
+      : link.organizations
+
+    const orgId = organization?.id ?? link.organization_id
+    if (!orgId) {
+      continue
+    }
+
+    if (organizationAffiliationMap.has(orgId)) {
+      continue
+    }
+
+    organizationAffiliationMap.set(orgId, {
+      id: orgId,
+      name: organization?.name ?? 'Untitled Organization',
+      role: link.role ?? null,
+      roleLabel: formatRoleLabel(link.role),
+    })
+  }
+
+  const organizationAffiliations = Array.from(organizationAffiliationMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+  )
+
+  const organizationSummary = organizationAffiliations.length > 0
+    ? organizationAffiliations.map((affiliation) => affiliation.name).join(', ')
+    : 'None'
 
   // Get sessions this character was in
   const { data: sessionCharacters } = await supabase
@@ -83,7 +149,17 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
       session_date,
       campaign:campaigns(id, name),
       session_characters:session_characters(
-        character:characters(id, name, class, race, level, player_type)
+        character:characters(
+          id,
+          name,
+          class,
+          race,
+          level,
+          player_type,
+          organization_memberships:organization_characters(
+            organizations(id, name)
+          )
+        )
       )
     `)
     .order('session_date', { ascending: false })
@@ -120,7 +196,20 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     kind: 'session' as const,
   }))
 
-  const mentionTargets: MentionTarget[] = [...characterMentionTargets, ...sessionMentionTargets]
+  const organizationMentionTargets: MentionTarget[] = (allOrganizations ?? [])
+    .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+    .map((entry) => ({
+      id: entry.id,
+      name: entry.name,
+      href: `/organizations/${entry.id}`,
+      kind: 'organization' as const,
+    }))
+
+  const mentionTargets: MentionTarget[] = [
+    ...characterMentionTargets,
+    ...sessionMentionTargets,
+    ...organizationMentionTargets,
+  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 
   const deleteCharacterWithId = deleteCharacter.bind(null, id)
   const updateCharacterSessionsWithId = updateCharacterSessions.bind(null, id)
@@ -216,14 +305,41 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                     <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Last Seen</dt>
                     <dd className="text-right text-[#f0f0ff]">{locationLabel}</dd>
                   </div>
+                  <div>
+                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Organizations</dt>
+                    <dd className="mt-1 text-right text-[#f0f0ff] text-xs leading-snug">{organizationSummary}</dd>
+                  </div>
                 </dl>
               </div>
             </div>
           </aside>
 
+          <section className="mb-6 space-y-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Affiliations</h3>
+            </div>
+            {organizationAffiliations.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {organizationAffiliations.map((affiliation) => (
+                  <Link
+                    key={affiliation.id}
+                    href={`/organizations/${affiliation.id}`}
+                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-4 py-2 text-xs sm:text-sm uppercase tracking-widest text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+                  >
+                    <span className="font-semibold">{affiliation.name}</span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm font-mono uppercase tracking-wider text-gray-500">No organization affiliations yet.</p>
+            )}
+          </section>
+
           {/* Backstory text now wraps around the infobox */}
           <section className="text-gray-300 font-mono leading-relaxed space-y-4 text-base sm:text-lg">
-            <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Backstory & Notes</h3>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+              <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Backstory & Notes</h3>
+            </div>
             {character.backstory ? (
               <div className="whitespace-pre-wrap leading-relaxed">
                 {renderNotesWithMentions(character.backstory, mentionTargets)}
@@ -260,7 +376,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             <div className="space-y-3">
               {linkedSessions.map((session) => {
                 const players = session.players
-
                 return (
                   <article
                     key={session.id}
@@ -280,22 +395,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                           </span>
                         )}
                         {players.length > 0 && (
-                          <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
-                            {players.map((player) => (
-                              <Link
-                                key={`${session.id}-${player.id}`}
-                                href={`/characters/${player.id}`}
-                                className={cn(
-                                  'rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2',
-                                  player.player_type === 'player'
-                                    ? 'border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
-                                    : 'border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]'
-                                )}
-                              >
-                                {player.name}
-                              </Link>
-                            ))}
-                          </div>
+                          <SessionParticipantPills sessionId={session.id} players={players} className="mt-3" />
                         )}
                       </div>
                       <div className="flex flex-col gap-2 text-sm text-gray-400 font-mono uppercase tracking-wider text-right">

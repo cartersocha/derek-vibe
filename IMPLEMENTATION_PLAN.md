@@ -24,7 +24,9 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-20):** Consolidated session draft autosave timers into a shared idle-aware coordinator, pruning redundant timeouts ahead of the remaining mobile and performance follow-ups.
 
-> **Note (2025-10-20, evening):** Color-coded mention hyperlinks and dropdown badges so character and session references stand out consistently while drafting or reading notes.
+> **Note (2025-10-20, evening):** Color-coded mention hyperlinks and dropdown badges so character, session, and organization references stand out consistently while drafting or reading notes.
+
+> **Note (2025-10-20, late night):** Refactored attendee chip rendering into a shared `SessionParticipantPills` component for consistent ordering and focus states across pages, and streamlined the dashboard's recent sessions by removing the note preview block.
 
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
@@ -38,7 +40,7 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Textarea resizing, character search filtering, and image preview generation were optimized to reduce layout thrash and memory usage, with server-side sanitization applied to all text fields.
 - Session detail, campaign detail, and session list pages now surface campaign-specific session numbers derived from ascending dates and display related characters in a 1/3/5 responsive grid for better density.
 - Session index mirrors the character tab with an inline search bar, attendee chips, and automated empty-state handling while filtering by campaign, notes, and player names.
-- Character, session, campaign, and dashboard views now share a common attendee badge renderer that collapses overflow into a concise `+N more` pill for dense parties.
+- Character, session, campaign, and dashboard views now share consistent attendee styling after consolidating to the shared `SessionParticipantPills` component, ensuring player pills lead and organization pills follow without overflow truncation.
 - Characters index gained a compact inline search bar colocated with the create button, along with a five-card responsive grid and empty-state messaging.
 - Sidebar resizing enforces an auto-measured maximum width and supports double-click toggles directly from the panel and resize handle for quicker interactions.
 - Dashboard recent sessions panel expanded to six entries, added note previews and attendee chips, and removed the redundant quick action tiles to streamline the layout.
@@ -50,6 +52,11 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Text inputs across the app now auto-capitalize their first alphabetical character on blur, applied through a global provider with a data attribute escape hatch for special cases.
 - Dropdowns across character and session flows now share the `SynthwaveDropdown` component, replacing legacy native selects and enabling inline campaign creation from a consistent synthwave-themed popover.
 - Character backstory editors now reuse the caret-anchored mention dropdown (including inline creation and wider menus), saved session/character names are normalized to title case, and spellcheck is enabled across long-form drafting fields to catch typos early.
+
+## Recent Enhancements (2025-10-20, late night)
+
+- Consolidated attendee pill rendering (characters and organizations) into the shared `SessionParticipantPills` component used by the sessions index, campaign detail, character detail, and dashboard cards, eliminating duplicate loops while improving mobile wrapping and focus behavior.
+- Removed the inline session note preview from dashboard recent sessions to tighten card payloads and keep the overview scannable on smaller screens.
 
 ## Project Overview
 
@@ -64,6 +71,10 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 ---
 
 ## ✅ Completed Implementation
+
+### Data Integrity Guardrails
+
+- Server actions for characters, campaigns, sessions, and organizations run `assertUniqueValue` before writes to block case-insensitive duplicates. Database-level unique indexes remain recommended to complement the application check.
 
 ### Phase 1: Project Setup & Foundation (COMPLETED)
 
@@ -730,12 +741,13 @@ export interface CharacterWithSessions extends Character {
 ## Phase 5: Organization Management Rollout
 
 ### Step 5.1: Database Migration for Organizations
-**Goal**: Introduce first-class organization support with Supabase migrations
+**Goal**: Add organization affiliations for campaigns, sessions, and characters
 
 **Tasks**:
-- Author `supabase/migrations/` scripts that create `organizations`, `organization_members`, and linking FKs to campaigns.
-- Ensure triggers mirror the existing `update_updated_at_column` pattern for organization tables.
-- Backfill existing campaigns with a default organization to preserve current routing semantics.
+- Author `supabase/migrations/` scripts that create `organizations` (with `logo_url` and timestamps) plus the `organization_campaigns`, `organization_sessions`, and `organization_characters` join tables.
+- Apply a CHECK constraint on `organization_characters.role` limited to `npc` and `player` with a default of `npc`.
+- Seed existing records into a default organization or backfill affiliation rows so current content remains visible post-migration.
+- Ensure triggers update `organizations.updated_at` on change and add convenient indexes on each join table for faster lookups by organization and entity IDs.
 
 **Files Touched**:
 - `supabase/migrations/20XXYYZZ_add_organizations.sql`
@@ -746,10 +758,11 @@ export interface CharacterWithSessions extends Character {
 **Goal**: Wire organization workflows into server-side logic
 
 **Tasks**:
-- Add `lib/actions/organizations.ts` with CRUD handlers that reuse `sanitizeText` and `sanitizeNullableText` from `lib/security/sanitize.ts`.
+- Add `lib/actions/organizations.ts` with CRUD handlers that reuse `sanitizeText` and `sanitizeNullableText` from `lib/security/sanitize.ts`, including optional logo uploads.
 - Extend `lib/mention-utils.ts` to expose organization targets, keeping the shared mention parsing behavior intact.
-- Create validation schema in `lib/validations/organization.ts` aligned with existing Zod patterns.
-- Update campaign, session, and character actions to accept organization context IDs while preserving mention hydration logic.
+- Create validation schema in `lib/validations/organization.ts` aligned with existing Zod patterns and enforcing role options for affiliations.
+- Update campaign, session, and character actions to create/update affiliation rows in the respective join tables while preserving mention hydration logic.
+- Introduce helper utilities that sync organization-session affiliations when a session is added to a campaign linked to multiple organizations.
 
 **Files Touched**:
 - `lib/actions/organizations.ts`
@@ -763,16 +776,17 @@ export interface CharacterWithSessions extends Character {
 **Goal**: Deliver end-to-end organization management screens
 
 **Tasks**:
-- Scaffold `app/(protected)/organizations/` routes (list, new, detail, members) using existing `Synthwave` UI primitives.
+- Scaffold `app/(protected)/organizations/` routes (list, new, detail, edit) using existing `Synthwave` UI primitives.
 - Add `app/organizations/layout.tsx` that parallels campaigns layout with responsive sidebar hooks and feeds shared params into the protected subtree.
-- Introduce `components/organizations/` for cards, forms, and member chips, reusing `MentionableTextarea` for description fields to leverage shared mention rendering.
+- Introduce `components/organizations/` for cards, forms, and affiliation chips, reusing `MentionableTextarea` for description fields and `ImageUpload` for optional logos.
+- Build detail views that summarize linked campaigns, sessions, and characters with role indicators and quick actions to attach/detach affiliations.
 - Ensure client components pull sanitized content and display mention highlights via `renderNotesWithMentions`.
 
 **Files Touched**:
 - `app/(protected)/organizations/page.tsx`
 - `app/(protected)/organizations/new/page.tsx`
 - `app/(protected)/organizations/[id]/page.tsx`
-- `app/(protected)/organizations/[id]/members/page.tsx`
+- `app/(protected)/organizations/[id]/edit/page.tsx`
 - `app/(protected)/organizations/layout.tsx`
 - `components/organizations/*`
 
@@ -783,10 +797,10 @@ export interface CharacterWithSessions extends Character {
 
 **Tasks**:
 - Verify migrations against Supabase preview databases and production shadow copies.
-- Exercise server actions with organization scoping, ensuring mention dropdowns reference organizations alongside characters and sessions.
-- Confirm sanitization removes unsafe markup in organization descriptions, matching campaign/session behavior.
-- Run manual regression across `app/organizations` flows, invitations, and membership removal.
-- Capture QA notes for reuse in future multi-tenant enhancements.
+- Exercise server actions with organization affiliations, ensuring mention dropdowns reference organizations alongside characters and sessions.
+- Confirm sanitization removes unsafe markup in organization descriptions and that logo uploads respect storage limits.
+- Run manual regression across `app/organizations` flows, campaign/session/character attachment toggles, and player vs NPC role rendering.
+- Capture QA notes for reuse in future multi-organization enhancements.
 
 **Files Referenced**:
 - `app/(protected)/organizations/*`
