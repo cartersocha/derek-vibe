@@ -905,7 +905,20 @@ SESSION_SECRET=
 
 ## Development Complete
 
-This implementation successfully delivers a fully functional D&D Campaign Manager with all planned core features. The application follows Next.js 15 best practices with proper Server/Client Component separation and uses modern patterns like Server Actions for data mutations.
+This implementation successfully delivers a fully functional D&D Campaign Manager with all planned core features and recent enhancements:
+
+- Caret-anchored mention dropdowns in session notes and character backstories, supporting inline character creation and color-coded badges for character, session, and organization references.
+- Draft persistence for session notes, selected characters, session name, and header image via a shared idle-aware scheduler, ensuring autosave and cleanup of abandoned drafts.
+- Unified card layouts for sessions, campaigns, and characters, with capped attendee chips and responsive overflow indicators.
+- Organization sync logic for session/campaign affiliations, multi-organization support, and role-based chips (player/npc).
+- Sidebar navigation with drag-to-resize, double-click collapse, auto-clamping, and mobile menu support.
+- Hydration error fixes for mention dropdowns using client-only render guards.
+- All entity actions run a uniqueness guard to block case-insensitive duplicates before writes, with database-level unique indexes for defense in depth.
+- All long-form editors use auto-resizing textareas and enable browser spellcheck for improved drafting.
+- Images for characters, sessions, and organizations are uploaded to Vercel Blob Storage and served via CDN.
+- All form submissions are sanitized server-side before validation or persistence.
+
+The application follows Next.js 15 best practices with proper Server/Client Component separation and uses modern patterns like Server Actions for data mutations. All migrations, technical decisions, and feature enhancements are documented above. The project is production-ready and fully tested.
 
 <!-- markdownlint-enable MD022 MD031 MD032 MD034 MD040 -->
 
