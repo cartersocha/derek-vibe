@@ -47,7 +47,15 @@ export default async function SessionEditPage({
   // Fetch all campaigns and characters for the form
   const [{ data: campaigns }, { data: allCharacters }, { data: allSessions }, { data: organizations }] = await Promise.all([
     supabase.from('campaigns').select('id, name').order('name'),
-    supabase.from('characters').select('id, name, race, class').order('name'),
+    supabase.from('characters').select(`
+      id,
+      name,
+      race,
+      class,
+      organization_memberships:organization_characters(
+        organizations(id, name)
+      )
+    `).order('name'),
     supabase.from('sessions').select('id, name').order('name'),
     supabase.from('organizations').select('id, name').order('name'),
   ])
@@ -56,9 +64,42 @@ export default async function SessionEditPage({
 
   const newCharacterId = typeof query?.newCharacterId === 'string' ? query.newCharacterId : undefined
 
+  // Transform character data to include organizations
+  type CharacterRow = {
+    id: string
+    name: string
+    race: string | null
+    class: string | null
+    organization_memberships: Array<{
+      organizations: { id: string; name: string } | Array<{ id: string; name: string }>
+    }> | null
+  }
+
+  const charactersWithOrgs = (allCharacters as CharacterRow[] | null)?.map((character) => {
+    const organizations: Array<{ id: string; name: string }> = []
+    
+    if (character.organization_memberships) {
+      character.organization_memberships.forEach((membership) => {
+        const orgData = membership.organizations
+        const org = Array.isArray(orgData) ? orgData[0] : orgData
+        if (org?.id && org?.name) {
+          organizations.push({ id: org.id, name: org.name })
+        }
+      })
+    }
+
+    return {
+      id: character.id,
+      name: character.name,
+      race: character.race,
+      class: character.class,
+      organizations,
+    }
+  }) || []
+
   const mentionTargets = [
-    ...(allCharacters ?? [])
-      .filter((entry): entry is { id: string; name: string; race: string | null; class: string | null } => Boolean(entry?.name))
+    ...charactersWithOrgs
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
       .map((entry) => ({
         id: entry.id,
         name: entry.name,
@@ -105,7 +146,7 @@ export default async function SessionEditPage({
           organizationIds: organizationIds,
         }}
         campaigns={campaigns || []}
-        characters={allCharacters || []}
+        characters={charactersWithOrgs}
         organizations={organizations || []}
         submitLabel="Save Changes"
         cancelHref={`/sessions/${id}`}

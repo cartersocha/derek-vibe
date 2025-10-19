@@ -29,6 +29,7 @@ interface Character {
   name: string
   race: string | null
   class: string | null
+  organizations?: Array<{ id: string; name: string }>
 }
 
 function sortCampaignsByName(list: Campaign[]): Campaign[] {
@@ -619,6 +620,38 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
       return sortCharactersByName(Array.from(byId.values()))
     })
   }, [mentionableTargets, notesDraft, sortCharactersByName])
+
+  // Automatically sync organizations from selected characters
+  useEffect(() => {
+    // Collect all organization IDs from the selected characters
+    const organizationIdsFromCharacters = new Set<string>()
+    
+    selectedCharacterIds.forEach((characterId) => {
+      const character = characterList.find((c) => c.id === characterId)
+      if (character?.organizations) {
+        character.organizations.forEach((org) => {
+          organizationIdsFromCharacters.add(org.id)
+        })
+      }
+    })
+
+    // Update selectedGroups to include organizations from characters
+    // while preserving any manually selected organizations
+    setSelectedGroups((prev) => {
+      const prevSet = new Set(prev)
+      let changed = false
+
+      // Add organizations from characters
+      organizationIdsFromCharacters.forEach((orgId) => {
+        if (!prevSet.has(orgId)) {
+          prevSet.add(orgId)
+          changed = true
+        }
+      })
+
+      return changed ? Array.from(prevSet) : prev
+    })
+  }, [selectedCharacterIds, characterList])
 
   const disableCampaignCreate = newCampaignName.trim().length === 0 || isCreatingCampaignInline
 

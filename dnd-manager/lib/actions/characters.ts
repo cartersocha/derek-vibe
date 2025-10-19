@@ -361,6 +361,22 @@ export async function updateCharacter(
       Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
         revalidatePath(`/organizations/${organizationId}`);
       });
+
+      // Sync organizations to ALL sessions this character is in
+      const { data: characterSessions } = await supabase
+        .from('session_characters')
+        .select('session_id')
+        .eq('character_id', id);
+
+      const sessionIds = characterSessions?.map(sc => sc.session_id) || [];
+      
+      if (sessionIds.length > 0) {
+        revalidatePath("/sessions");
+        for (const sessionId of sessionIds) {
+          await syncSessionOrganizationsFromCharacters(supabase, sessionId);
+          revalidatePath(`/sessions/${sessionId}`);
+        }
+      }
     }
   }
 

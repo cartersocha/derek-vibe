@@ -16,6 +16,7 @@ import {
   getCampaignOrganizationIds,
   resolveOrganizationIds,
   setSessionOrganizations,
+  syncSessionOrganizationsFromCharacters,
 } from '@/lib/actions/organizations'
 import { extractOrganizationIds } from '@/lib/organizations/helpers'
 
@@ -148,6 +149,11 @@ export async function createSession(formData: FormData): Promise<void> {
         revalidatePath(`/characters/${characterId}`)
       })
     }
+  }
+
+  // Sync organizations from characters to session
+  if (characterIds.length > 0) {
+    await syncSessionOrganizationsFromCharacters(supabase, sessionId)
   }
 
   let preferredOrganizationIds = Array.from(new Set(directOrganizationIds))
@@ -332,6 +338,9 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
       revalidatePath(`/characters/${characterId}`)
     })
   }
+
+  // Sync organizations from characters to session
+  await syncSessionOrganizationsFromCharacters(supabase, id)
 
   let preferredOrganizationIds: string[]
 
