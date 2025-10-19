@@ -136,13 +136,13 @@ export default function CampaignMultiSelect({
               return (
                 <div
                   key={selection}
-                  className="flex items-center gap-2 px-3 py-1 bg-[#ff6b35] bg-opacity-10 border border-[#ff6b35] border-opacity-30 rounded text-[#ff6b35] text-sm"
+                  className="flex items-center gap-2 px-3 py-1 bg-[#00ffff] bg-opacity-10 border border-[#00ffff] border-opacity-30 rounded text-[#00ffff] text-sm"
                 >
                   <span className="font-mono">{option.label}</span>
                   <button
                     type="button"
                     onClick={() => handleRemove(selection)}
-                    className="text-[#ff8a5b] hover:text-[#ff8a5b] font-bold"
+                    className="text-[#ff00ff] hover:text-[#ff00ff] font-bold"
                   >
                     ×
                   </button>
@@ -156,21 +156,21 @@ export default function CampaignMultiSelect({
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className="w-full px-4 py-3 bg-[#0f0f23] border border-[#ff6b35] border-opacity-30 text-[#ff6b35] rounded focus:outline-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent font-mono text-left"
+          className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono text-left"
         >
           {placeholder}
         </button>
 
         {/* Dropdown */}
         {open && (
-          <div className="absolute z-50 w-full mt-1 bg-[#0f0f23] border border-[#ff6b35] border-opacity-30 rounded shadow-lg">
+          <div className="absolute z-50 w-full mt-1 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded shadow-lg">
             <div className="p-2">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search campaigns..."
-                className="w-full px-3 py-2 bg-[#0f0f23] border border-[#ff6b35] border-opacity-30 text-[#ff6b35] rounded focus:outline-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent font-mono text-sm"
+                className="w-full px-3 py-2 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono text-sm"
                 autoFocus
               />
             </div>
@@ -189,8 +189,8 @@ export default function CampaignMultiSelect({
                         key={option.value}
                         type="button"
                         onClick={() => handleToggle(option.value)}
-                        className={`w-full px-4 py-2 text-left hover:bg-[#ff6b35] hover:bg-opacity-10 font-mono text-sm ${
-                          isSelected ? "bg-[#ff6b35] bg-opacity-20 text-[#ff6b35]" : "text-[#ff6b35]"
+                        className={`w-full px-4 py-2 text-left hover:bg-[#00ffff] hover:bg-opacity-10 font-mono text-sm ${
+                          isSelected ? "bg-[#00ffff] bg-opacity-20 text-[#00ffff]" : "text-[#00ffff]"
                         }`}
                       >
                         {option.label}
@@ -208,7 +208,7 @@ export default function CampaignMultiSelect({
                       type="button"
                       onClick={handleCreateNew}
                       disabled={isPending}
-                      className="w-full px-4 py-2 text-left hover:bg-[#ff6b35] hover:bg-opacity-10 text-[#ff6b35] font-mono text-sm border-t border-[#ff6b35] border-opacity-30"
+                      className="w-full px-4 py-2 text-left hover:bg-[#00ffff] hover:bg-opacity-10 text-[#00ffff] font-mono text-sm border-t border-[#00ffff] border-opacity-30"
                     >
                       {isPending ? "Creating..." : `+ Create "${trimmedSearch}"`}
                     </button>

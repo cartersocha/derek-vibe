@@ -19,6 +19,7 @@ import { createSessionInline } from "@/lib/actions/sessions"
 import { createCampaignInline } from "@/lib/actions/campaigns"
 import { cn } from "@/lib/utils"
 import { isMentionBoundary, type MentionTarget } from "@/lib/mention-utils"
+import { mentionEndPattern } from "@/lib/mentions"
 
 type MentionableTextareaProps = Omit<AutoResizeTextareaProps, "defaultValue" | "value" | "onChange" | "onKeyDown" | "onSelect" | "onBlur"> & {
   initialValue?: string | null
@@ -352,7 +353,9 @@ export default function MentionableTextarea({
 
       const query = preceding.slice(atIndex + 1)
 
-      if (/[\s\n\r\t]/.test(query)) {
+      // Allow spaces in mention queries for multi-word names
+      // Only close menu on newlines or tabs
+      if (/[\n\r\t]/.test(query)) {
         closeMentionMenu()
         return
       }
@@ -395,7 +398,7 @@ export default function MentionableTextarea({
       const before = rawValue.slice(0, safeStart)
       const after = rawValue.slice(safeEnd)
       const mentionText = `@${target.name}`
-      const needsSpace = after.length === 0 ? true : !isMentionBoundary(after.charAt(0))
+      const needsSpace = after.length === 0 ? true : !mentionEndPattern.test(after.charAt(0))
       const insertion = needsSpace ? `${mentionText} ` : mentionText
       const nextValue = `${before}${insertion}${after}`
 

@@ -34,7 +34,7 @@ export default async function EditOrganizationPage({
 
   const [campaignsResult, sessionsResult, charactersResult, organizationsResult, campaignLinksResult, sessionLinksResult, characterLinksResult] =
     await Promise.all([
-      supabase.from("campaigns").select("id, name").order("name"),
+      supabase.from("campaigns").select("id, name, created_at").order("created_at", { ascending: false }),
       supabase.from("sessions").select("id, name, session_date").order("session_date", { ascending: false, nullsFirst: false }),
       supabase.from("characters").select("id, name, player_type, status").order("name"),
       supabase.from("organizations").select("id, name").order("name"),

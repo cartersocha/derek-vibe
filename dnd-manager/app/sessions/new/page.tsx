@@ -11,7 +11,7 @@ export default async function NewSessionPage({
   const supabase = await createClient()
 
   const [{ data: campaigns }, { data: characters }, { data: sessions }, { data: organizations }] = await Promise.all([
-    supabase.from('campaigns').select('id, name').order('name'),
+    supabase.from('campaigns').select('id, name, created_at').order('created_at', { ascending: false }),
     supabase.from('characters').select(`
       id,
       name,
@@ -92,6 +92,14 @@ export default async function NewSessionPage({
         name: entry.name,
         href: `/organizations/${entry.id}`,
         kind: 'organization' as const,
+      })),
+    ...(campaigns ?? [])
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/campaigns/${entry.id}`,
+        kind: 'campaign' as const,
       })),
   ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 

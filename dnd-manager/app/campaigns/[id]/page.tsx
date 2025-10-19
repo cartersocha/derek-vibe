@@ -101,7 +101,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <Link href="/campaigns" className="text-[#ff6b35] hover:text-[#ff8a5b] font-mono uppercase tracking-wider">
+        <Link href="/campaigns" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
           ← Back to Campaigns
         </Link>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">

@@ -7,7 +7,7 @@ export default async function NewOrganizationPage() {
   const supabase = await createClient();
 
   const [campaignsResult, sessionsResult, charactersResult, organizationsResult] = await Promise.all([
-    supabase.from("campaigns").select("id, name").order("name"),
+    supabase.from("campaigns").select("id, name, created_at").order("created_at", { ascending: false }),
     supabase
       .from("sessions")
       .select("id, name, session_date")

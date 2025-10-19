@@ -131,12 +131,12 @@ export default function SimpleCampaignMultiSelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#ff6b35] ${
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
           open
-            ? 'border-[#ff6b35] text-[#ff6b35] shadow-lg shadow-[#ff6b35]/30'
+            ? 'border-[#ff00ff] text-[#ff00ff] shadow-lg shadow-[#ff00ff]/30'
             : normalizedSelections.length > 0
-              ? 'border-[#ff6b35] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b]'
-              : 'border-[#ff6b35] text-gray-500 hover:border-[#ff8a5b] hover:text-[#ff8a5b]'
+              ? 'border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]'
+              : 'border-[#00ffff] text-gray-500 hover:border-[#ff00ff] hover:text-[#ff00ff]'
         }`}
       >
         <span className="truncate">{selectedLabels || placeholder}</span>
@@ -147,14 +147,14 @@ export default function SimpleCampaignMultiSelect({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-50 w-full mt-1 bg-[#0f0f23] border border-[#ff6b35] border-opacity-30 rounded shadow-lg">
+        <div className="absolute z-50 w-full mt-1 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded shadow-lg">
           <div className="p-2">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search campaigns..."
-              className="w-full px-3 py-2 bg-[#0f0f23] border border-[#ff6b35] border-opacity-30 text-[#ff6b35] rounded focus:outline-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent font-mono text-sm"
+              className="w-full px-3 py-2 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono text-sm"
               autoFocus
             />
           </div>
@@ -174,7 +174,7 @@ export default function SimpleCampaignMultiSelect({
                         type="button"
                         onClick={() => handleToggle(option.value)}
                         className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[#1a1a3e]/60 ${
-                          isSelected ? 'text-[#ff6b35]' : 'text-[#ff6b35]'
+                          isSelected ? 'text-[#ff00ff]' : 'text-[#00ffff]'
                         }`}
                       >
                         <span className="truncate">
@@ -196,7 +196,7 @@ export default function SimpleCampaignMultiSelect({
                       type="button"
                       onClick={handleCreateNew}
                       disabled={isPending}
-                      className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[#ff6b35] transition-colors duration-150 hover:bg-[#1a1a3e]/60"
+                      className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[#00ffff] transition-colors duration-150 hover:bg-[#1a1a3e]/60"
                     >
                       <span className="truncate">
                         {isPending ? "Creating..." : `Create "${trimmedSearch}"`}
@@ -209,10 +209,10 @@ export default function SimpleCampaignMultiSelect({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-2 border-t border-[#ff6b35] border-opacity-20 bg-[#0f0f23] px-3 py-2">
+          <div className="flex items-center justify-between gap-2 border-t border-[#00ffff] border-opacity-20 bg-[#0f0f23] px-3 py-2">
             <button
               type="button"
-              className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#ff6b35] hover:text-[#ff8a5b]"
+              className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#00ffff] hover:text-[#ff00ff]"
               onClick={() => setOpen(false)}
             >
               Close
