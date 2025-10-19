@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { cn, type PlayerSummary } from "@/lib/utils";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 
@@ -142,20 +142,50 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                     )}
                     {sortedPlayers.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
-                        {sortedPlayers.map((player) => (
-                          <Link
-                            key={`${session.id}-${player.id}`}
-                            href={`/characters/${player.id}`}
-                            className={cn(
-                              "rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2",
-                              player.player_type === "player"
-                                ? "border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]"
-                                : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]"
-                            )}
-                          >
-                            {player.name}
-                          </Link>
-                        ))}
+                        {(function buildPills() {
+                          const playerPills: ReactNode[] = []
+                          const organizationPills: ReactNode[] = []
+
+                          for (const player of sortedPlayers) {
+                            playerPills.push(
+                              <Link
+                                key={`${session.id}-${player.id}`}
+                                href={`/characters/${player.id}`}
+                                className={cn(
+                                  "inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2",
+                                  player.player_type === "player"
+                                    ? "border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]"
+                                    : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]"
+                                )}
+                              >
+                                {player.name}
+                              </Link>
+                            )
+
+                            const organizations = Array.isArray(player.organizations) ? player.organizations : []
+                            const seenOrganizations = new Set<string>()
+                            for (const organization of organizations) {
+                              if (!organization?.id || !organization?.name) {
+                                continue
+                              }
+                              if (seenOrganizations.has(organization.id)) {
+                                continue
+                              }
+                              seenOrganizations.add(organization.id)
+                              organizationPills.push(
+                                <Link
+                                  key={`${session.id}-${player.id}-${organization.id}`}
+                                  href={`/organizations/${organization.id}`}
+                                  className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+                                >
+                                  {organization.name}
+                                </Link>
+                              )
+                            }
+                          }
+
+                          return [...playerPills, ...organizationPills]
+                        })()}
                       </div>
                     )}
                   </div>

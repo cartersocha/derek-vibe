@@ -42,13 +42,40 @@ export type PlayerSummary = {
   race: string | null
   level: string | null
   player_type: "npc" | "player" | null
+  organizations: { id: string; name: string }[]
 }
 
 export type SessionCharacterRelation = {
   character:
     | null
-    | PlayerSummary
-    | PlayerSummary[]
+    | ({
+        id: string | null
+        name: string | null
+        class?: string | null
+        race?: string | null
+        level?: string | null
+        player_type?: "npc" | "player" | null
+        organization_memberships?: Array<{
+          organizations:
+            | { id: string | null; name: string | null }
+            | Array<{ id: string | null; name: string | null }>
+            | null
+        }> | null
+      })
+    | Array<{
+        id: string | null
+        name: string | null
+        class?: string | null
+        race?: string | null
+        level?: string | null
+        player_type?: "npc" | "player" | null
+        organization_memberships?: Array<{
+          organizations:
+            | { id: string | null; name: string | null }
+            | Array<{ id: string | null; name: string | null }>
+            | null
+        }> | null
+      }>
 }
 
 export function extractPlayerSummaries(
@@ -68,6 +95,22 @@ export function extractPlayerSummaries(
       continue
     }
 
+    const memberships = Array.isArray(character.organization_memberships)
+      ? character.organization_memberships
+          .map((membership) => {
+            const org = membership?.organizations
+            const organization = Array.isArray(org) ? org[0] : org
+            if (!organization?.id || !organization?.name) {
+              return null
+            }
+            return {
+              id: organization.id,
+              name: organization.name,
+            }
+          })
+          .filter((org): org is { id: string; name: string } => Boolean(org))
+      : []
+
     players.push({
       id: character.id,
       name: character.name,
@@ -75,6 +118,7 @@ export function extractPlayerSummaries(
       race: character.race ?? null,
       level: character.level ?? null,
       player_type: (character as { player_type?: "npc" | "player" | null })?.player_type ?? null,
+      organizations: memberships,
     })
   }
 
