@@ -276,7 +276,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
                 <Link
                   key={group.id}
                   href={`/organizations/${group.id}`}
-                  className="inline-flex items-center rounded border border-[#00ffff]/30 bg-[#0f0f23] px-3 py-1.5 text-xs font-mono uppercase tracking-widest text-[#00ffff] transition-colors hover:border-[#ff00ff] hover:text-[#ff00ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff]"
+                  className="inline-flex items-center rounded border border-[#fcee0c]/70 bg-[#1a1400] px-3 py-1.5 text-xs font-mono uppercase tracking-widest text-[#fcee0c] transition-colors hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
                 >
                   {group.name}
                 </Link>

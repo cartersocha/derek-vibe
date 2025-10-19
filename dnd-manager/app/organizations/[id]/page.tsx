@@ -238,30 +238,28 @@ export default async function OrganizationDetailPage({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {campaigns.map((campaign) => (
-                <div
+                <article
                   key={campaign.id}
-                  className="group p-3 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                  className="group relative overflow-hidden rounded border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/40 p-3 shadow-2xl transition-all duration-200 hover:border-[#ff00ff] hover:bg-[#0f0f23] hover:shadow-[#ff00ff]/40"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <Link
-                      href={`/campaigns/${campaign.id}`}
-                      className="font-medium text-[#00ffff] font-mono text-base transition-colors group-hover:text-[#ff00ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ffff]"
-                    >
-                      {campaign.name}
-                    </Link>
-                    <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5] border border-[#ff00ff]/40 bg-[#211027]">
-                      {new Date(campaign.created_at).toLocaleDateString()}
-                    </span>
+                  <Link
+                    href={`/campaigns/${campaign.id}`}
+                    className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                    aria-label={`View campaign ${campaign.name}`}
+                  >
+                    <span aria-hidden="true" />
+                  </Link>
+                  <div className="relative z-10 pointer-events-none">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="font-medium text-[#00ffff] font-mono text-base transition-colors group-hover:text-[#ff00ff]">
+                        {campaign.name}
+                      </span>
+                      <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5] border border-[#ff00ff]/40 bg-[#211027]">
+                        {new Date(campaign.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
-                  <div className="mt-3 flex justify-end">
-                    <Link
-                      href={`/campaigns/${campaign.id}`}
-                      className="text-[10px] font-mono uppercase tracking-widest text-[#ff00ff] hover:text-[#ff6ad5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff]"
-                    >
-                      View campaign →
-                    </Link>
-                  </div>
-                </div>
+                </article>
               ))}
             </div>
           )}
@@ -274,40 +272,38 @@ export default async function OrganizationDetailPage({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {sessions.map((session) => (
-                <div
+                <article
                   key={session.id}
-                  className="group p-3 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                  className="group relative overflow-hidden rounded border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/40 p-3 shadow-2xl transition-all duration-200 hover:border-[#ff00ff] hover:bg-[#0f0f23] hover:shadow-[#ff00ff]/40"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <Link
-                      href={`/sessions/${session.id}`}
-                      className="font-medium text-[#00ffff] font-mono text-base transition-colors group-hover:text-[#ff00ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ffff]"
-                    >
-                      {session.name}
-                    </Link>
-                    <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#00ffff] border border-[#00ffff]/40 bg-[#0f0f23]">
-                      {session.session_date
-                        ? new Date(session.session_date).toLocaleDateString()
-                        : "Date TBD"}
-                    </span>
+                  <Link
+                    href={`/sessions/${session.id}`}
+                    className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                    aria-label={`View session ${session.name}`}
+                  >
+                    <span aria-hidden="true" />
+                  </Link>
+                  <div className="relative z-10 pointer-events-none">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="font-medium text-[#00ffff] font-mono text-base transition-colors group-hover:text-[#ff00ff]">
+                        {session.name}
+                      </span>
+                      <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#00ffff] border border-[#00ffff]/40 bg-[#0f0f23]">
+                        {session.session_date
+                          ? new Date(session.session_date).toLocaleDateString()
+                          : "Date TBD"}
+                      </span>
+                    </div>
+                    {session.campaign?.name ? (
+                      <Link
+                        href={`/campaigns/${session.campaign.id}`}
+                        className="pointer-events-auto mt-3 inline-flex items-center rounded border border-[#ff00ff]/40 bg-[#211027] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5] transition-colors hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6ad5]"
+                      >
+                        {session.campaign.name}
+                      </Link>
+                    ) : null}
                   </div>
-                  {session.campaign?.name ? (
-                    <Link
-                      href={`/campaigns/${session.campaign.id}`}
-                      className="mt-3 inline-flex items-center rounded border border-[#ff00ff]/40 bg-[#211027] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5] transition-colors hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6ad5]"
-                    >
-                      {session.campaign.name}
-                    </Link>
-                  ) : null}
-                  <div className="mt-3 flex justify-end">
-                    <Link
-                      href={`/sessions/${session.id}`}
-                      className="text-[10px] font-mono uppercase tracking-widest text-[#ff00ff] hover:text-[#ff6ad5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff]"
-                    >
-                      View session →
-                    </Link>
-                  </div>
-                </div>
+                </article>
               ))}
             </div>
           )}
@@ -326,33 +322,31 @@ export default async function OrganizationDetailPage({
                   : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] group-hover:border-[#ff6ad5] group-hover:text-[#ff9de6]";
 
                 return (
-                  <div
+                  <article
                     key={character.id}
-                    className="group p-3 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                    className="group relative overflow-hidden rounded border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/40 p-3 shadow-2xl transition-all duration-200 hover:border-[#ff00ff] hover:bg-[#0f0f23] hover:shadow-[#ff00ff]/40"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <Link
-                        href={`/characters/${character.id}`}
-                        className="font-medium text-[#00ffff] font-mono text-base transition-colors group-hover:text-[#ff00ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ffff]"
-                      >
-                        {character.name}
-                      </Link>
-                      <span className={`rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest transition-colors ${badgeClasses}`}>
-                        {isPlayer ? "Player" : "NPC"}
-                      </span>
+                    <Link
+                      href={`/characters/${character.id}`}
+                      className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                      aria-label={`View character ${character.name}`}
+                    >
+                      <span aria-hidden="true" />
+                    </Link>
+                    <div className="relative z-10 pointer-events-none">
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="font-medium text-[#00ffff] font-mono text-base transition-colors group-hover:text-[#ff00ff]">
+                          {character.name}
+                        </span>
+                        <span className={`rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest transition-colors ${badgeClasses}`}>
+                          {isPlayer ? "Player" : "NPC"}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-[11px] text-gray-400 font-mono uppercase tracking-widest">
+                        {character.player_type} · {character.status}
+                      </p>
                     </div>
-                    <p className="mt-2 text-[11px] text-gray-400 font-mono uppercase tracking-widest">
-                      {character.player_type} · {character.status}
-                    </p>
-                    <div className="mt-3 flex justify-end">
-                      <Link
-                        href={`/characters/${character.id}`}
-                        className="text-[10px] font-mono uppercase tracking-widest text-[#ff00ff] hover:text-[#ff6ad5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff]"
-                      >
-                        View profile →
-                      </Link>
-                    </div>
-                  </div>
+                  </article>
                 );
               })}
             </div>

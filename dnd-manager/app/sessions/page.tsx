@@ -11,7 +11,7 @@ export default async function SessionsPage() {
       .from('sessions')
       .select(`
         *,
-        campaign:campaigns(name),
+        campaign:campaigns(id, name),
         session_characters:session_characters(
           character:characters(
             id,
@@ -80,10 +80,14 @@ export default async function SessionsPage() {
       ? (session.session_characters as SessionCharacterRelation[])
       : null
     const players = extractPlayerSummaries(rawLinks)
+    const campaignRelation = Array.isArray(session.campaign)
+      ? session.campaign[0] ?? null
+      : session.campaign ?? null
 
     return {
       ...session,
       sessionNumber: sessionNumberMap.get(session.id) ?? null,
+      campaign: campaignRelation,
       players,
     }
   })

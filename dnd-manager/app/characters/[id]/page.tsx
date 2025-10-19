@@ -17,6 +17,9 @@ type SessionSummary = {
   id: string
   name: string
   session_date: string | null
+  notes: string | null
+  created_at: string | null
+  campaign_id: string | null
   campaign: {
     id: string
     name: string
@@ -28,6 +31,9 @@ type SessionRow = {
   id: string
   name: string
   session_date: string | null
+  notes: string | null
+  created_at: string | null
+  campaign_id: string | null
   campaign: { id: string; name: string } | { id: string; name: string }[] | null
   session_characters: SessionCharacterRelation[] | null
 }
@@ -147,6 +153,9 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
       id,
       name,
       session_date,
+      notes,
+      created_at,
+      campaign_id,
       campaign:campaigns(id, name),
       session_characters:session_characters(
         character:characters(
@@ -162,7 +171,8 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
         )
       )
     `)
-    .order('session_date', { ascending: false })
+    .order('session_date', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
     .returns<SessionRow[]>()
 
   const allSessions: SessionSummary[] = (allSessionsData || []).map((session) => {
@@ -176,11 +186,64 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
       id: session.id,
       name: session.name,
       session_date: session.session_date,
+      notes: session.notes ?? null,
+      created_at: session.created_at,
+      campaign_id: session.campaign_id,
       campaign,
       players,
     }
   })
   const linkedSessions = allSessions.filter(session => linkedSessionIds.has(session.id))
+
+  const sessionNumberMap = new Map<string, number>()
+
+  if (linkedSessions.length > 0) {
+    const campaignIds = Array.from(new Set(
+      linkedSessions
+        .map((session) => session.campaign_id)
+        .filter((campaignId): campaignId is string => Boolean(campaignId))
+    ))
+
+    if (campaignIds.length > 0) {
+      const campaignIdSet = new Set(campaignIds)
+      const sessionsByCampaign = allSessions.reduce<Map<string, SessionSummary[]>>((acc, session) => {
+        if (!session.campaign_id || !campaignIdSet.has(session.campaign_id)) {
+          return acc
+        }
+
+        const existing = acc.get(session.campaign_id)
+        if (existing) {
+          existing.push(session)
+        } else {
+          acc.set(session.campaign_id, [session])
+        }
+        return acc
+      }, new Map())
+
+      sessionsByCampaign.forEach((sessions) => {
+        const sorted = sessions
+          .filter((session) => Boolean(session.session_date))
+          .sort((a, b) => {
+            if (a.session_date && b.session_date) {
+              const dateCompare = new Date(a.session_date).getTime() - new Date(b.session_date).getTime()
+              if (dateCompare !== 0) {
+                return dateCompare
+              }
+            }
+
+            const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0
+            const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0
+            return aCreated - bCreated
+          })
+
+        let counter = 1
+        for (const session of sorted) {
+          sessionNumberMap.set(session.id, counter)
+          counter += 1
+        }
+      })
+    }
+  }
 
   const characterMentionTargets: MentionTarget[] = (mentionCharacters ?? []).map((entry) => ({
     id: entry.id,
@@ -305,10 +368,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                     <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Last Seen</dt>
                     <dd className="text-right text-[#f0f0ff]">{locationLabel}</dd>
                   </div>
-                  <div>
-                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Organizations</dt>
-                    <dd className="mt-1 text-right text-[#f0f0ff] text-xs leading-snug">{organizationSummary}</dd>
-                  </div>
                 </dl>
               </div>
             </div>
@@ -376,40 +435,54 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             <div className="space-y-3">
               {linkedSessions.map((session) => {
                 const players = session.players
+                const sessionNumber = sessionNumberMap.get(session.id)
+                const campaignRelation = session.campaign
                 return (
                   <article
                     key={session.id}
-                    className="group p-4 border border-[#00ffff] border-opacity-20 rounded transition-all duration-200 hover:border-[#ff00ff] hover:bg-[#0f0f23]"
+                    className="group relative overflow-hidden rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e] bg-opacity-50 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50"
                   >
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <Link
-                          href={`/sessions/${session.id}`}
-                          className="font-medium text-[#00ffff] font-mono text-lg transition-colors hover:text-[#ff00ff] focus:text-[#ff00ff] focus:outline-none pb-1"
-                        >
-                          {session.name}
-                        </Link>
-                        {session.campaign?.name && (
-                          <span className="mt-1 block text-xs uppercase tracking-wider text-[#ff00ff] font-semibold">
-                            {session.campaign.name}
+                    <Link
+                      href={`/sessions/${session.id}`}
+                      className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                      aria-label={`View session ${session.name}`}
+                    >
+                      <span aria-hidden="true" />
+                    </Link>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="relative z-10 flex-1 pointer-events-none">
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <span className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
+                            {session.name}
                           </span>
+                          {sessionNumber !== undefined && sessionNumber !== null && (
+                            <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
+                              Session #{sessionNumber}
+                            </span>
+                          )}
+                        </div>
+                        {campaignRelation?.id && campaignRelation.name && (
+                          <Link
+                            href={`/campaigns/${campaignRelation.id}`}
+                            className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff00ff] transition-colors hover:text-[#ff6ad5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6ad5] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                          >
+                            Campaign: {campaignRelation.name}
+                          </Link>
                         )}
                         {players.length > 0 && (
-                          <SessionParticipantPills sessionId={session.id} players={players} className="mt-3" />
+                          <SessionParticipantPills
+                            sessionId={session.id}
+                            players={players}
+                            className="mt-3 pointer-events-auto"
+                          />
                         )}
                       </div>
-                      <div className="flex flex-col gap-2 text-sm text-gray-400 font-mono uppercase tracking-wider text-right">
+                      <div className="relative z-10 pointer-events-none text-xs text-gray-500 font-mono uppercase tracking-wider sm:ml-4 sm:text-right">
                         {session.session_date ? (
-                          <span>{new Date(session.session_date).toLocaleDateString()}</span>
+                          <div>{new Date(session.session_date).toLocaleDateString()}</div>
                         ) : (
-                          <span>No date set</span>
+                          <div>No date set</div>
                         )}
-                        <Link
-                          href={`/sessions/${session.id}`}
-                          className="text-[#ff00ff] text-[10px] font-bold uppercase tracking-widest hover:text-[#ff6ad5] focus:text-[#ff6ad5] focus:outline-none"
-                        >
-                          View session →
-                        </Link>
                       </div>
                     </div>
                   </article>
