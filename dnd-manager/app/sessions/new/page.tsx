@@ -44,6 +44,7 @@ export default async function NewSessionPage({
 
   const sessionPath = `/sessions/new${sessionQuery.toString() ? `?${sessionQuery.toString()}` : ''}`
   const newCharacterHref = `/characters/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
+  const newGroupHref = `/organizations/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
 
   const mentionTargets = [
     ...(characters ?? [])
@@ -83,11 +84,13 @@ export default async function NewSessionPage({
         action={createSession}
         campaigns={campaigns || []}
         characters={characters || []}
+        organizations={organizations || []}
         defaultCampaignId={defaultCampaignId || undefined}
         submitLabel="Create Session"
         cancelHref="/sessions"
         draftKey={draftKey}
         newCharacterHref={newCharacterHref}
+        newGroupHref={newGroupHref}
         preselectedCharacterIds={newCharacterId ? [newCharacterId] : undefined}
         mentionTargets={mentionTargets}
       />

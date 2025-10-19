@@ -1,9 +1,10 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import Link from 'next/link'
 import MentionableTextarea from '@/components/ui/mentionable-textarea'
+import { EntityMultiSelect, type EntityOption } from '@/components/ui/entity-multi-select'
 import { collectMentionTargets, type MentionTarget } from '@/lib/mention-utils'
 import { createCampaignInline } from '@/lib/actions/campaigns'
 
@@ -41,14 +42,17 @@ interface SessionFormProps {
     notes?: string | null
     header_image_url?: string | null
     characterIds?: string[]
+    organizationIds?: string[]
   }
   campaigns: Campaign[]
   characters: Character[]
+  organizations: { id: string; name: string }[]
   defaultCampaignId?: string
   submitLabel?: string
   cancelHref?: string
   draftKey?: string
   newCharacterHref?: string
+  newGroupHref?: string
   preselectedCharacterIds?: string[]
   mentionTargets: MentionTarget[]
 }
@@ -58,11 +62,13 @@ export default function SessionForm({
   initialData,
   campaigns,
   characters,
+  organizations,
   defaultCampaignId,
   submitLabel = 'Create Session',
   cancelHref = '/sessions',
   draftKey,
   newCharacterHref,
+  newGroupHref,
   preselectedCharacterIds,
   mentionTargets,
 }: SessionFormProps) {
@@ -76,11 +82,12 @@ export default function SessionForm({
   const [characterList, setCharacterList] = useState(characters)
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(mentionTargets)
   const [campaignList, setCampaignList] = useState(() => sortCampaignsByName(campaigns))
-  const [selectedCharacters, setSelectedCharacters] = useState<Set<string>>(() => {
+  const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>(() => {
     const initialSet = new Set(initialData?.characterIds || [])
     preselectedCharacterIds?.forEach((id) => initialSet.add(id))
-    return initialSet
+    return Array.from(initialSet)
   })
+  const [selectedGroups, setSelectedGroups] = useState<string[]>(() => initialData?.organizationIds ?? [])
   const [campaignId, setCampaignId] = useState(() => initialData?.campaign_id || defaultCampaignId || '')
   const [campaignDropdownKey, setCampaignDropdownKey] = useState(0)
   const [isCampaignCreatorOpen, setIsCampaignCreatorOpen] = useState(false)
@@ -88,8 +95,6 @@ export default function SessionForm({
   const [newCampaignDescription, setNewCampaignDescription] = useState('')
   const [isCreatingCampaignInline, setIsCreatingCampaignInline] = useState(false)
   const [campaignCreationError, setCampaignCreationError] = useState<string | null>(null)
-  const [characterSearch, setCharacterSearch] = useState('')
-  const deferredCharacterSearch = useDeferredValue(characterSearch)
   const draftTimeoutsRef = useRef<Map<string, number>>(new Map())
   const idleCallbackRef = useRef<((callback: IdleRequestCallback) => number) | null>(null)
   const hasLoadedDraftRef = useRef(false)
@@ -145,6 +150,15 @@ export default function SessionForm({
     return [...base, ...mapped]
   }, [campaignList])
 
+  const groupOptions: EntityOption[] = useMemo(
+    () =>
+      organizations
+        .filter((organization): organization is { id: string; name: string } => Boolean(organization?.name))
+        .map((organization) => ({ value: organization.id, label: organization.name }))
+        .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' })),
+    [organizations]
+  )
+
   useEffect(() => {
     setCharacterList(characters)
   }, [characters])
@@ -171,6 +185,10 @@ export default function SessionForm({
   useEffect(() => {
     setCampaignId(initialData?.campaign_id || defaultCampaignId || '')
   }, [defaultCampaignId, initialData?.campaign_id])
+
+  useEffect(() => {
+    setSelectedGroups(initialData?.organizationIds ?? [])
+  }, [initialData?.organizationIds])
 
   useEffect(() => {
     if (!isCampaignCreatorOpen) {
@@ -257,10 +275,10 @@ export default function SessionForm({
             parsed.filter((value): value is string => typeof value === 'string')
           )
           if (validIds.size > 0) {
-            setSelectedCharacters((prev) => {
+            setSelectedCharacterIds((prev) => {
               const next = new Set(prev)
               validIds.forEach((id) => next.add(id))
-              return next
+              return Array.from(next)
             })
           }
         }
@@ -347,7 +365,7 @@ export default function SessionForm({
       return
     }
 
-    setSelectedCharacters((prev) => {
+    setSelectedCharacterIds((prev) => {
       const next = new Set(prev)
       let changed = false
       preselectedCharacterIds.forEach((id) => {
@@ -356,7 +374,7 @@ export default function SessionForm({
           changed = true
         }
       })
-      return changed ? next : prev
+      return changed ? Array.from(next) : prev
     })
   }, [preselectedCharacterIds])
 
@@ -452,34 +470,18 @@ export default function SessionForm({
     window.localStorage.removeItem(headerImageStorageKey)
   }, [cancelDraftUpdate, charactersStorageKey, draftStorageKey, headerImageStorageKey, nameStorageKey])
 
-  const toggleCharacter = useCallback((characterId: string) => {
-    setSelectedCharacters((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(characterId)) {
-        newSet.delete(characterId)
-      } else {
-        newSet.add(characterId)
-      }
-      return newSet
-    })
-  }, [])
-
-  const filteredCharacters = useMemo(() => {
-    const term = deferredCharacterSearch.trim().toLowerCase()
-    if (!term) {
-      return characterList
-    }
-
-    return characterList.filter((character) => {
-      const parts = [character.name, character.race ?? '', character.class ?? '']
-      return parts.some((part) => part.toLowerCase().includes(term))
-    })
-  }, [characterList, deferredCharacterSearch])
-
-  const hiddenSelectedCharacterIds = useMemo(() => {
-    const visibleIds = new Set(filteredCharacters.map((character) => character.id))
-    return Array.from(selectedCharacters).filter((id) => !visibleIds.has(id))
-  }, [filteredCharacters, selectedCharacters])
+  const characterOptions: EntityOption[] = useMemo(
+    () =>
+      characterList
+        .filter((character): character is Character => Boolean(character?.name))
+        .map((character) => ({
+          value: character.id,
+          label: character.name,
+          hint: [character.race, character.class].filter(Boolean).join(' • ') || null,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' })),
+    [characterList]
+  )
 
   const sortCharactersByName = useCallback(
     (list: Character[]) => [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
@@ -503,13 +505,11 @@ export default function SessionForm({
         return
       }
 
-      setSelectedCharacters((prev) => {
-        if (prev.has(target.id)) {
+      setSelectedCharacterIds((prev) => {
+        if (prev.includes(target.id)) {
           return prev
         }
-        const next = new Set(prev)
-        next.add(target.id)
-        return next
+        return [...prev, target.id]
       })
 
       setCharacterList((prev) => {
@@ -534,7 +534,7 @@ export default function SessionForm({
       return
     }
 
-    setSelectedCharacters((prev) => {
+    setSelectedCharacterIds((prev) => {
       let changed = false
       const next = new Set(prev)
       characterMentions.forEach((target) => {
@@ -543,7 +543,7 @@ export default function SessionForm({
           changed = true
         }
       })
-      return changed ? next : prev
+      return changed ? Array.from(next) : prev
     })
 
     setCharacterList((prev) => {
@@ -561,10 +561,6 @@ export default function SessionForm({
       return sortCharactersByName(Array.from(byId.values()))
     })
   }, [mentionableTargets, notesDraft, sortCharactersByName])
-
-  const handleCharacterSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setCharacterSearch(event.target.value)
-  }, [])
 
   const disableCampaignCreate = newCampaignName.trim().length === 0 || isCreatingCampaignInline
 
@@ -638,7 +634,7 @@ export default function SessionForm({
       if (typeof window === 'undefined') {
         return
       }
-      const values = Array.from(selectedCharacters)
+      const values = selectedCharacterIds
       if (values.length === 0) {
         window.localStorage.removeItem(charactersStorageKey)
       } else {
@@ -649,7 +645,7 @@ export default function SessionForm({
     return () => {
       cancelDraftUpdate(charactersStorageKey)
     }
-  }, [cancelDraftUpdate, charactersStorageKey, scheduleDraftUpdate, selectedCharacters])
+  }, [cancelDraftUpdate, charactersStorageKey, scheduleDraftUpdate, selectedCharacterIds])
 
   useEffect(() => {
     scheduleDraftUpdate(headerImageStorageKey, () => {
@@ -756,70 +752,47 @@ export default function SessionForm({
           spellCheck
         />
         <p className="mt-2 text-xs text-gray-500 font-mono uppercase tracking-wider">
-          Use @ to mention characters, sessions, or organizations. Mentioned items are linked automatically.
+          Use @ to mention characters, sessions, or groups. Mentioned items are linked automatically.
         </p>
       </div>
 
-          {hiddenSelectedCharacterIds.map((id) => (
-            <input key={`selected-hidden-${id}`} type="hidden" name="character_ids" value={id} />
-          ))}
-
-      {/* Characters Present */}
-          <div className="space-y-3">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <label className="text-sm font-bold text-[#00ffff] uppercase tracking-wider">
-                Related Characters
-              </label>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                <input
-                  type="search"
-                  value={characterSearch}
-                  onChange={handleCharacterSearchChange}
-                  placeholder="Search characters"
-                  className="w-full sm:w-64 rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] px-3 py-2 text-sm font-mono text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00ffff]"
-                />
-                {newCharacterHref && (
-                  <Link
-                    href={newCharacterHref}
-                    className="inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-30 px-3 py-2 text-xs font-bold uppercase tracking-[0.25em] text-[#00ffff] transition-colors duration-200 hover:border-[#ff00ff] hover:text-[#ff00ff]"
-                  >
-                    New Character
-                  </Link>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2 max-h-64 overflow-y-auto border border-[#00ffff] border-opacity-30 rounded p-4 bg-[#0f0f23]">
-              {filteredCharacters.length === 0 ? (
-                <p className="text-xs uppercase tracking-wider text-gray-500 font-mono text-center">
-                  {characterList.length === 0
-                    ? 'No characters yet. Create one to get started.'
-                    : 'No characters match your search'}
-                </p>
-              ) : (
-                filteredCharacters.map((character) => (
-                  <label key={character.id} className="flex items-center space-x-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      name="character_ids"
-                      value={character.id}
-                      checked={selectedCharacters.has(character.id)}
-                      onChange={() => toggleCharacter(character.id)}
-                      className="rounded border-[#00ffff] border-opacity-30 text-[#ff00ff] focus:ring-[#ff00ff] bg-[#0f0f23]"
-                    />
-                    <span className="text-[#00ffff] font-mono group-hover:text-[#ff00ff] transition-colors">
-                      {character.name}
-                      {(character.race || character.class) && (
-                        <span className="text-gray-500 text-sm ml-2">
-                          {[character.race, character.class].filter(Boolean).join(' • ')}
-                        </span>
-                      )}
-                    </span>
-                  </label>
-                ))
-              )}
-            </div>
+      {/* Related Characters & Groups */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <label className="text-sm font-bold text-[#00ffff] uppercase tracking-wider">
+              Related Characters
+            </label>
           </div>
+          <EntityMultiSelect
+            id="session-characters"
+            name="character_ids"
+            options={characterOptions}
+            value={selectedCharacterIds}
+            onChange={setSelectedCharacterIds}
+            placeholder={characterOptions.length ? 'Select characters' : 'No characters available'}
+            emptyMessage={characterList.length === 0 ? 'No characters yet. Create one to get started.' : 'No matches found'}
+            createOption={newCharacterHref ? { href: newCharacterHref, label: 'New Character' } : undefined}
+          />
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <label className="text-sm font-bold text-[#00ffff] uppercase tracking-wider">
+              Related Groups
+            </label>
+          </div>
+          <EntityMultiSelect
+            id="session-groups"
+            name="organization_ids"
+            options={groupOptions}
+            value={selectedGroups}
+            onChange={setSelectedGroups}
+            placeholder={groupOptions.length ? 'Select groups' : 'No groups available'}
+            emptyMessage={groupOptions.length === 0 ? 'No groups yet. Create one from the Groups tab.' : 'No matches found'}
+            createOption={newGroupHref ? { href: newGroupHref, label: 'New Group' } : undefined}
+          />
+        </div>
+      </div>
 
       {/* Action Buttons */}
       <div className="flex flex-col gap-4 sm:flex-row">

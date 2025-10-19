@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export type EntityOption = {
@@ -16,6 +17,10 @@ interface EntityMultiSelectProps {
   onChange: (next: string[]) => void;
   placeholder?: string;
   emptyMessage?: string;
+  createOption?: {
+    href: string;
+    label: string;
+  };
 }
 
 export function EntityMultiSelect({
@@ -26,6 +31,7 @@ export function EntityMultiSelect({
   onChange,
   placeholder = "Select items",
   emptyMessage = "No items available",
+  createOption,
 }: EntityMultiSelectProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -138,13 +144,24 @@ export function EntityMultiSelect({
           className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20"
         >
           <div className="border-b border-[#1a1a3e] px-3 py-2">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search"
-              className="w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search"
+                className="w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+              />
+              {createOption ? (
+                <Link
+                  href={createOption.href}
+                  onClick={() => setOpen(false)}
+                  className="whitespace-nowrap rounded border border-dashed border-[#ff00ff]/60 px-3 py-2 text-xs font-bold uppercase tracking-[0.3em] text-[#ff00ff] transition hover:border-[#ff00ff] hover:bg-[#1a1a3e]/60"
+                >
+                  + {createOption.label}
+                </Link>
+              ) : null}
+            </div>
           </div>
 
           <div className="max-h-60 overflow-y-auto">

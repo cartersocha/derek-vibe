@@ -50,6 +50,25 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     .eq('session_id', id)
 
   const characterIds = sessionCharacters?.map(sc => sc.character_id) || []
+
+  const { data: sessionOrganizations } = await supabase
+    .from('organization_sessions')
+    .select('organization:organizations(id, name)')
+    .eq('session_id', id)
+
+  const sessionGroups = (sessionOrganizations ?? [])
+    .map((entry) => {
+      const organization = Array.isArray(entry.organization) ? entry.organization[0] : entry.organization
+      if (!organization?.id || !organization?.name) {
+        return null
+      }
+      return {
+        id: organization.id,
+        name: organization.name,
+      }
+    })
+    .filter((group): group is { id: string; name: string } => Boolean(group))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
   
   type SessionCharacterRow = {
     id: string
@@ -245,6 +264,23 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
               <div className="text-gray-300 whitespace-pre-wrap font-mono text-base sm:text-lg leading-relaxed break-words">
                 {renderNotesWithMentions(session.notes, mentionTargets)}
               </div>
+            </div>
+          </div>
+        )}
+
+        {sessionGroups.length > 0 && (
+          <div>
+            <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Groups</h3>
+            <div className="flex flex-wrap gap-2">
+              {sessionGroups.map((group) => (
+                <Link
+                  key={group.id}
+                  href={`/organizations/${group.id}`}
+                  className="inline-flex items-center rounded border border-[#00ffff]/30 bg-[#0f0f23] px-3 py-1.5 text-xs font-mono uppercase tracking-widest text-[#00ffff] transition-colors hover:border-[#ff00ff] hover:text-[#ff00ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff]"
+                >
+                  {group.name}
+                </Link>
+              ))}
             </div>
           </div>
         )}
