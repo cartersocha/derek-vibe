@@ -1,16 +1,4 @@
 "use server";
-// List campaigns with pagination, user scoping, and authorization
-export async function getCampaignsList(supabase: SupabaseClient, userId: string, { limit = 20, offset = 0 } = {}): Promise<any[]> {
-  if (!userId) throw new Error('Unauthorized: Missing userId');
-  const { data, error } = await supabase
-    .from('campaigns')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
-  if (error) throw new Error(error.message);
-  return data ?? [];
-}
 
 import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
@@ -20,8 +8,21 @@ import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { campaignSchema } from '@/lib/validations/schemas'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
+import { getString, getStringOrNull, getFile, getIdList, getDateValue } from '@/lib/utils/form-data'
+import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import { resolveOrganizationIds, setCampaignOrganizations } from '@/lib/actions/organizations'
 import { extractOrganizationIds } from '@/lib/organizations/helpers'
+
+// List campaigns with pagination
+export async function getCampaignsList(supabase: SupabaseClient, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('campaigns')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
 
 const isMissingCampaignCharactersTable = (error: { message?: string | null; code?: string | null } | null | undefined) => {
   if (!error) {
@@ -304,43 +305,6 @@ export async function deleteCampaign(id: string): Promise<void> {
   redirect('/campaigns')
 }
 
-function getIdList(formData: FormData, field: string): string[] {
-  const rawValues = formData
-    .getAll(field)
-    .filter((entry): entry is string => typeof entry === 'string')
-    .map((entry) => entry.trim())
-    .filter(Boolean)
-
-  return Array.from(new Set(rawValues))
-}
-
-function getDateValue(formData: FormData, field: string): string | null {
-  const rawValue = formData.get(field)
-  if (typeof rawValue !== 'string') {
-    return null
-  }
-
-  const trimmed = rawValue.trim()
-  if (!trimmed) {
-    return null
-  }
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-    const [year, month, day] = trimmed.split('-').map((value) => Number.parseInt(value, 10))
-    if ([year, month, day].some((value) => Number.isNaN(value))) {
-      return null
-    }
-
-    return new Date(Date.UTC(year, month - 1, day)).toISOString()
-  }
-
-  const parsed = new Date(trimmed)
-  if (Number.isNaN(parsed.getTime())) {
-    return null
-  }
-
-  return parsed.toISOString()
-}
 
 async function setCampaignSessions(
   supabase: SupabaseClient,

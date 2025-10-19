@@ -537,6 +537,7 @@ export default function MentionableTextarea({
         aria-expanded={isMentionMenuOpen}
         aria-controls={isMentionMenuOpen ? mentionListId : undefined}
         className={cn("pr-3", className)}
+        maxHeight={400}
       />
 
       {isMentionMenuOpen && (

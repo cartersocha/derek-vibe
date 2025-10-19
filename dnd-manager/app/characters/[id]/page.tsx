@@ -10,6 +10,7 @@ import {
   dateStringToLocalDate,
   formatDateStringForDisplay,
   type PlayerSummary,
+  type SessionCharacterRelation,
 } from '@/lib/utils'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'

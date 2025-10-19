@@ -6,6 +6,7 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
+  useState,
   type ChangeEventHandler,
   type FormEventHandler,
   type MutableRefObject,
@@ -13,35 +14,16 @@ import {
 } from "react"
 import { cn } from "@/lib/utils"
 
-export type AutoResizeTextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement>
-
-const SCROLLABLE_OVERFLOW_PATTERN = /(auto|scroll)/i
-
-const getScrollableAncestor = (element: HTMLTextAreaElement | null): HTMLElement | null => {
-  if (!element || typeof window === "undefined") {
-    return null
-  }
-
-  let parent: HTMLElement | null = element.parentElement
-  while (parent) {
-    const style = window.getComputedStyle(parent)
-    if (
-      SCROLLABLE_OVERFLOW_PATTERN.test(style.overflowY) ||
-      SCROLLABLE_OVERFLOW_PATTERN.test(style.overflow) ||
-      SCROLLABLE_OVERFLOW_PATTERN.test(style.overflowX)
-    ) {
-      return parent
-    }
-    parent = parent.parentElement
-  }
-
-  const ownerDocument = element.ownerDocument
-  const scrollingElement = ownerDocument?.scrollingElement
-  return scrollingElement instanceof HTMLElement ? scrollingElement : null
+export type AutoResizeTextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  maxHeight?: number // Maximum height in pixels before switching to scroll mode
 }
 
+/**
+ * Smart auto-resize that switches to scroll mode after reaching max height
+ * This prevents the parent container from jumping around
+ */
 const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeTextareaProps>(
-  ({ className, onInput, onChange, ...rest }, ref) => {
+  ({ className, onInput, onChange, maxHeight = 400, ...rest }, ref) => {
     const innerRef = useRef<HTMLTextAreaElement | null>(null)
     const combinedRef = (instance: HTMLTextAreaElement | null) => {
       innerRef.current = instance
@@ -53,12 +35,28 @@ const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeTextareaPro
     }
 
     const frameRef = useRef<number | null>(null)
+    const [isScrollMode, setIsScrollMode] = useState(false)
 
     const resizeImmediately = useCallback((textarea: HTMLTextAreaElement) => {
+      if (isScrollMode) return // Don't resize in scroll mode
+
+      const currentScrollTop = textarea.scrollTop
+      
       textarea.style.height = "auto"
-      const nextHeight = `${textarea.scrollHeight}px`
-      textarea.style.height = nextHeight
-    }, [])
+      const scrollHeight = textarea.scrollHeight
+      
+      if (scrollHeight > maxHeight) {
+        // Switch to scroll mode
+        textarea.style.height = `${maxHeight}px`
+        textarea.style.overflowY = "auto"
+        setIsScrollMode(true)
+        // Restore scroll position
+        textarea.scrollTop = currentScrollTop
+      } else {
+        textarea.style.height = `${scrollHeight}px`
+        textarea.style.overflowY = "hidden"
+      }
+    }, [isScrollMode, maxHeight])
 
     const scheduleResize = useCallback(
       (textarea: HTMLTextAreaElement | null) => {
@@ -113,7 +111,7 @@ const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeTextareaPro
         ref={combinedRef}
         onInput={handleInput}
         onChange={handleChange}
-        className={cn("resize-none overflow-hidden", className)}
+        className={cn("resize-none", isScrollMode ? "overflow-y-auto" : "overflow-hidden", className)}
       />
     )
   }
@@ -122,3 +120,4 @@ const AutoResizeTextarea = forwardRef<HTMLTextAreaElement, AutoResizeTextareaPro
 AutoResizeTextarea.displayName = "AutoResizeTextarea"
 
 export default AutoResizeTextarea
+

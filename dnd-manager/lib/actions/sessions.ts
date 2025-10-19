@@ -1,25 +1,15 @@
 "use server";
-import type { SupabaseClient } from "@supabase/supabase-js";
-// List sessions with pagination, user scoping, and authorization
-export async function getSessionsList(supabase: SupabaseClient, userId: string, { limit = 20, offset = 0 } = {}): Promise<any[]> {
-  if (!userId) throw new Error('Unauthorized: Missing userId');
-  const { data, error } = await supabase
-    .from('sessions')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
-  if (error) throw new Error(error.message);
-  return data ?? [];
-}
 
 import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
 import { sessionSchema } from '@/lib/validations/schemas'
+import { getString, getStringOrNull, getFile, getIdList, getDateValue } from '@/lib/utils/form-data'
+import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
 import { toTitleCase } from '@/lib/utils'
 import {
@@ -29,7 +19,18 @@ import {
 } from '@/lib/actions/organizations'
 import { extractOrganizationIds } from '@/lib/organizations/helpers'
 
-const SESSION_BUCKET = 'session-images' as const
+// List sessions with pagination
+export async function getSessionsList(supabase: SupabaseClient, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+const SESSION_BUCKET = STORAGE_BUCKETS.SESSIONS
 
 export async function createSessionInline(name: string, campaignId?: string | null): Promise<{ id: string; name: string }> {
   const supabase = await createClient()
@@ -485,27 +486,3 @@ export async function deleteSession(id: string): Promise<void> {
   redirect('/sessions')
 }
 
-function getString(formData: FormData, key: string): string {
-  const value = formData.get(key)
-  if (typeof value !== 'string') {
-    return ''
-  }
-
-  return sanitizeText(value).trim()
-}
-
-function getStringOrNull(formData: FormData, key: string): string | null {
-  const value = formData.get(key)
-
-  return sanitizeNullableText(value)
-}
-
-function getFile(formData: FormData, key: string): File | null {
-  const value = formData.get(key)
-
-  if (value instanceof File && value.size > 0) {
-    return value
-  }
-
-  return null
-}

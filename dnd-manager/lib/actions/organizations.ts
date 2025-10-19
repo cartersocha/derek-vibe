@@ -1,16 +1,4 @@
 "use server";
-// List organizations with pagination, user scoping, and authorization
-export async function getOrganizationsList(supabase: SupabaseClient, userId: string, { limit = 20, offset = 0 } = {}): Promise<any[]> {
-  if (!userId) throw new Error('Unauthorized: Missing userId');
-  const { data, error } = await supabase
-    .from('organizations')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
-  if (error) throw new Error(error.message);
-  return data ?? [];
-}
 
 import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
@@ -20,9 +8,22 @@ import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
+import { getString, getStringOrNull, getFile, getIdList, getDateValue } from '@/lib/utils/form-data'
+import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import { organizationSchema, type CharacterOrganizationAffiliationInput } from '@/lib/validations/organization'
 
-const LOGO_BUCKET = 'organization-logos' as const
+// List organizations with pagination
+export async function getOrganizationsList(supabase: SupabaseClient, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+const LOGO_BUCKET = STORAGE_BUCKETS.ORGANIZATIONS
 
 export async function createOrganization(formData: FormData): Promise<void> {
   const supabase = await createClient()
@@ -606,31 +607,6 @@ export async function setCharacterOrganizations(
   return Array.from(touchedIds)
 }
 
-function getString(formData: FormData, key: string): string {
-  const value = formData.get(key)
-
-  if (typeof value !== 'string') {
-    return ''
-  }
-
-  return value
-}
-
-function getFile(formData: FormData, key: string): File | null {
-  const value = formData.get(key)
-
-  if (value instanceof File && value.size > 0) {
-    return value
-  }
-
-  return null
-}
-
-function getIdList(formData: FormData, key: string): string[] {
-  return formData
-    .getAll(key)
-    .flatMap((value) => (typeof value === 'string' && value.trim() ? [value.trim()] : []))
-}
 
 async function syncOrganizationCampaigns(
   supabase: SupabaseClient,

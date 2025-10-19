@@ -729,7 +729,6 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
   return (
     <form
       action={action}
-      encType="multipart/form-data"
       onSubmit={handleFormSubmit}
       className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-6"
     >
@@ -793,7 +792,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
       </div>
 
       {/* Session Notes */}
-      <div style={{ minHeight: 0, overflow: 'visible' }}>
+      <div style={{ minHeight: 0, overflow: 'visible', contain: 'layout' }}>
         <label htmlFor="notes" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
           Session Notes
         </label>
