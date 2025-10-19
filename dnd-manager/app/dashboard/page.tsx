@@ -113,29 +113,29 @@ export default async function DashboardPage() {
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6">
+        <Link
+          href="/campaigns"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
+        >
           <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Total Campaigns</h3>
           <p className="mt-2 text-3xl font-bold text-[#00ffff]">{campaignsCount || 0}</p>
-          <Link href="/campaigns" className="mt-4 inline-block text-[#ff00ff] hover:text-[#cc00cc] text-sm font-mono uppercase tracking-wider">
-            View all →
-          </Link>
-        </div>
+        </Link>
 
-        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6">
+        <Link
+          href="/sessions"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
+        >
           <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Total Sessions</h3>
           <p className="mt-2 text-3xl font-bold text-[#00ffff]">{sessionsCount || 0}</p>
-          <Link href="/sessions" className="mt-4 inline-block text-[#ff00ff] hover:text-[#cc00cc] text-sm font-mono uppercase tracking-wider">
-            View all →
-          </Link>
-        </div>
+        </Link>
 
-        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6">
+        <Link
+          href="/characters"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
+        >
           <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Total Characters</h3>
           <p className="mt-2 text-3xl font-bold text-[#00ffff]">{charactersCount || 0}</p>
-          <Link href="/characters" className="mt-4 inline-block text-[#ff00ff] hover:text-[#cc00cc] text-sm font-mono uppercase tracking-wider">
-            View all →
-          </Link>
-        </div>
+        </Link>
       </div>
 
       {/* Recent Sessions */}

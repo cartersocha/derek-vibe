@@ -60,6 +60,14 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Consolidated attendee pill rendering (characters and organizations) into the shared `SessionParticipantPills` component used by the sessions index, campaign detail, character detail, and dashboard cards, eliminating duplicate loops while improving mobile wrapping and focus behavior.
 - Removed the inline session note preview from dashboard recent sessions to tighten card payloads and keep the overview scannable on smaller screens.
 
+## Recent Enhancements (2025-10-21, evening)
+
+- Introduced a shared `CampaignForm` that centralizes create/edit flows, surfaces an editable created date, and arranges group, session, and character selectors in a responsive two-by-two grid powered by `EntityMultiSelect`.
+- Extended `lib/actions/campaigns.ts` to parse date-only inputs, synchronize session and character associations alongside organization links, and revalidate dependent routes after mutation.
+- Updated campaign new/edit pages to hydrate the form with option hints, default selections, and a pre-populated created date while keeping inline multi-select creation affordances consistent with other entity forms.
+- Added the `20241021_add_campaign_characters.sql` migration to create the `campaign_characters` join table, index by character, and backfill relationships from existing session participation data.
+- Documented the new associations in specification materials and refreshed the implementation plan to capture the migration and form architecture.
+
 ## Project Overview
 
 **Framework**: Next.js 15.5.6 (App Router)  
