@@ -21,6 +21,7 @@ type MentionableTextareaProps = Omit<AutoResizeTextareaProps, "defaultValue" | "
   initialValue?: string | null
   mentionTargets: MentionTarget[]
   onValueChange?: (value: string) => void
+  onMentionInsert?: (target: MentionTarget) => void
 }
 
 type MentionOption = MentionTarget
@@ -72,6 +73,7 @@ export default function MentionableTextarea({
   initialValue,
   mentionTargets,
   onValueChange,
+  onMentionInsert,
   className,
   ...rest
 }: MentionableTextareaProps) {
@@ -351,6 +353,7 @@ export default function MentionableTextarea({
 
       setValue(nextValue)
       onValueChange?.(nextValue)
+      onMentionInsert?.(target)
       closeMentionMenu()
 
       requestAnimationFrame(() => {
@@ -364,7 +367,7 @@ export default function MentionableTextarea({
         updateMentionState(nextValue, cursor, node)
       })
     },
-    [closeMentionMenu, mentionStart, onValueChange, updateMentionState, value]
+    [closeMentionMenu, mentionStart, onMentionInsert, onValueChange, updateMentionState, value]
   )
 
   const handleTextareaSelect = useCallback(

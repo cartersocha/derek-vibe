@@ -3,7 +3,7 @@ export type PlayerType = (typeof PLAYER_TYPE_VALUES)[number];
 
 export const PLAYER_TYPE_OPTIONS: ReadonlyArray<{ value: PlayerType; label: string }> = [
   { value: "npc", label: "NPC" },
-  { value: "player", label: "Player Character" },
+  { value: "player", label: "Player" },
 ] as const;
 
 export const CHARACTER_STATUS_VALUES = ["alive", "dead", "unknown"] as const;

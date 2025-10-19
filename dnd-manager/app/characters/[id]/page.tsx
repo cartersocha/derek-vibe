@@ -66,7 +66,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
       .select('id, name'),
   ])
 
-  const playerTypeLabel = character.player_type === 'player' ? 'Player Character' : 'NPC'
+  const playerTypeLabel = character.player_type === 'player' ? 'Player' : 'NPC'
   const statusLabel = (() => {
     switch (character.status) {
       case 'dead':
@@ -304,39 +304,38 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             </div>
           </aside>
 
+          <section className="mb-6 space-y-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Affiliations</h3>
+            </div>
+            {organizationAffiliations.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {organizationAffiliations.map((affiliation) => (
+                  <Link
+                    key={affiliation.id}
+                    href={`/organizations/${affiliation.id}`}
+                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-4 py-2 text-xs sm:text-sm uppercase tracking-widest text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+                  >
+                    <span className="font-semibold">{affiliation.name}</span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm font-mono uppercase tracking-wider text-gray-500">No organization affiliations yet.</p>
+            )}
+          </section>
+
           {/* Backstory text now wraps around the infobox */}
           <section className="text-gray-300 font-mono leading-relaxed space-y-4 text-base sm:text-lg">
-            <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Backstory & Notes</h3>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+              <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Backstory & Notes</h3>
+            </div>
             {character.backstory ? (
               <div className="whitespace-pre-wrap leading-relaxed">
                 {renderNotesWithMentions(character.backstory, mentionTargets)}
               </div>
             ) : (
               <p className="text-gray-500 italic">No backstory provided yet.</p>
-            )}
-          </section>
-
-          <section className="space-y-3 font-mono text-gray-300">
-            <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Organization Affiliations</h3>
-            {organizationAffiliations.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {organizationAffiliations.map((affiliation) => (
-                  <Link
-                    key={affiliation.id}
-                    href={`/organizations/${affiliation.id}`}
-                    className="group inline-flex items-center gap-2 rounded border border-[#00ffff]/30 bg-[#0f0f23] px-3 py-1 text-[11px] uppercase tracking-widest text-[#00ffff] transition hover:border-[#ff00ff] hover:text-[#ff00ff]"
-                  >
-                    <span>{affiliation.name}</span>
-                    {affiliation.roleLabel ? (
-                      <span className="text-[9px] font-bold text-[#ff00ff] transition group-hover:text-[#ff6ad5]">
-                        {affiliation.roleLabel}
-                      </span>
-                    ) : null}
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 italic">No organization affiliations yet.</p>
             )}
           </section>
 
@@ -367,6 +366,14 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             <div className="space-y-3">
               {linkedSessions.map((session) => {
                 const players = session.players
+                const sortedPlayers = [...players].sort((a, b) => {
+                  const weight = (value: PlayerSummary['player_type']) => (value === 'player' ? 0 : value === 'npc' ? 1 : 2)
+                  const diff = weight(a.player_type) - weight(b.player_type)
+                  if (diff !== 0) {
+                    return diff
+                  }
+                  return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+                })
 
                 return (
                   <article
@@ -386,9 +393,9 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                             {session.campaign.name}
                           </span>
                         )}
-                        {players.length > 0 && (
+                        {sortedPlayers.length > 0 && (
                           <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
-                            {players.map((player) => (
+                            {sortedPlayers.map((player) => (
                               <Link
                                 key={`${session.id}-${player.id}`}
                                 href={`/characters/${player.id}`}

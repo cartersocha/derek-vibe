@@ -1,21 +1,30 @@
 import { createClient } from '@/lib/supabase/server'
 import { SessionsIndex } from '@/components/ui/sessions-index'
+import { type MentionTarget } from '@/lib/mention-utils'
 import { extractPlayerSummaries, type SessionCharacterRelation } from '@/lib/utils'
 
 export default async function SessionsPage() {
   const supabase = await createClient()
 
-  const { data: sessions } = await supabase
-    .from('sessions')
-    .select(`
-      *,
-      campaign:campaigns(name),
-      session_characters:session_characters(
-        character:characters(id, name, class, race, level, player_type)
-      )
-    `)
-    .order('session_date', { ascending: false, nullsFirst: false })
-    .order('created_at', { ascending: false })
+  const [sessionsResult, charactersResult, organizationsResult] = await Promise.all([
+    supabase
+      .from('sessions')
+      .select(`
+        *,
+        campaign:campaigns(name),
+        session_characters:session_characters(
+          character:characters(id, name, class, race, level, player_type)
+        )
+      `)
+      .order('session_date', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false }),
+    supabase.from('characters').select('id, name').order('name'),
+    supabase.from('organizations').select('id, name').order('name'),
+  ])
+
+  const sessions = sessionsResult.data
+  const mentionCharacters = charactersResult.data
+  const organizations = organizationsResult.data
 
   const sessionNumberMap = new Map<string, number>()
 
@@ -69,5 +78,54 @@ export default async function SessionsPage() {
     }
   })
 
-  return <SessionsIndex sessions={enrichedSessions} />
+  const mentionTargets = (() => {
+    const map = new Map<string, MentionTarget>()
+
+    const addTarget = (target: MentionTarget) => {
+      if (!target.id || !target.name) {
+        return
+      }
+      map.set(`${target.kind}:${target.id}`, target)
+    }
+
+    for (const character of mentionCharacters ?? []) {
+      if (!character?.id || !character?.name) {
+        continue
+      }
+      addTarget({
+        id: character.id,
+        name: character.name,
+        href: `/characters/${character.id}`,
+        kind: 'character',
+      })
+    }
+
+    for (const sessionEntry of sessions ?? []) {
+      if (!sessionEntry?.id || !sessionEntry?.name) {
+        continue
+      }
+      addTarget({
+        id: sessionEntry.id,
+        name: sessionEntry.name,
+        href: `/sessions/${sessionEntry.id}`,
+        kind: 'session',
+      })
+    }
+
+    for (const organization of organizations ?? []) {
+      if (!organization?.id || !organization?.name) {
+        continue
+      }
+      addTarget({
+        id: organization.id,
+        name: organization.name,
+        href: `/organizations/${organization.id}`,
+        kind: 'organization',
+      })
+    }
+
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+  })()
+
+  return <SessionsIndex sessions={enrichedSessions} mentionTargets={mentionTargets} />
 }

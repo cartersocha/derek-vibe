@@ -27,18 +27,7 @@ export default function Navbar() {
   const measurementRef = useRef<HTMLDivElement | null>(null);
   const [maxWidth, setMaxWidth] = useState(INITIAL_MAX_WIDTH);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [width, setWidth] = useState(() => {
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem("sidebar-width");
-      if (stored) {
-        const parsed = Number(stored);
-        if (!Number.isNaN(parsed)) {
-          return clampWithMax(parsed, INITIAL_MAX_WIDTH);
-        }
-      }
-    }
-    return DEFAULT_WIDTH;
-  });
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isDragging, setIsDragging] = useState(false);
   const dragState = useRef({ startX: 0, startWidth: DEFAULT_WIDTH });
   const isDraggingRef = useRef(false);
@@ -124,6 +113,18 @@ export default function Navbar() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const stored = window.localStorage.getItem("sidebar-width");
+    if (stored) {
+      const parsed = Number(stored);
+      if (!Number.isNaN(parsed)) {
+        setWidth((prev) => clampWidth(Number.isFinite(parsed) ? parsed : prev));
+      }
+    }
+  }, [clampWidth]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

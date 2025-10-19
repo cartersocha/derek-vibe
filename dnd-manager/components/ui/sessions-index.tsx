@@ -23,9 +23,10 @@ type SessionRecord = {
 
 type SessionsIndexProps = {
   sessions: SessionRecord[];
+  mentionTargets: MentionTarget[];
 };
 
-export function SessionsIndex({ sessions }: SessionsIndexProps) {
+export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) {
   const [query, setQuery] = useState("");
 
   const hasSessions = sessions.length > 0;
@@ -100,6 +101,14 @@ export function SessionsIndex({ sessions }: SessionsIndexProps) {
         <div className="space-y-4">
           {filteredSessions.map((session) => {
             const players = session.players;
+            const sortedPlayers = [...players].sort((a, b) => {
+              const weight = (value: PlayerSummary['player_type']) => (value === 'player' ? 0 : value === 'npc' ? 1 : 2)
+              const weightDiff = weight(a.player_type) - weight(b.player_type)
+              if (weightDiff !== 0) {
+                return weightDiff
+              }
+              return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+            })
 
             return (
               <article
@@ -128,20 +137,12 @@ export function SessionsIndex({ sessions }: SessionsIndexProps) {
                     )}
                     {session.notes && (
                       <div className="text-gray-400 line-clamp-2 font-mono text-sm whitespace-pre-line break-words">
-                        {renderNotesWithMentions(
-                          session.notes,
-                          session.players.map<MentionTarget>((player) => ({
-                            id: player.id,
-                            name: player.name,
-                            href: `/characters/${player.id}`,
-                            kind: "character",
-                          }))
-                        )}
+                        {renderNotesWithMentions(session.notes, mentionTargets)}
                       </div>
                     )}
-                    {players.length > 0 && (
+                    {sortedPlayers.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
-                        {players.map((player) => (
+                        {sortedPlayers.map((player) => (
                           <Link
                             key={`${session.id}-${player.id}`}
                             href={`/characters/${player.id}`}
