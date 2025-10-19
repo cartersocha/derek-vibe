@@ -19,7 +19,7 @@ import {
   resolveOrganizationIds,
   setCharacterOrganizations,
 } from "@/lib/actions/organizations";
-import { extractCharacterOrganizationAffiliations } from "@/lib/organizations/helpers";
+import { extractOrganizationIds } from "@/lib/organizations/helpers";
 import type { CharacterOrganizationAffiliationInput } from "@/lib/validations/organization";
 
 const CHARACTER_BUCKET = "character-images" as const;
@@ -28,20 +28,13 @@ export async function createCharacter(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const characterId = randomUUID();
 
-  const organizationFieldProvided =
+  const organizationFieldTouched =
+    formData.get("organization_field_present") === "true" ||
     formData.has("organization_roles") ||
     formData.has("organization_ids") ||
     formData.has("organization_id");
 
-  let organizationAffiliations = extractCharacterOrganizationAffiliations(formData);
-
-  if (organizationAffiliations.length === 0 && !organizationFieldProvided) {
-    const fallbackOrganizationIds = await resolveOrganizationIds(supabase, []);
-    organizationAffiliations = fallbackOrganizationIds.map((organizationId) => ({
-      organizationId,
-      role: "npc" as CharacterOrganizationAffiliationInput["role"],
-    }));
-  }
+  const selectedOrganizationIds = extractOrganizationIds(formData);
 
   const imageFile = getFile(formData, "image");
   let imageUrl: string | null = null;
@@ -79,6 +72,21 @@ export async function createCharacter(formData: FormData): Promise<void> {
     throw new Error("Validation failed");
   }
 
+  let organizationAffiliations: CharacterOrganizationAffiliationInput[] = selectedOrganizationIds.map(
+    (organizationId) => ({
+      organizationId,
+      role: result.data.player_type,
+    })
+  );
+
+  if (organizationAffiliations.length === 0 && !organizationFieldTouched) {
+    const fallbackOrganizationIds = await resolveOrganizationIds(supabase, []);
+    organizationAffiliations = fallbackOrganizationIds.map((organizationId) => ({
+      organizationId,
+      role: result.data.player_type,
+    }));
+  }
+
   const { error } = await supabase
     .from("characters")
     .insert({ id: characterId, ...result.data });
@@ -91,7 +99,7 @@ export async function createCharacter(formData: FormData): Promise<void> {
     throw new Error(error.message);
   }
 
-  if (organizationAffiliations.length > 0 || organizationFieldProvided) {
+  if (organizationAffiliations.length > 0 || organizationFieldTouched) {
     await setCharacterOrganizations(supabase, characterId, organizationAffiliations);
     revalidatePath("/organizations");
   }
@@ -193,14 +201,13 @@ export async function updateCharacter(
 ): Promise<void> {
   const supabase = await createClient();
 
-  const organizationFieldProvided =
+  const organizationFieldTouched =
+    formData.get("organization_field_present") === "true" ||
     formData.has("organization_roles") ||
     formData.has("organization_ids") ||
     formData.has("organization_id");
 
-  const organizationAffiliations = organizationFieldProvided
-    ? extractCharacterOrganizationAffiliations(formData)
-    : [];
+  const selectedOrganizationIds = extractOrganizationIds(formData);
 
   const { data: existing, error: fetchError } = await supabase
     .from("characters")
@@ -273,6 +280,13 @@ export async function updateCharacter(
     throw new Error("Validation failed");
   }
 
+  const organizationAffiliations: CharacterOrganizationAffiliationInput[] = selectedOrganizationIds.map(
+    (organizationId) => ({
+      organizationId,
+      role: result.data.player_type,
+    })
+  );
+
   const { error } = await supabase
     .from("characters")
     .update(result.data)
@@ -282,7 +296,7 @@ export async function updateCharacter(
     throw new Error(error.message);
   }
 
-  if (organizationFieldProvided) {
+  if (organizationFieldTouched || organizationAffiliations.length > 0) {
     await setCharacterOrganizations(supabase, id, organizationAffiliations);
     revalidatePath("/organizations");
   }

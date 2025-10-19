@@ -9,9 +9,10 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
   const supabase = await createClient()
   const params = await searchParams
 
-  const [{ data: allCharacters }, { data: allSessions }] = await Promise.all([
+  const [{ data: allCharacters }, { data: allSessions }, { data: organizations }] = await Promise.all([
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('sessions').select('id, name').order('name'),
+    supabase.from('organizations').select('id, name').order('name'),
   ])
 
   const mentionTargets = [
@@ -31,6 +32,14 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
         href: `/sessions/${entry.id}`,
         kind: 'session' as const,
       })),
+    ...(organizations ?? [])
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/organizations/${entry.id}`,
+        kind: 'organization' as const,
+      })),
   ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 
   const redirectValue = params?.redirectTo
@@ -43,7 +52,14 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
         <p className="mt-2 text-gray-400 font-mono">Add a new character to your campaign</p>
       </div>
 
-      <NewCharacterForm redirectTo={redirectTo} mentionTargets={mentionTargets} />
+      <NewCharacterForm
+        redirectTo={redirectTo}
+        mentionTargets={mentionTargets}
+        organizations={(organizations ?? []).map((organization) => ({
+          id: organization.id,
+          name: organization.name ?? 'Untitled Organization',
+        }))}
+      />
     </div>
   )
 }

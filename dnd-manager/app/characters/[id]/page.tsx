@@ -46,9 +46,25 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     notFound()
   }
 
-  const { data: mentionCharacters } = await supabase
-    .from('characters')
-    .select('id, name')
+  const [{ data: mentionCharacters }, { data: organizationLinks }, { data: allOrganizations }] = await Promise.all([
+    supabase
+      .from('characters')
+      .select('id, name'),
+    supabase
+      .from('organization_characters')
+      .select(`
+        organization_id,
+        role,
+        organizations (
+          id,
+          name
+        )
+      `)
+      .eq('character_id', id),
+    supabase
+      .from('organizations')
+      .select('id, name'),
+  ])
 
   const playerTypeLabel = character.player_type === 'player' ? 'Player Character' : 'NPC'
   const statusLabel = (() => {
@@ -65,6 +81,56 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
   const locationLabel = character.last_known_location || 'Unknown'
   const levelLabel = character.player_type === 'player' ? 'Level' : 'Challenge Rating'
   const levelValue = character.level || '—'
+
+  const formatRoleLabel = (role: string | null | undefined) => {
+    if (!role) {
+      return null
+    }
+    if (role === 'npc') {
+      return 'NPC'
+    }
+    if (role === 'player') {
+      return 'Player'
+    }
+
+    return role
+      .split(/[_\s-]+/)
+      .filter(Boolean)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(' ')
+  }
+
+  const organizationAffiliationMap = new Map<string, { id: string; name: string; role: string | null; roleLabel: string | null }>()
+
+  for (const link of organizationLinks ?? []) {
+    const organization = Array.isArray(link.organizations)
+      ? link.organizations[0]
+      : link.organizations
+
+    const orgId = organization?.id ?? link.organization_id
+    if (!orgId) {
+      continue
+    }
+
+    if (organizationAffiliationMap.has(orgId)) {
+      continue
+    }
+
+    organizationAffiliationMap.set(orgId, {
+      id: orgId,
+      name: organization?.name ?? 'Untitled Organization',
+      role: link.role ?? null,
+      roleLabel: formatRoleLabel(link.role),
+    })
+  }
+
+  const organizationAffiliations = Array.from(organizationAffiliationMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+  )
+
+  const organizationSummary = organizationAffiliations.length > 0
+    ? organizationAffiliations.map((affiliation) => affiliation.name).join(', ')
+    : 'None'
 
   // Get sessions this character was in
   const { data: sessionCharacters } = await supabase
@@ -120,7 +186,20 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     kind: 'session' as const,
   }))
 
-  const mentionTargets: MentionTarget[] = [...characterMentionTargets, ...sessionMentionTargets]
+  const organizationMentionTargets: MentionTarget[] = (allOrganizations ?? [])
+    .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+    .map((entry) => ({
+      id: entry.id,
+      name: entry.name,
+      href: `/organizations/${entry.id}`,
+      kind: 'organization' as const,
+    }))
+
+  const mentionTargets: MentionTarget[] = [
+    ...characterMentionTargets,
+    ...sessionMentionTargets,
+    ...organizationMentionTargets,
+  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 
   const deleteCharacterWithId = deleteCharacter.bind(null, id)
   const updateCharacterSessionsWithId = updateCharacterSessions.bind(null, id)
@@ -216,6 +295,10 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                     <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Last Seen</dt>
                     <dd className="text-right text-[#f0f0ff]">{locationLabel}</dd>
                   </div>
+                  <div>
+                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Organizations</dt>
+                    <dd className="mt-1 text-right text-[#f0f0ff] text-xs leading-snug">{organizationSummary}</dd>
+                  </div>
                 </dl>
               </div>
             </div>
@@ -230,6 +313,30 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
               </div>
             ) : (
               <p className="text-gray-500 italic">No backstory provided yet.</p>
+            )}
+          </section>
+
+          <section className="space-y-3 font-mono text-gray-300">
+            <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Organization Affiliations</h3>
+            {organizationAffiliations.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {organizationAffiliations.map((affiliation) => (
+                  <Link
+                    key={affiliation.id}
+                    href={`/organizations/${affiliation.id}`}
+                    className="group inline-flex items-center gap-2 rounded border border-[#00ffff]/30 bg-[#0f0f23] px-3 py-1 text-[11px] uppercase tracking-widest text-[#00ffff] transition hover:border-[#ff00ff] hover:text-[#ff00ff]"
+                  >
+                    <span>{affiliation.name}</span>
+                    {affiliation.roleLabel ? (
+                      <span className="text-[9px] font-bold text-[#ff00ff] transition group-hover:text-[#ff6ad5]">
+                        {affiliation.roleLabel}
+                      </span>
+                    ) : null}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 italic">No organization affiliations yet.</p>
             )}
           </section>
 

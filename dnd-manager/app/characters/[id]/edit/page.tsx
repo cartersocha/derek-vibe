@@ -18,9 +18,19 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
     notFound()
   }
 
-  const [{ data: allCharacters }, { data: allSessions }] = await Promise.all([
+  const [
+    { data: allCharacters },
+    { data: allSessions },
+    { data: organizations },
+    { data: organizationLinks },
+  ] = await Promise.all([
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('sessions').select('id, name').order('name'),
+    supabase.from('organizations').select('id, name').order('name'),
+    supabase
+      .from('organization_characters')
+      .select('organization_id, role')
+      .eq('character_id', id),
   ])
 
   const mentionTargets = [
@@ -39,6 +49,14 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
         name: entry.name,
         href: `/sessions/${entry.id}`,
         kind: 'session' as const,
+      })),
+    ...(organizations ?? [])
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/organizations/${entry.id}`,
+        kind: 'organization' as const,
       })),
   ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 
@@ -59,6 +77,11 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
         character={character}
         cancelHref={`/characters/${id}`}
         mentionTargets={mentionTargets}
+        organizations={(organizations ?? []).map((organization) => ({
+          id: organization.id,
+          name: organization.name ?? 'Untitled Organization',
+        }))}
+        organizationAffiliations={(organizationLinks ?? []).map((entry) => entry.organization_id)}
       />
     </div>
   )
