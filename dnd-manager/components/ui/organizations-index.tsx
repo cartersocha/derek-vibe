@@ -127,12 +127,6 @@ export function OrganizationsIndex({ organizations }: OrganizationsIndexProps) {
                   </p>
                 )}
               </div>
-              <div className="mt-auto flex items-center justify-between text-xs font-mono uppercase tracking-[0.3em] text-[#00ffff]">
-                <span className="opacity-80">View Details</span>
-                <span aria-hidden className="text-base text-[#ff00ff] transition-transform duration-200 group-hover:translate-x-1">
-                  ⇢
-                </span>
-              </div>
             </Link>
           ))}
         </div>

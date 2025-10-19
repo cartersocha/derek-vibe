@@ -17,6 +17,10 @@ const DEFAULT_WIDTH = 208;
 const COLLAPSED_WIDTH = 72;
 const COLLAPSE_THRESHOLD = 120;
 const INITIAL_MAX_WIDTH = 320;
+const SIDEBAR_WIDTH_STORAGE_KEY = "sidebar-width";
+const SIDEBAR_MODE_STORAGE_KEY = "sidebar-width-mode";
+const SIDEBAR_MODE_CUSTOM = "custom";
+const SIDEBAR_MODE_AUTO = "auto";
 
 const clampWithMax = (value: number, maxWidth: number) => {
   return Math.min(Math.max(value, COLLAPSED_WIDTH), maxWidth);
@@ -32,6 +36,9 @@ export default function Navbar() {
   const dragState = useRef({ startX: 0, startWidth: DEFAULT_WIDTH });
   const isDraggingRef = useRef(false);
   const widthFrameRef = useRef<number | null>(null);
+  const hasCustomWidthRef = useRef(false);
+  const measuredWidthRef = useRef(Math.max(DEFAULT_WIDTH, COLLAPSED_WIDTH));
+  const lastExpandedWidthRef = useRef(DEFAULT_WIDTH);
 
   const clampWidth = useCallback((value: number) => clampWithMax(value, maxWidth), [maxWidth]);
 
@@ -90,6 +97,7 @@ export default function Navbar() {
       isDraggingRef.current = true;
       setIsDragging(true);
       dragState.current = { startX: event.clientX, startWidth: width };
+      hasCustomWidthRef.current = true;
       window.addEventListener("pointermove", handlePointerMove);
       window.addEventListener("pointerup", handlePointerUp);
       event.preventDefault();
@@ -98,21 +106,35 @@ export default function Navbar() {
   );
 
   const toggleCollapse = useCallback(() => {
-    setWidth((prev) => (prev <= COLLAPSE_THRESHOLD ? DEFAULT_WIDTH : COLLAPSED_WIDTH));
-  }, []);
+    setWidth((prev) => {
+      if (prev <= COLLAPSE_THRESHOLD) {
+        const desired = hasCustomWidthRef.current ? lastExpandedWidthRef.current : measuredWidthRef.current;
+        const clampedDesired = Math.min(Math.max(desired, COLLAPSED_WIDTH), maxWidth);
+        return clampedDesired;
+      }
+      lastExpandedWidthRef.current = prev;
+      return COLLAPSED_WIDTH;
+    });
+  }, [maxWidth]);
 
   const measureSidebarWidth = useCallback(() => {
     const measureNode = measurementRef.current;
     if (!measureNode) return;
     const measured = Math.ceil(measureNode.scrollWidth + 16);
-    const nextMax = Math.max(measured, DEFAULT_WIDTH);
+    const normalizedMeasured = Math.max(measured, COLLAPSED_WIDTH);
+    measuredWidthRef.current = normalizedMeasured;
+    const nextMax = Math.max(normalizedMeasured, DEFAULT_WIDTH);
     setMaxWidth(nextMax);
     setWidth((prev) => {
       if (prev <= COLLAPSE_THRESHOLD) {
         return prev;
       }
-      const clamped = clampWithMax(prev, nextMax);
-      return Math.max(clamped, measured);
+      if (hasCustomWidthRef.current) {
+        const clampedPrev = Math.min(Math.max(prev, COLLAPSED_WIDTH), nextMax);
+        return clampedPrev;
+      }
+      lastExpandedWidthRef.current = normalizedMeasured;
+      return normalizedMeasured;
     });
   }, []);
 
@@ -123,9 +145,12 @@ export default function Navbar() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const stored = window.localStorage.getItem("sidebar-width");
-    if (stored) {
-      const parsed = Number(stored);
+    const storedMode = window.localStorage.getItem(SIDEBAR_MODE_STORAGE_KEY);
+    hasCustomWidthRef.current = storedMode === SIDEBAR_MODE_CUSTOM;
+
+    const storedWidth = window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+    if (storedWidth) {
+      const parsed = Number(storedWidth);
       if (!Number.isNaN(parsed)) {
         setWidth((prev) => clampWidth(Number.isFinite(parsed) ? parsed : prev));
       }
@@ -134,7 +159,17 @@ export default function Navbar() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem("sidebar-width", String(width));
+    window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(width));
+    window.localStorage.setItem(
+      SIDEBAR_MODE_STORAGE_KEY,
+      hasCustomWidthRef.current ? SIDEBAR_MODE_CUSTOM : SIDEBAR_MODE_AUTO
+    );
+  }, [width]);
+
+  useEffect(() => {
+    if (width > COLLAPSE_THRESHOLD) {
+      lastExpandedWidthRef.current = width;
+    }
   }, [width]);
 
   useEffect(() => {
@@ -179,9 +214,9 @@ export default function Navbar() {
           <Link
             href="/dashboard"
             className="text-xl font-bold text-[#00ffff] glitch-subtle tracking-[0.2em] uppercase"
-            data-text="TYRANNY"
+            data-text="RAT PALACE"
           >
-            TYRANNY
+            RAT PALACE
           </Link>
           <button
             type="button"
@@ -252,19 +287,17 @@ export default function Navbar() {
               href="/dashboard"
               className={cn(
                 "text-2xl font-bold text-[#00ffff] glitch-subtle uppercase",
-                isCollapsed ? "tracking-[0.35em]" : "tracking-[0.15em]"
+                isCollapsed ? "tracking-[0.35em]" : "tracking-[0.2em]"
               )}
-              data-text={isCollapsed ? "TYR" : "TYRANNY OF DRAGONS"}
+              data-text={isCollapsed ? "RAT" : "RAT PALACE"}
             >
               {isCollapsed ? (
-                <span>TYR</span>
+                <span>RAT</span>
               ) : (
                 <>
-                  TYRANNY
+                  RAT
                   <br />
-                  OF
-                  <br />
-                  DRAGONS
+                  PALACE
                 </>
               )}
             </Link>
@@ -378,12 +411,10 @@ export default function Navbar() {
         <div className="flex w-max flex-col border border-[#00ffff] border-opacity-20 bg-[#0f0f23]">
           <div className="w-full border-b border-[#00ffff] border-opacity-10 p-6">
             <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold uppercase tracking-[0.15em] text-[#00ffff]">
-                TYRANNY
+              <span className="text-2xl font-bold uppercase tracking-[0.2em] text-[#00ffff]">
+                RAT
                 <br />
-                OF
-                <br />
-                DRAGONS
+                PALACE
               </span>
             </div>
           </div>
