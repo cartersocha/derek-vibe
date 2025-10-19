@@ -24,7 +24,9 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-20):** Consolidated session draft autosave timers into a shared idle-aware coordinator, pruning redundant timeouts ahead of the remaining mobile and performance follow-ups.
 
-> **Note (2025-10-20, evening):** Color-coded mention hyperlinks and dropdown badges so character and session references stand out consistently while drafting or reading notes.
+> **Note (2025-10-20, evening):** Color-coded mention hyperlinks and dropdown badges so character, session, and organization references stand out consistently while drafting or reading notes.
+
+> **Note (2025-10-20, late night):** Refactored attendee chip rendering into a shared `SessionParticipantPills` component for consistent ordering and focus states across pages, and streamlined the dashboard's recent sessions by removing the note preview block.
 
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
@@ -38,7 +40,7 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Textarea resizing, character search filtering, and image preview generation were optimized to reduce layout thrash and memory usage, with server-side sanitization applied to all text fields.
 - Session detail, campaign detail, and session list pages now surface campaign-specific session numbers derived from ascending dates and display related characters in a 1/3/5 responsive grid for better density.
 - Session index mirrors the character tab with an inline search bar, attendee chips, and automated empty-state handling while filtering by campaign, notes, and player names.
-- Character, session, campaign, and dashboard views now share a common attendee badge renderer that collapses overflow into a concise `+N more` pill for dense parties.
+- Character, session, campaign, and dashboard views now share consistent attendee styling after consolidating to the shared `SessionParticipantPills` component, ensuring player pills lead and organization pills follow without overflow truncation.
 - Characters index gained a compact inline search bar colocated with the create button, along with a five-card responsive grid and empty-state messaging.
 - Sidebar resizing enforces an auto-measured maximum width and supports double-click toggles directly from the panel and resize handle for quicker interactions.
 - Dashboard recent sessions panel expanded to six entries, added note previews and attendee chips, and removed the redundant quick action tiles to streamline the layout.
@@ -50,6 +52,11 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 - Text inputs across the app now auto-capitalize their first alphabetical character on blur, applied through a global provider with a data attribute escape hatch for special cases.
 - Dropdowns across character and session flows now share the `SynthwaveDropdown` component, replacing legacy native selects and enabling inline campaign creation from a consistent synthwave-themed popover.
 - Character backstory editors now reuse the caret-anchored mention dropdown (including inline creation and wider menus), saved session/character names are normalized to title case, and spellcheck is enabled across long-form drafting fields to catch typos early.
+
+## Recent Enhancements (2025-10-20, late night)
+
+- Consolidated attendee pill rendering (characters and organizations) into the shared `SessionParticipantPills` component used by the sessions index, campaign detail, character detail, and dashboard cards, eliminating duplicate loops while improving mobile wrapping and focus behavior.
+- Removed the inline session note preview from dashboard recent sessions to tighten card payloads and keep the overview scannable on smaller screens.
 
 ## Project Overview
 
@@ -64,6 +71,10 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 ---
 
 ## ✅ Completed Implementation
+
+### Data Integrity Guardrails
+
+- Server actions for characters, campaigns, sessions, and organizations run `assertUniqueValue` before writes to block case-insensitive duplicates. Database-level unique indexes remain recommended to complement the application check.
 
 ### Phase 1: Project Setup & Foundation (COMPLETED)
 

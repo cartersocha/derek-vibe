@@ -212,6 +212,9 @@ app/
 - `AffiliationChips` - Reusable chip renderer that displays organization-linked entities with NPC/player role tinting
   - Location: `components/organizations/affiliation-chips.tsx`
   - Client component shared across organization pages, dashboards, and campaign detail views
+- `SessionParticipantPills` - Shared attendee and organization pill renderer with consistent ordering and focus states
+  - Location: `components/ui/session-participant-pills.tsx`
+  - Server-safe component reused by sessions index, campaign detail, character detail, and dashboard cards to deduplicate rendering logic, keep layouts responsive on mobile, and avoid overflow truncation
 
 ## 5. Features & Functionality
 
@@ -269,11 +272,11 @@ app/
   - Session date
   - Notes presented in a styled panel with preserved line breaks
   - List of participating characters with links laid out in a 1/3/5 responsive grid to surface more attendees at a glance
-  - Player chips reused across dashboard, campaigns, and character detail pages with overflow condensed into a `+N more` badge
+  - Player and organization pills reuse the shared renderer so ordering (players before organizations), focus states, and mobile wrapping stay consistent across dashboard, campaigns, and character detail pages without overflow truncation
 - Campaign-specific ordering assigns a session number based on ascending session date; numbering appears on the sessions list, campaign detail cards, and session detail header when a campaign provides dated entries
 - Unsaved session note drafts persist locally across navigation and are cleared after a successful submission to prevent data loss
 - Session notes support inline `@Character` mentions that hyperlink to character sheets; the mention menu appears at the caret, filters matches by name, and offers inline character creation when no match exists (automatically linking the newly created character to the session)
-- Mention hyperlinks and dropdown badges are color-coded by target type (character vs session) to keep references scannable in both drafting and rendered views
+- Mention hyperlinks and dropdown badges are color-coded by target type (character, session, or organization) to keep references scannable in both drafting and rendered views
 - Mentioned characters are auto-selected for the session’s attendee list to keep relationships in sync
 - Session names are normalized to title case when saved so campaign and dashboard views stay consistent even if inputs vary
 - Sessions linked to campaigns automatically sync their organization affiliations, while standalone sessions can be attached directly to organizations for dashboard filtering
@@ -324,7 +327,11 @@ app/
   - Total sessions count
   - Total characters count
 - Recent activity:
-  - Up to 6 most recent sessions with campaign-aware session numbers, scheduled dates, note previews, and attendee chips with overflow indicators
+  - Up to 6 most recent sessions with campaign-aware session numbers, scheduled dates, and shared attendee/organization pills for quick scanning without the previous note preview block
+
+### Data Integrity & Validation
+
+- Create and update actions for characters, campaigns, sessions, and organizations call `assertUniqueValue` (see `lib/supabase/ensure-unique.ts`) to block case-insensitive duplicates before writes. Database-level unique indexes remain recommended for defense in depth.
 - Cyberpunk-themed UI with neon accents
 - Switching organizations revalidates dashboard metrics and recent sessions so stats always reflect the active tenant without leaking cross-organization data
 
@@ -376,6 +383,10 @@ app/
 > **Note (2025-10-20):** Consolidated session draft autosave timers into a shared idle-aware scheduler to reduce overlapping timeouts and tightened draft cleanup while continuing the mobile/performance sweep.
 
 > **Note (2025-10-20, evening):** Tinted mention hyperlinks and drafting dropdown badges so character and session references stay color-coded everywhere they render.
+
+> **Note (2025-10-20, late night):** Centralized attendee pill rendering into `SessionParticipantPills`, ensuring consistent ordering, focus states, and mobile wrapping across dashboard, campaign, session, and character views while trimming the dashboard recent session cards by removing the inline note preview block.
+
+> **Note (2025-10-21):** Hooked the application-level uniqueness guard (`assertUniqueValue`) into all entity actions to prevent case-insensitive duplicates and expanded mention tinting to include organizations alongside characters and sessions.
 
 
 ### Form Handling
