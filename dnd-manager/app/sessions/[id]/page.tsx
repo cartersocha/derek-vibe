@@ -110,18 +110,17 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     sessionChars = (charData as SessionCharacterRow[] | null)?.map((character) => {
       const organizations: { id: string; name: string }[] = Array.isArray(character.organization_memberships)
         ? character.organization_memberships
-            .map((membership) => {
+            .flatMap((membership) => {
               const orgData = membership.organizations
               const organization = Array.isArray(orgData) ? orgData[0] : orgData
               if (!organization?.id || !organization?.name) {
-                return null
+                return []
               }
-              return {
+              return [{
                 id: organization.id,
                 name: organization.name,
-              }
+              }]
             })
-            .filter((entry): entry is { id: string; name: string } => Boolean(entry))
         : []
 
       return {

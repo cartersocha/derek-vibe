@@ -266,13 +266,17 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
   }))
 
   const organizationMentionTargets: MentionTarget[] = (allOrganizations ?? [])
-    .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-    .map((entry) => ({
-      id: entry.id,
-      name: entry.name,
-      href: `/organizations/${entry.id}`,
-      kind: 'organization' as const,
-    }))
+    .flatMap((entry) => {
+      if (!entry?.id || !entry?.name) {
+        return []
+      }
+      return [{
+        id: entry.id as string,
+        name: entry.name as string,
+        href: `/organizations/${entry.id}`,
+        kind: 'organization' as const,
+      }]
+    })
 
   const mentionTargets: MentionTarget[] = [
     ...characterMentionTargets,

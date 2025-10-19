@@ -35,29 +35,41 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
 
   const mentionTargets = [
     ...(allCharacters ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/characters/${entry.id}`,
-        kind: 'character' as const,
-      })),
+      .flatMap((entry) => {
+        if (!entry?.id || !entry?.name) {
+          return []
+        }
+        return [{
+          id: entry.id as string,
+          name: entry.name as string,
+          href: `/characters/${entry.id}`,
+          kind: 'character' as const,
+        }]
+      }),
     ...(allSessions ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/sessions/${entry.id}`,
-        kind: 'session' as const,
-      })),
+      .flatMap((entry) => {
+        if (!entry?.id || !entry?.name) {
+          return []
+        }
+        return [{
+          id: entry.id as string,
+          name: entry.name as string,
+          href: `/sessions/${entry.id}`,
+          kind: 'session' as const,
+        }]
+      }),
     ...(organizations ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/organizations/${entry.id}`,
-        kind: 'organization' as const,
-      })),
+      .flatMap((entry) => {
+        if (!entry?.id || !entry?.name) {
+          return []
+        }
+        return [{
+          id: entry.id as string,
+          name: entry.name as string,
+          href: `/organizations/${entry.id}`,
+          kind: 'organization' as const,
+        }]
+      }),
   ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 
   const updateCharacterWithId = updateCharacter.bind(null, id)

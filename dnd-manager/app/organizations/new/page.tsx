@@ -46,37 +46,53 @@ export default async function NewOrganizationPage() {
   // Create mention targets for @ mentions
   const mentionTargets = [
     ...(charactersResult.data ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/characters/${entry.id}`,
-        kind: 'character' as const,
-      })),
+      .flatMap((entry) => {
+        if (!entry?.id || !entry?.name) {
+          return []
+        }
+        return [{
+          id: entry.id as string,
+          name: entry.name as string,
+          href: `/characters/${entry.id}`,
+          kind: 'character' as const,
+        }]
+      }),
     ...(organizationsResult.data ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/organizations/${entry.id}`,
-        kind: 'organization' as const,
-      })),
+      .flatMap((entry) => {
+        if (!entry?.id || !entry?.name) {
+          return []
+        }
+        return [{
+          id: entry.id as string,
+          name: entry.name as string,
+          href: `/organizations/${entry.id}`,
+          kind: 'organization' as const,
+        }]
+      }),
     ...(campaignsResult.data ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/campaigns/${entry.id}`,
-        kind: 'campaign' as const,
-      })),
+      .flatMap((entry) => {
+        if (!entry?.id || !entry?.name) {
+          return []
+        }
+        return [{
+          id: entry.id as string,
+          name: entry.name as string,
+          href: `/campaigns/${entry.id}`,
+          kind: 'campaign' as const,
+        }]
+      }),
     ...(sessionsResult.data ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/sessions/${entry.id}`,
-        kind: 'session' as const,
-      })),
+      .flatMap((entry) => {
+        if (!entry?.id || !entry?.name) {
+          return []
+        }
+        return [{
+          id: entry.id as string,
+          name: entry.name as string,
+          href: `/sessions/${entry.id}`,
+          kind: 'session' as const,
+        }]
+      }),
   ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
   return (

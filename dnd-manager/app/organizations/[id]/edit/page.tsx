@@ -81,13 +81,17 @@ export default async function EditOrganizationPage({
         kind: 'character' as const,
       })),
     ...(organizationsResult.data ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/organizations/${entry.id}`,
-        kind: 'organization' as const,
-      })),
+      .flatMap((entry) => {
+        if (!entry?.id || !entry?.name) {
+          return []
+        }
+        return [{
+          id: entry.id as string,
+          name: entry.name as string,
+          href: `/organizations/${entry.id}`,
+          kind: 'organization' as const,
+        }]
+      }),
     ...(campaignsResult.data ?? [])
       .flatMap((entry) => {
         if (!entry?.id || !entry?.name) {
@@ -101,13 +105,17 @@ export default async function EditOrganizationPage({
         }]
       }),
     ...(sessionsResult.data ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/sessions/${entry.id}`,
-        kind: 'session' as const,
-      })),
+      .flatMap((entry) => {
+        if (!entry?.id || !entry?.name) {
+          return []
+        }
+        return [{
+          id: entry.id as string,
+          name: entry.name as string,
+          href: `/sessions/${entry.id}`,
+          kind: 'session' as const,
+        }]
+      }),
   ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
 
