@@ -63,7 +63,7 @@ export default function SimpleCharacterMultiSelect({
 
     startTransition(async () => {
       try {
-        const result = await createCharacterInline(trimmedSearch, "npc", "alive")
+        const result = await createCharacterInline(trimmedSearch)
         const createdOption: CharacterOption = {
           value: result.id,
           label: result.name,
