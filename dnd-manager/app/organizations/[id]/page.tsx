@@ -23,7 +23,7 @@ interface SessionSummary {
   id: string;
   name: string;
   session_date: string | null;
-  campaign_id: string | null;
+  campaign: { id: string; name: string } | null;
 }
 
 type CharacterRole = "npc" | "player";
@@ -72,11 +72,13 @@ export default async function OrganizationDetailPage({
     supabase
       .from("organization_campaigns")
       .select("campaign:campaigns (id, name, created_at)")
-  .eq("organization_id", organization.id)
+      .eq("organization_id", organization.id)
       .order("created_at", { ascending: false }),
     supabase
       .from("organization_sessions")
-      .select("session:sessions (id, name, session_date, campaign_id)")
+      .select(
+        "session:sessions (id, name, session_date, campaign:campaigns (id, name))",
+      )
       .eq("organization_id", organization.id)
       .order("created_at", { ascending: false }),
     supabase
@@ -103,9 +105,33 @@ export default async function OrganizationDetailPage({
     .flatMap((row) => (row.campaign ? [row.campaign] : []))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  type SessionRow = { session: SessionSummary | null };
+  type SessionRow = {
+    session:
+      | (Omit<SessionSummary, "campaign"> & {
+          campaign: { id: string; name: string } | { id: string; name: string }[] | null;
+        })
+      | null;
+  };
   const sessions = ((sessionData ?? []) as unknown as SessionRow[])
-    .flatMap((row) => (row.session ? [row.session] : []))
+    .flatMap((row) => {
+      if (!row.session) {
+        return [];
+      }
+
+      const campaignValue = row.session.campaign;
+      const normalizedCampaign = Array.isArray(campaignValue)
+        ? campaignValue[0] ?? null
+        : campaignValue ?? null;
+
+      return [
+        {
+          id: row.session.id,
+          name: row.session.name,
+          session_date: row.session.session_date,
+          campaign: normalizedCampaign,
+        } satisfies SessionSummary,
+      ];
+    })
     .sort((a, b) => {
       const aDate = a.session_date ?? "";
       const bDate = b.session_date ?? "";
@@ -136,72 +162,20 @@ export default async function OrganizationDetailPage({
   }
 
   return (
-    <section className="space-y-10">
-      <div>
+    <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <Link
           href="/organizations"
-          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#00ffff] transition-colors hover:text-[#ff00ff]"
+          className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider"
         >
-          <span aria-hidden>⟵</span>
-          Back to Organizations
+          ← Back to Groups
         </Link>
-      </div>
-
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-        <div className="flex flex-1 flex-col gap-6 rounded border border-[#00ffff]/20 bg-[#0f0f23] p-6 shadow-[0_0_25px_rgba(0,255,255,0.08)]">
-          <div className="flex flex-col gap-6 md:flex-row md:items-start">
-            <div className="flex-shrink-0">
-              {organization.logo_url ? (
-                <div className="relative h-32 w-32 overflow-hidden rounded border border-[#00ffff]/30 bg-[#050517]">
-                  <Image
-                    src={organization.logo_url}
-                    alt={`${organization.name} logo`}
-                    fill
-                    sizes="128px"
-                    className="object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="flex h-32 w-32 items-center justify-center rounded border border-[#00ffff]/30 bg-[#050517] text-4xl text-[#00ffff]">
-                  🏛
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 space-y-6">
-              <header>
-                <h1 className="text-3xl font-extrabold uppercase tracking-[0.35em] text-[#00ffff]">
-                  {organization.name}
-                </h1>
-                <p className="mt-2 text-xs uppercase tracking-[0.35em] text-[#64748b]">
-                  Established {new Date(organization.created_at).toLocaleDateString()}
-                </p>
-              </header>
-
-              <div>
-                <h2 className="text-sm font-semibold uppercase tracking-[0.35em] text-[#ff00ff]">
-                  Overview
-                </h2>
-                {organization.description ? (
-                  <p className="mt-3 text-sm leading-relaxed text-[#cbd5f5]">
-                    {organization.description}
-                  </p>
-                ) : (
-                  <p className="mt-3 text-sm text-[#64748b]">
-                    No description available for this organization yet.
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-3 md:flex-col">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Link
             href={`/organizations/${organization.id}/edit`}
-            className="inline-flex items-center justify-center rounded border border-[#00ffff]/40 px-4 py-2 text-xs font-bold uppercase tracking-[0.35em] text-[#00ffff] transition hover:border-[#ff00ff] hover:text-[#ff00ff]"
+            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
           >
-            Edit Organization
+            Edit Group
           </Link>
           <form action={handleDelete}>
             <DeleteOrganizationButton />
@@ -209,147 +183,182 @@ export default async function OrganizationDetailPage({
         </div>
       </div>
 
-      <div className="grid gap-8">
-        <section className="space-y-4 rounded border border-[#00ffff]/15 bg-[#0f0f23] p-6">
-          <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold uppercase tracking-[0.35em] text-[#00ffff]">Campaigns</h2>
-              <p className="text-xs uppercase tracking-[0.3em] text-[#64748b]">
-                Linked adventures run under this banner.
-              </p>
-            </div>
-            <Link
-              href="/campaigns/new"
-              className="inline-flex items-center justify-center rounded border border-[#00ffff]/40 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.35em] text-[#00ffff] transition hover:border-[#ff00ff] hover:text-[#ff00ff]"
-            >
-              New Campaign
-            </Link>
-          </header>
+      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8 space-y-8">
+        <header>
+          <h1 className="text-4xl md:text-5xl font-bold uppercase tracking-widest text-[#e8faff] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)]">
+            {organization.name}
+          </h1>
+        </header>
 
+        <div className="space-y-6 md:space-y-0 md:flex md:flex-row-reverse md:items-stretch md:gap-8">
+          <aside className="md:flex md:flex-col md:w-80 md:max-w-sm md:self-stretch w-full max-w-sm rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-lg shadow-[#00ffff]/20 font-mono text-sm text-gray-200">
+            <div className="p-4 flex h-full flex-col">
+              {organization.logo_url ? (
+                <div className="space-y-3">
+                  <div className="relative aspect-[5/6] overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-black">
+                    <Image
+                      src={organization.logo_url}
+                      alt={`${organization.name} logo`}
+                      fill
+                      className="object-contain"
+                      sizes="256px"
+                    />
+                  </div>
+                  <p className="mt-2 px-4 text-center text-xs uppercase tracking-widest text-gray-400 break-words leading-tight">
+                    {organization.name}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-3 rounded border border-dashed border-[#00ffff]/40 bg-[#050517] py-10 text-[#00ffff]">
+                  <span className="text-4xl" aria-hidden>
+                    🏛
+                  </span>
+                  <p className="text-xs uppercase tracking-widest text-[#00ffff]">No logo uploaded</p>
+                </div>
+              )}
+              <div className="mt-auto" />
+            </div>
+          </aside>
+
+          <section className="flex-1 space-y-3 text-gray-300 font-mono leading-relaxed text-base sm:text-lg">
+            <h2 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Overview</h2>
+            {organization.description ? (
+              <p className="whitespace-pre-wrap leading-relaxed">{organization.description}</p>
+            ) : (
+              <p className="text-gray-500 italic">No description available for this group yet.</p>
+            )}
+          </section>
+
+        </div>
+
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Campaigns</h2>
           {campaigns.length === 0 ? (
-            <p className="rounded border border-dashed border-[#00ffff]/20 bg-[#050517] p-4 text-sm text-[#64748b]">
-              No campaigns are linked to this organization yet.
-            </p>
+            <p className="text-gray-500 font-mono italic">No campaigns are linked to this group yet.</p>
           ) : (
-            <ul className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {campaigns.map((campaign) => (
-                <li key={campaign.id} className="rounded border border-[#00ffff]/15 bg-[#050517] p-4">
-                  <Link
-                    href={`/campaigns/${campaign.id}`}
-                    className="flex items-center justify-between text-sm font-semibold uppercase tracking-[0.3em] text-[#00ffff] transition hover:text-[#ff00ff]"
-                  >
-                    <span>{campaign.name}</span>
-                    <span className="text-xs text-[#64748b]">
+                <div
+                  key={campaign.id}
+                  className="group p-3 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <Link
+                      href={`/campaigns/${campaign.id}`}
+                      className="font-medium text-[#00ffff] font-mono text-base transition-colors group-hover:text-[#ff00ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ffff]"
+                    >
+                      {campaign.name}
+                    </Link>
+                    <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5] border border-[#ff00ff]/40 bg-[#211027]">
                       {new Date(campaign.created_at).toLocaleDateString()}
                     </span>
-                  </Link>
-                </li>
+                  </div>
+                  <div className="mt-3 flex justify-end">
+                    <Link
+                      href={`/campaigns/${campaign.id}`}
+                      className="text-[10px] font-mono uppercase tracking-widest text-[#ff00ff] hover:text-[#ff6ad5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff]"
+                    >
+                      View campaign →
+                    </Link>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </section>
 
-        <section className="space-y-4 rounded border border-[#00ffff]/15 bg-[#0f0f23] p-6">
-          <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold uppercase tracking-[0.35em] text-[#00ffff]">Sessions</h2>
-              <p className="text-xs uppercase tracking-[0.3em] text-[#64748b]">
-                Recent sessions affiliated with this group.
-              </p>
-            </div>
-            <Link
-              href="/sessions/new"
-              className="inline-flex items-center justify-center rounded border border-[#00ffff]/40 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.35em] text-[#00ffff] transition hover:border-[#ff00ff] hover:text-[#ff00ff]"
-            >
-              Log Session
-            </Link>
-          </header>
-
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h2>
           {sessions.length === 0 ? (
-            <p className="rounded border border-dashed border-[#00ffff]/20 bg-[#050517] p-4 text-sm text-[#64748b]">
-              No sessions are linked to this organization yet.
-            </p>
+            <p className="text-gray-500 font-mono italic">No sessions are linked to this group yet.</p>
           ) : (
-            <ul className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {sessions.map((session) => (
-                <li key={session.id} className="rounded border border-[#00ffff]/15 bg-[#050517] p-4">
-                  <Link
-                    href={`/sessions/${session.id}`}
-                    className="flex items-center justify-between text-sm font-semibold uppercase tracking-[0.3em] text-[#00ffff] transition hover:text-[#ff00ff]"
-                  >
-                    <span>{session.name}</span>
-                    <span className="text-xs text-[#64748b]">
+                <div
+                  key={session.id}
+                  className="group p-3 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <Link
+                      href={`/sessions/${session.id}`}
+                      className="font-medium text-[#00ffff] font-mono text-base transition-colors group-hover:text-[#ff00ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ffff]"
+                    >
+                      {session.name}
+                    </Link>
+                    <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#00ffff] border border-[#00ffff]/40 bg-[#0f0f23]">
                       {session.session_date
                         ? new Date(session.session_date).toLocaleDateString()
                         : "Date TBD"}
                     </span>
-                  </Link>
-                </li>
+                  </div>
+                  {session.campaign?.name ? (
+                    <Link
+                      href={`/campaigns/${session.campaign.id}`}
+                      className="mt-3 inline-flex items-center rounded border border-[#ff00ff]/40 bg-[#211027] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5] transition-colors hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6ad5]"
+                    >
+                      {session.campaign.name}
+                    </Link>
+                  ) : null}
+                  <div className="mt-3 flex justify-end">
+                    <Link
+                      href={`/sessions/${session.id}`}
+                      className="text-[10px] font-mono uppercase tracking-widest text-[#ff00ff] hover:text-[#ff6ad5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff]"
+                    >
+                      View session →
+                    </Link>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </section>
 
-        <section className="space-y-4 rounded border border-[#00ffff]/15 bg-[#0f0f23] p-6">
-          <header>
-            <h2 className="text-xl font-semibold uppercase tracking-[0.35em] text-[#00ffff]">Characters</h2>
-            <p className="mt-2 text-xs uppercase tracking-[0.3em] text-[#64748b]">
-              Characters appear with their role inside this organization.
-            </p>
-          </header>
-
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Characters</h2>
           {characters.length === 0 ? (
-            <p className="rounded border border-dashed border-[#00ffff]/20 bg-[#050517] p-4 text-sm text-[#64748b]">
-              No characters are affiliated with this organization yet.
-            </p>
+            <p className="text-gray-500 font-mono italic">No characters are affiliated with this group yet.</p>
           ) : (
-            <ul className="space-y-3">
-              {characters.map((character) => (
-                <li
-                  key={character.id}
-                  className="flex items-center gap-4 rounded border border-[#00ffff]/15 bg-[#050517] p-4"
-                >
-                  {character.image_url ? (
-                    <div className="relative h-12 w-12 overflow-hidden rounded border border-[#00ffff]/30">
-                      <Image
-                        src={character.image_url}
-                        alt={character.name}
-                        fill
-                        sizes="48px"
-                        className="object-cover"
-                      />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {characters.map((character) => {
+                const isPlayer = character.role === "player";
+                const badgeClasses = isPlayer
+                  ? "border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] group-hover:border-[#00ffff] group-hover:text-[#ff00ff]"
+                  : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] group-hover:border-[#ff6ad5] group-hover:text-[#ff9de6]";
+
+                return (
+                  <div
+                    key={character.id}
+                    className="group p-3 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <Link
+                        href={`/characters/${character.id}`}
+                        className="font-medium text-[#00ffff] font-mono text-base transition-colors group-hover:text-[#ff00ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ffff]"
+                      >
+                        {character.name}
+                      </Link>
+                      <span className={`rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest transition-colors ${badgeClasses}`}>
+                        {isPlayer ? "Player" : "NPC"}
+                      </span>
                     </div>
-                  ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded border border-[#00ffff]/30 text-lg text-[#00ffff]">
-                      ♞
-                    </div>
-                  )}
-                  <div className="flex flex-1 flex-col gap-1">
-                    <Link
-                      href={`/characters/${character.id}`}
-                      className="text-sm font-semibold uppercase tracking-[0.3em] text-[#00ffff] transition hover:text-[#ff00ff]"
-                    >
-                      {character.name}
-                    </Link>
-                    <div className="text-xs uppercase tracking-[0.3em] text-[#64748b]">
+                    <p className="mt-2 text-[11px] text-gray-400 font-mono uppercase tracking-widest">
                       {character.player_type} · {character.status}
+                    </p>
+                    <div className="mt-3 flex justify-end">
+                      <Link
+                        href={`/characters/${character.id}`}
+                        className="text-[10px] font-mono uppercase tracking-widest text-[#ff00ff] hover:text-[#ff6ad5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff]"
+                      >
+                        View profile →
+                      </Link>
                     </div>
                   </div>
-                  <span
-                    className={`rounded px-3 py-1 text-[10px] font-bold uppercase tracking-[0.35em] ${
-                      character.role === "player"
-                        ? "bg-[#00ffff]/10 text-[#00ffff] border border-[#00ffff]/40"
-                        : "bg-[#ff00ff]/10 text-[#ff00ff] border border-[#ff00ff]/40"
-                    }`}
-                  >
-                    {character.role}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                );
+              })}
+            </div>
           )}
         </section>
       </div>
-    </section>
+    </div>
   );
 }

@@ -7,10 +7,10 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { href: "/organizations", label: "Organizations", symbol: "⚙" },
   { href: "/campaigns", label: "Campaigns", symbol: "⚔" },
   { href: "/sessions", label: "Sessions", symbol: "✎" },
   { href: "/characters", label: "Characters", symbol: "♞" },
+  { href: "/organizations", label: "Groups", symbol: "⚙" },
 ];
 
 const DEFAULT_WIDTH = 208;
@@ -107,7 +107,13 @@ export default function Navbar() {
     const measured = Math.ceil(measureNode.scrollWidth + 16);
     const nextMax = Math.max(measured, DEFAULT_WIDTH);
     setMaxWidth(nextMax);
-    setWidth((prev) => clampWithMax(prev, nextMax));
+    setWidth((prev) => {
+      if (prev <= COLLAPSE_THRESHOLD) {
+        return prev;
+      }
+      const clamped = clampWithMax(prev, nextMax);
+      return Math.max(clamped, measured);
+    });
   }, []);
 
   useEffect(() => {
@@ -209,7 +215,7 @@ export default function Navbar() {
           {NAV_LINKS.map((link) => {
             const isActive = pathname.startsWith(link.href);
             return (
-              <Link
+                  <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
@@ -285,7 +291,7 @@ export default function Navbar() {
                   "group relative flex items-center rounded transition-all duration-200 uppercase tracking-wider font-bold",
                   isCollapsed
                     ? "justify-center aspect-square w-14 p-0 text-xs"
-                    : "px-4 py-3 text-lg",
+                    : "px-5 py-3 text-lg",
                   isActive
                     ? "bg-[#ff00ff] text-black shadow-lg shadow-[#ff00ff]/50"
                     : "text-[#00ffff] hover:bg-[#1a1a3e] hover:text-[#ff00ff]"
@@ -386,7 +392,7 @@ export default function Navbar() {
               {NAV_LINKS.map((link) => (
                 <div
                   key={link.href}
-                  className="px-4 py-3 text-lg font-bold uppercase tracking-wider text-[#00ffff]"
+                  className="px-5 py-3 text-lg font-bold uppercase tracking-wider text-[#00ffff]"
                 >
                   {link.label}
                 </div>
