@@ -12,6 +12,7 @@ import {
   type KeyboardEvent,
   type SyntheticEvent,
 } from "react"
+import { createPortal } from "react-dom"
 import AutoResizeTextarea, { type AutoResizeTextareaProps } from "@/components/ui/auto-resize-textarea"
 import { createCharacterInline } from "@/lib/actions/characters"
 import { createOrganizationInline } from "@/lib/actions/organizations"
@@ -91,7 +92,13 @@ export default function MentionableTextarea({
   const [mentionStart, setMentionStart] = useState<number | null>(null)
   const [mentionQuery, setMentionQuery] = useState("")
   const [mentionHighlightIndex, setMentionHighlightIndex] = useState(0)
-  const [mentionDropdownPosition, setMentionDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null)
+  const [mentionDropdownPosition, setMentionDropdownPosition] = useState<{
+    viewportTop: number
+    viewportLeft: number
+    width: number
+    maxHeight: number
+    placement: "above" | "below"
+  } | null>(null)
   const [availableTargets, setAvailableTargets] = useState<MentionTarget[]>(mentionTargets)
   const [isCreatingMentionCharacter, setIsCreatingMentionCharacter] = useState(false)
   const [mentionCreationError, setMentionCreationError] = useState<string | null>(null)
@@ -309,26 +316,80 @@ export default function MentionableTextarea({
       const longestLabelLength = labels.length > 0 ? labels.reduce((max, label) => Math.max(max, label.length), 0) : 12
       const desiredWidth = Math.ceil(longestLabelLength * approxCharWidth + fontSize * 2)
       const minWidthBase = Math.max(fontSize * 8, 240)
-      const minWidth = Math.min(minWidthBase, textarea.clientWidth || minWidthBase)
-      const dropdownWidth = Math.min(Math.max(desiredWidth, minWidth), textarea.clientWidth || desiredWidth)
-      const availableLeft = Math.max((textarea.clientWidth || dropdownWidth) - dropdownWidth, 0)
-      
-      // Account for textarea scroll position
+      const fallbackWidth = textarea.clientWidth || desiredWidth
+
+      const textareaRect = textarea.getBoundingClientRect()
+      const viewportWidth = (typeof window !== "undefined" ? window.innerWidth : undefined) ?? textareaRect.width
+      const viewportHeight = (typeof window !== "undefined" ? window.innerHeight : undefined) ?? textareaRect.height
+
+      let dropdownWidth = Math.max(desiredWidth, Math.min(minWidthBase, fallbackWidth))
+      dropdownWidth = Math.min(dropdownWidth, fallbackWidth)
+      dropdownWidth = Math.max(dropdownWidth, 160)
+      if (dropdownWidth > viewportWidth - 16) {
+        dropdownWidth = Math.max(viewportWidth - 16, 160)
+      }
+
       const scrollTop = textarea.scrollTop || 0
       const scrollLeft = textarea.scrollLeft || 0
-      
-      // Calculate position accounting for scroll
-      const left = Math.min(Math.max(metrics.left - scrollLeft, 0), availableLeft)
-      const top = metrics.top + metrics.lineHeight + 6 - scrollTop
+      const availableLeft = Math.max((textarea.clientWidth || dropdownWidth) - dropdownWidth, 0)
+      const leftWithinTextarea = Math.min(Math.max(metrics.left - scrollLeft, 0), availableLeft)
+
+      const viewportLeft = textareaRect.left + leftWithinTextarea
+      const maxViewportLeft = Math.max(viewportWidth - dropdownWidth - 8, 8)
+      const safeViewportLeft = Math.min(Math.max(viewportLeft, 8), maxViewportLeft)
+
+      const caretTopViewport = textareaRect.top + metrics.top - scrollTop
+      const caretBottomViewport = caretTopViewport + metrics.lineHeight
+
+      const baseGap = Math.max(metrics.lineHeight * 0.35, 16)
+      const anchorBelow = caretBottomViewport + baseGap
+      const anchorAbove = caretTopViewport - baseGap
+
+      const availableBelow = viewportHeight - anchorBelow - 12
+      const availableAbove = anchorAbove - 12
+
+      const MIN_MENU_HEIGHT = 140
+      const MAX_MENU_HEIGHT = 360
+
+      const clampHeight = (value: number) => {
+        const clipped = Math.min(value, MAX_MENU_HEIGHT)
+        const bounded = Math.max(clipped, 120)
+        return Number.isFinite(bounded) ? bounded : 160
+      }
+
+      let placement: "above" | "below" = "below"
+      if (availableBelow < MIN_MENU_HEIGHT && availableAbove > availableBelow) {
+        placement = "above"
+      }
+
+      let viewportTop: number
+      let maxHeight: number
+
+      if (placement === "below") {
+        viewportTop = Math.min(anchorBelow, viewportHeight - 8)
+        maxHeight = clampHeight(availableBelow)
+      } else {
+        viewportTop = Math.max(anchorAbove, 8)
+        maxHeight = clampHeight(availableAbove)
+      }
 
       setMentionDropdownPosition((prev) => {
-        if (prev && prev.top === top && prev.left === left && prev.width === dropdownWidth) {
+        if (
+          prev &&
+          prev.viewportTop === viewportTop &&
+          prev.viewportLeft === safeViewportLeft &&
+          prev.width === dropdownWidth &&
+          prev.maxHeight === maxHeight &&
+          prev.placement === placement
+        ) {
           return prev
         }
         return {
-          top,
-          left,
+          viewportTop,
+          viewportLeft: safeViewportLeft,
           width: dropdownWidth,
+          maxHeight,
+          placement,
         }
       })
     },
@@ -707,16 +768,25 @@ export default function MentionableTextarea({
     if (showCreateCampaignOption) {
       labels.push(`Create "${trimmedMentionQuery}" (Campaign)`)
     }
-    updateMentionMenuPosition(textarea, anchorIndex, labels)
-
-    // Update position on scroll
-    const handleScroll = () => {
+    const reposition = () => {
       updateMentionMenuPosition(textarea, anchorIndex, labels)
     }
 
-    textarea.addEventListener('scroll', handleScroll, { passive: true })
+    reposition()
+
+    textarea.addEventListener('scroll', reposition, { passive: true })
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('scroll', reposition, { passive: true })
+      window.addEventListener('resize', reposition)
+    }
+
     return () => {
-      textarea.removeEventListener('scroll', handleScroll)
+      textarea.removeEventListener('scroll', reposition)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('scroll', reposition)
+        window.removeEventListener('resize', reposition)
+      }
     }
   }, [isMentionMenuOpen, mentionOptions, mentionStart, showCreateCharacterOption, showCreateOrganizationOption, showCreateSessionOption, showCreateCampaignOption, trimmedMentionQuery, updateMentionMenuPosition])
 
@@ -732,11 +802,13 @@ export default function MentionableTextarea({
     }
 
     return {
-      top: mentionDropdownPosition.top,
-      left: mentionDropdownPosition.left,
+      top: mentionDropdownPosition.viewportTop,
+      left: mentionDropdownPosition.viewportLeft,
       width: mentionDropdownPosition.width,
       minWidth: mentionDropdownPosition.width,
       maxWidth: mentionDropdownPosition.width,
+      transform: mentionDropdownPosition.placement === "above" ? "translateY(-100%)" : undefined,
+      transformOrigin: mentionDropdownPosition.placement === "above" ? "bottom left" : undefined,
     }
   }, [mentionDropdownPosition])
 
@@ -756,13 +828,18 @@ export default function MentionableTextarea({
         maxHeight={400}
       />
 
-      {isMentionMenuOpen && (
-        <div
-          id={mentionListId}
-          className="absolute z-[9999] max-h-56 overflow-y-auto rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20"
-          role="listbox"
-          style={mentionDropdownStyle}
-        >
+      {isMentionMenuOpen && mentionDropdownPosition && typeof window !== "undefined" &&
+        createPortal(
+          <div
+            id={mentionListId}
+            className="fixed overflow-y-auto rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20"
+            role="listbox"
+            style={{
+              ...mentionDropdownStyle,
+              maxHeight: `${mentionDropdownPosition.maxHeight}px`,
+              zIndex: 2147483647,
+            }}
+          >
           {mentionOptions.length === 0 && !showCreateCharacterOption && !showCreateOrganizationOption && !showCreateSessionOption && !showCreateCampaignOption ? (
             <p className="px-3 py-2 text-xs font-mono uppercase tracking-widest text-gray-500">
               No matches
@@ -912,8 +989,9 @@ export default function MentionableTextarea({
               ) : null}
             </>
           )}
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
       {mentionCreationError ? (
         <p className="mt-2 text-xs font-mono text-[#ff6ad5]">
           {mentionCreationError}

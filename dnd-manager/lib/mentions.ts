@@ -11,7 +11,7 @@ export type MentionToken =
   | { type: 'text'; value: string }
   | { type: 'mention'; value: string; target: MentionTarget }
 
-export const mentionBoundaryPattern = /[.,!?;:'")\]]/
+export const mentionBoundaryPattern = /[\s.,!?;:'")\]]/
 export const mentionEndPattern = /[\s.,!?;:'")\]]/
 
 export function isMentionBoundary(character: string | undefined): boolean {
