@@ -89,13 +89,17 @@ export default async function EditOrganizationPage({
         kind: 'organization' as const,
       })),
     ...(campaignsResult.data ?? [])
-      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
-      .map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        href: `/campaigns/${entry.id}`,
-        kind: 'campaign' as const,
-      })),
+      .flatMap((entry) => {
+        if (!entry?.id || !entry?.name) {
+          return []
+        }
+        return [{
+          id: entry.id as string,
+          name: entry.name as string,
+          href: `/campaigns/${entry.id}`,
+          kind: 'campaign' as const,
+        }]
+      }),
     ...(sessionsResult.data ?? [])
       .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
       .map((entry) => ({
