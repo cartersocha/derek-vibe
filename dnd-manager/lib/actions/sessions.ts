@@ -78,7 +78,9 @@ export async function createSession(formData: FormData): Promise<void> {
   const sessionId = randomUUID()
 
   const organizationFieldProvided =
-    formData.has('organization_ids') || formData.has('organization_id')
+    formData.has('organization_ids_field_provided') || 
+    formData.has('organization_ids') || 
+    formData.has('organization_id')
   const directOrganizationIds = extractOrganizationIds(formData)
 
   const headerImageFile = getFile(formData, 'header_image')
@@ -151,11 +153,7 @@ export async function createSession(formData: FormData): Promise<void> {
     }
   }
 
-  // Sync organizations from characters to session
-  if (characterIds.length > 0) {
-    await syncSessionOrganizationsFromCharacters(supabase, sessionId)
-  }
-
+  // Determine which organizations to save (frontend handles character org syncing)
   let preferredOrganizationIds = Array.from(new Set(directOrganizationIds))
 
   if (preferredOrganizationIds.length === 0 && !organizationFieldProvided) {
@@ -214,7 +212,9 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
   }
 
   const organizationFieldProvided =
-    formData.has('organization_ids') || formData.has('organization_id')
+    formData.has('organization_ids_field_provided') || 
+    formData.has('organization_ids') || 
+    formData.has('organization_id')
   const directOrganizationIds = extractOrganizationIds(formData)
 
   const headerImageFile = getFile(formData, 'header_image')
@@ -339,9 +339,7 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
     })
   }
 
-  // Sync organizations from characters to session
-  await syncSessionOrganizationsFromCharacters(supabase, id)
-
+  // Determine which organizations to save
   let preferredOrganizationIds: string[]
 
   if (organizationFieldProvided) {

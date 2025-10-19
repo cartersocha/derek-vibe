@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { coerceDateInputValue } from "@/lib/utils";
 import OrganizationMultiSelect from "@/components/ui/organization-multi-select";
@@ -16,6 +16,11 @@ type OptionInput = {
   hint?: string | null;
 };
 
+type SessionInput = OptionInput & {
+  characterIds?: string[];
+  organizationIds?: string[];
+};
+
 interface CampaignFormProps {
   action: (formData: FormData) => Promise<void>;
   cancelHref: string;
@@ -26,7 +31,7 @@ interface CampaignFormProps {
     createdAt?: string | null;
   };
   organizations?: OptionInput[];
-  sessions?: OptionInput[];
+  sessions?: SessionInput[];
   characters?: OptionInput[];
   defaultOrganizationIds?: string[];
   defaultSessionIds?: string[];
@@ -57,9 +62,14 @@ export function CampaignForm({
   const [sessionIds, setSessionIds] = useState<string[]>(() => dedupe(defaultSessionIds));
   const [characterIds, setCharacterIds] = useState<string[]>(() => dedupe(defaultCharacterIds));
   const [organizationList, setOrganizationList] = useState<OptionInput[]>(() => sortOptionInputs([...organizations]));
-  const [sessionList, setSessionList] = useState<OptionInput[]>(() => sortOptionInputs([...sessions]));
+  const [sessionList, setSessionList] = useState<SessionInput[]>(() => sortOptionInputs([...sessions]));
   const [characterList, setCharacterList] = useState<OptionInput[]>(() => sortOptionInputs([...characters]));
   const defaultCreatedAtValue = useMemo(() => coerceDateInputValue(defaultValues?.createdAt ?? null), [defaultValues?.createdAt]);
+
+  // Track manually selected characters and organizations (not auto-added from sessions)
+  const manuallySelectedCharsRef = useRef<Set<string>>(new Set());
+  const manuallySelectedOrgsRef = useRef<Set<string>>(new Set());
+  const [manualSelectionTrigger, setManualSelectionTrigger] = useState(0);
 
   useEffect(() => {
     const next = dedupe(defaultOrganizationIds);
@@ -88,6 +98,109 @@ export function CampaignForm({
     setCharacterList(sortOptionInputs([...characters]));
   }, [characters, sortOptionInputs]);
 
+  // Initialize manually selected characters and organizations from initial state
+  useEffect(() => {
+    // Calculate which items come from sessions
+    const charsFromSessions = new Set<string>();
+    const orgsFromSessions = new Set<string>();
+
+    const initialSessionIds = dedupe(defaultSessionIds);
+    initialSessionIds.forEach((sessionId) => {
+      const session = sessions.find((s) => s.id === sessionId);
+      if (session) {
+        session.characterIds?.forEach((cid) => charsFromSessions.add(cid));
+        session.organizationIds?.forEach((oid) => orgsFromSessions.add(oid));
+      }
+    });
+
+    // Mark initial selections that don't come from sessions as manually selected
+    const manualChars = new Set<string>();
+    dedupe(defaultCharacterIds).forEach((charId) => {
+      if (!charsFromSessions.has(charId)) {
+        manualChars.add(charId);
+      }
+    });
+
+    const manualOrgs = new Set<string>();
+    dedupe(defaultOrganizationIds).forEach((orgId) => {
+      if (!orgsFromSessions.has(orgId)) {
+        manualOrgs.add(orgId);
+      }
+    });
+
+    manuallySelectedCharsRef.current = manualChars;
+    manuallySelectedOrgsRef.current = manualOrgs;
+  }, [defaultCharacterIds, defaultOrganizationIds, defaultSessionIds, sessions]);
+
+  // Auto-sync characters and organizations from selected sessions
+  useEffect(() => {
+    // Collect characters and organizations from selected sessions
+    const charsFromSessions = new Set<string>();
+    const orgsFromSessions = new Set<string>();
+
+    sessionIds.forEach((sessionId) => {
+      const session = sessionList.find((s) => s.id === sessionId);
+      if (session) {
+        session.characterIds?.forEach((charId) => charsFromSessions.add(charId));
+        session.organizationIds?.forEach((orgId) => orgsFromSessions.add(orgId));
+      }
+    });
+
+    // Update character IDs: combine session characters with manually selected ones
+    setCharacterIds((prev) => {
+      const combined = new Set([
+        ...charsFromSessions,
+        ...manuallySelectedCharsRef.current,
+      ]);
+
+      const prevSet = new Set(prev);
+      if (combined.size !== prevSet.size) {
+        return Array.from(combined);
+      }
+
+      for (const id of combined) {
+        if (!prevSet.has(id)) {
+          return Array.from(combined);
+        }
+      }
+
+      for (const id of prevSet) {
+        if (!combined.has(id)) {
+          return Array.from(combined);
+        }
+      }
+
+      return prev;
+    });
+
+    // Update organization IDs: combine session organizations with manually selected ones
+    setOrganizationIds((prev) => {
+      const combined = new Set([
+        ...orgsFromSessions,
+        ...manuallySelectedOrgsRef.current,
+      ]);
+
+      const prevSet = new Set(prev);
+      if (combined.size !== prevSet.size) {
+        return Array.from(combined);
+      }
+
+      for (const id of combined) {
+        if (!prevSet.has(id)) {
+          return Array.from(combined);
+        }
+      }
+
+      for (const id of prevSet) {
+        if (!combined.has(id)) {
+          return Array.from(combined);
+        }
+      }
+
+      return prev;
+    });
+  }, [sessionIds, sessionList, manualSelectionTrigger]);
+
   const handleOrganizationCreated = useCallback((option: { value: string; label: string }) => {
     setOrganizationList((prev) => {
       if (prev.some((entry) => entry.id === option.value)) {
@@ -97,7 +210,9 @@ export function CampaignForm({
       return sortOptionInputs(next);
     });
 
-    setOrganizationIds((prev) => (prev.includes(option.value) ? prev : [...prev, option.value]));
+    // Mark as manually selected and trigger sync
+    manuallySelectedOrgsRef.current.add(option.value);
+    setManualSelectionTrigger((prev) => prev + 1);
   }, [sortOptionInputs]);
 
   const handleSessionCreated = useCallback((option: SessionOption) => {
@@ -121,8 +236,84 @@ export function CampaignForm({
       return sortOptionInputs(next);
     });
 
-    setCharacterIds((prev) => (prev.includes(option.value) ? prev : [...prev, option.value]));
+    // Mark as manually selected and trigger sync
+    manuallySelectedCharsRef.current.add(option.value);
+    setManualSelectionTrigger((prev) => prev + 1);
   }, [sortOptionInputs]);
+
+  // Wrapped handler for character selection changes
+  const handleCharacterIdsChange = useCallback((newCharacterIds: string[]) => {
+    // Calculate which characters come from sessions
+    const charsFromSessions = new Set<string>();
+    sessionIds.forEach((sessionId) => {
+      const session = sessionList.find((s) => s.id === sessionId);
+      session?.characterIds?.forEach((charId) => charsFromSessions.add(charId));
+    });
+
+    const prevSet = new Set(characterIds);
+    const newSet = new Set(newCharacterIds);
+
+    let refChanged = false;
+
+    // Find newly added characters (not from sessions) - mark as manual
+    newSet.forEach((charId) => {
+      if (!prevSet.has(charId) && !charsFromSessions.has(charId)) {
+        manuallySelectedCharsRef.current.add(charId);
+        refChanged = true;
+      }
+    });
+
+    // Find removed characters that were manually selected
+    prevSet.forEach((charId) => {
+      if (!newSet.has(charId) && manuallySelectedCharsRef.current.has(charId)) {
+        manuallySelectedCharsRef.current.delete(charId);
+        refChanged = true;
+      }
+    });
+
+    if (refChanged) {
+      setManualSelectionTrigger((prev) => prev + 1);
+    }
+
+    setCharacterIds(newCharacterIds);
+  }, [characterIds, sessionIds, sessionList]);
+
+  // Wrapped handler for organization selection changes
+  const handleOrganizationIdsChange = useCallback((newOrganizationIds: string[]) => {
+    // Calculate which organizations come from sessions
+    const orgsFromSessions = new Set<string>();
+    sessionIds.forEach((sessionId) => {
+      const session = sessionList.find((s) => s.id === sessionId);
+      session?.organizationIds?.forEach((orgId) => orgsFromSessions.add(orgId));
+    });
+
+    const prevSet = new Set(organizationIds);
+    const newSet = new Set(newOrganizationIds);
+
+    let refChanged = false;
+
+    // Find newly added organizations (not from sessions) - mark as manual
+    newSet.forEach((orgId) => {
+      if (!prevSet.has(orgId) && !orgsFromSessions.has(orgId)) {
+        manuallySelectedOrgsRef.current.add(orgId);
+        refChanged = true;
+      }
+    });
+
+    // Find removed organizations that were manually selected
+    prevSet.forEach((orgId) => {
+      if (!newSet.has(orgId) && manuallySelectedOrgsRef.current.has(orgId)) {
+        manuallySelectedOrgsRef.current.delete(orgId);
+        refChanged = true;
+      }
+    });
+
+    if (refChanged) {
+      setManualSelectionTrigger((prev) => prev + 1);
+    }
+
+    setOrganizationIds(newOrganizationIds);
+  }, [organizationIds, sessionIds, sessionList]);
 
   const organizationOptions = useMemo(() => {
     return organizationList
@@ -210,7 +401,7 @@ export function CampaignForm({
             name="organization_ids"
             options={organizationOptions}
             value={organizationIds}
-            onChange={setOrganizationIds}
+            onChange={handleOrganizationIdsChange}
             placeholder={organizationOptions.length ? "Select groups" : "No groups available"}
             onCreateOption={handleOrganizationCreated}
           />
@@ -241,7 +432,7 @@ export function CampaignForm({
             name="character_ids"
             options={characterOptions}
             value={characterIds}
-            onChange={setCharacterIds}
+            onChange={handleCharacterIdsChange}
             placeholder={characterOptions.length ? "Select characters" : "No characters available"}
             onCreateOption={handleCharacterCreated}
           />

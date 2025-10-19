@@ -1,4 +1,4 @@
-export type MentionKind = 'character' | 'session' | 'organization'
+export type MentionKind = 'character' | 'session' | 'organization' | 'campaign'
 
 export type MentionTarget = {
   id: string

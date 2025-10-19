@@ -166,6 +166,37 @@ export default function CharacterEditForm({
     })
   }, [])
 
+  const handleMentionInsert = useCallback(
+    (target: MentionTarget) => {
+      setMentionableTargets((previous) => {
+        if (previous.some((entry) => entry.id === target.id)) {
+          return previous
+        }
+        return [...previous, target]
+      })
+
+      if (target.kind === 'organization') {
+        // Add organization to the list if not already present
+        setOrganizationList((prev) => {
+          if (prev.some((org) => org.id === target.id)) {
+            return prev
+          }
+          const next = [...prev, { id: target.id, name: target.name }]
+          return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+        })
+
+        // Auto-assign the organization to the character
+        setSelectedOrganizationIds((prev) => {
+          if (prev.includes(target.id)) {
+            return prev
+          }
+          return [...prev, target.id]
+        })
+      }
+    },
+    []
+  )
+
   const levelLabel = playerType === 'player' ? 'Level' : 'Challenge Rating'
 
   return (
@@ -316,6 +347,7 @@ export default function CharacterEditForm({
           rows={6}
           initialValue={character.backstory || ''}
           mentionTargets={mentionableTargets}
+          onMentionInsert={handleMentionInsert}
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           spellCheck
         />

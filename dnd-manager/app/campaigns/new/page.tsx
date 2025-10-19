@@ -10,7 +10,13 @@ export default async function NewCampaignPage() {
     supabase.from('organizations').select('id, name').order('name'),
     supabase
       .from('sessions')
-      .select('id, name, campaign:campaigns(name)')
+      .select(`
+        id,
+        name,
+        campaign:campaigns(name),
+        session_characters:session_characters(character_id),
+        organization_sessions:organization_sessions(organization_id)
+      `)
       .order('name'),
     supabase
       .from('characters')
@@ -23,16 +29,36 @@ export default async function NewCampaignPage() {
     name: organization.name ?? 'Untitled Group',
   }))
 
-  const sessionOptions = (sessions ?? []).map((session) => {
-    const relatedCampaign = (session as unknown as { campaign?: { name?: string } | Array<{ name?: string }> }).campaign
+  type SessionRow = {
+    id: string
+    name: string | null
+    campaign?: { name?: string } | Array<{ name?: string }>
+    session_characters?: Array<{ character_id: string }> | null
+    organization_sessions?: Array<{ organization_id: string }> | null
+  }
+
+  const sessionOptions = (sessions as SessionRow[] | null ?? []).map((session) => {
+    const relatedCampaign = session.campaign
     const campaignName = Array.isArray(relatedCampaign)
       ? relatedCampaign[0]?.name
       : relatedCampaign?.name
+
+    // Extract character IDs from this session
+    const characterIds = (session.session_characters ?? [])
+      .map((sc) => sc.character_id)
+      .filter(Boolean)
+
+    // Extract organization IDs from this session
+    const organizationIds = (session.organization_sessions ?? [])
+      .map((os) => os.organization_id)
+      .filter(Boolean)
 
     return {
       id: session.id,
       name: session.name ?? 'Untitled Session',
       hint: campaignName ? `Assigned to ${campaignName}` : null,
+      characterIds,
+      organizationIds,
     }
   })
 

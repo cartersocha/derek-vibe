@@ -245,7 +245,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             {session.campaign && (
               <Link 
                 href={`/campaigns/${session.campaign.id}`}
-                className="text-[#ff00ff] hover:text-[#cc00cc] font-mono uppercase tracking-wider"
+                className="text-[#ff6b35] hover:text-[#ff8a5b] font-mono uppercase tracking-wider"
               >
                 Campaign: {session.campaign.name}
               </Link>

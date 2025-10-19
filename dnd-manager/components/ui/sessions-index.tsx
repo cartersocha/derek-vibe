@@ -132,7 +132,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                     {session.campaign && session.campaign.id && session.campaign.name && (
                       <Link
                         href={`/campaigns/${session.campaign.id}`}
-                        className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff00ff] transition-colors hover:text-[#ff6ad5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6ad5] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                        className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
                       >
                         Campaign: {session.campaign.name}
                       </Link>

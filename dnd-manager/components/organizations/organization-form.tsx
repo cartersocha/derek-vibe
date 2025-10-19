@@ -6,6 +6,15 @@ import Image from "next/image";
 import Link from "next/link";
 import type { EntityOption } from "@/components/ui/entity-multi-select";
 import { EntityMultiSelect } from "@/components/ui/entity-multi-select";
+import SimpleCharacterMultiSelect from "@/components/ui/simple-character-multi-select";
+import SimpleSessionMultiSelect from "@/components/ui/simple-session-multi-select";
+import SimpleCampaignMultiSelect from "@/components/ui/simple-campaign-multi-select";
+import MentionableTextarea from "@/components/ui/mentionable-textarea";
+import { createCharacterInline } from "@/lib/actions/characters";
+import { createSessionInline } from "@/lib/actions/sessions";
+import { createCampaignInline } from "@/lib/actions/campaigns";
+import { createOrganizationInline } from "@/lib/actions/organizations";
+import type { MentionTarget } from "@/lib/mention-utils";
 
 const dedupeList = (values?: string[]) => Array.from(new Set((values ?? []).filter(Boolean)));
 const listsMatch = (a: string[], b: string[]) => a.length === b.length && a.every((value, index) => value === b[index]);
@@ -27,6 +36,7 @@ interface OrganizationFormProps {
   defaultCampaignIds?: string[];
   defaultSessionIds?: string[];
   defaultCharacterIds?: string[];
+  mentionTargets?: MentionTarget[];
 }
 
 export function OrganizationForm({
@@ -43,10 +53,111 @@ export function OrganizationForm({
   defaultCampaignIds,
   defaultSessionIds,
   defaultCharacterIds,
+  mentionTargets = [],
 }: OrganizationFormProps) {
   const [campaignIds, setCampaignIds] = useState<string[]>(() => dedupeList(defaultCampaignIds));
   const [sessionIds, setSessionIds] = useState<string[]>(() => dedupeList(defaultSessionIds));
   const [characterIds, setCharacterIds] = useState<string[]>(() => dedupeList(defaultCharacterIds));
+  const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(mentionTargets);
+
+  // Update mentionable targets when props change
+  useEffect(() => {
+    setMentionableTargets((previous) => {
+      const merged = new Map<string, MentionTarget>();
+      mentionTargets.forEach((target) => {
+        merged.set(target.id, target);
+      });
+      previous.forEach((target) => {
+        merged.set(target.id, target);
+      });
+      return Array.from(merged.values());
+    });
+  }, [mentionTargets]);
+
+  // Convert EntityOption arrays to specialized option types
+  const campaignOptionsConverted = campaignOptions.map(option => ({
+    value: option.value,
+    label: option.label,
+    hint: option.hint,
+  }));
+
+  const sessionOptionsConverted = sessionOptions.map(option => ({
+    value: option.value,
+    label: option.label,
+    hint: option.hint,
+  }));
+
+  const characterOptionsConverted = characterOptions.map(option => ({
+    value: option.value,
+    label: option.label,
+    hint: option.hint,
+  }));
+
+  // Inline creation handlers
+  const handleCharacterCreated = async (option: { value: string; label: string }) => {
+    setCharacterIds((prev) => {
+      if (prev.includes(option.value)) {
+        return prev;
+      }
+      return [...prev, option.value];
+    });
+  };
+
+  const handleSessionCreated = async (option: { value: string; label: string }) => {
+    setSessionIds((prev) => {
+      if (prev.includes(option.value)) {
+        return prev;
+      }
+      return [...prev, option.value];
+    });
+  };
+
+  const handleCampaignCreated = async (option: { value: string; label: string }) => {
+    setCampaignIds((prev) => {
+      if (prev.includes(option.value)) {
+        return prev;
+      }
+      return [...prev, option.value];
+    });
+  };
+
+  const handleMentionInsert = (target: MentionTarget) => {
+    setMentionableTargets((previous) => {
+      if (previous.some((entry) => entry.id === target.id)) {
+        return previous;
+      }
+      return [...previous, target];
+    });
+
+    if (target.kind === 'character') {
+      // Add character to the list if not already present
+      setCharacterIds((prev) => {
+        if (prev.includes(target.id)) {
+          return prev;
+        }
+        return [...prev, target.id];
+      });
+    } else if (target.kind === 'campaign') {
+      // Add campaign to the list if not already present
+      setCampaignIds((prev) => {
+        if (prev.includes(target.id)) {
+          return prev;
+        }
+        return [...prev, target.id];
+      });
+    } else if (target.kind === 'session') {
+      // Add session to the list if not already present
+      setSessionIds((prev) => {
+        if (prev.includes(target.id)) {
+          return prev;
+        }
+        return [...prev, target.id];
+      });
+    } else if (target.kind === 'organization') {
+      // For organizations, we don't auto-assign to avoid circular references
+      // Just add to mentionable targets for future @ mentions
+    }
+  };
 
   useEffect(() => {
     const next = dedupeList(defaultCampaignIds);
@@ -94,11 +205,13 @@ export function OrganizationForm({
         >
           Description
         </label>
-        <textarea
+        <MentionableTextarea
           id="description"
           name="description"
           rows={4}
-          defaultValue={defaultValues?.description ?? ""}
+          initialValue={defaultValues?.description ?? ""}
+          mentionTargets={mentionableTargets}
+          onMentionInsert={handleMentionInsert}
           className="w-full rounded border border-[#00ffff]/30 bg-[#050517] px-4 py-3 text-[#e2e8f0] outline-none transition focus:border-[#ff00ff] focus:ring-2 focus:ring-[#ff00ff]/40"
           placeholder="Share the mission, history, or vibe of this group."
         />
@@ -155,14 +268,15 @@ export function OrganizationForm({
                   Linked Campaigns
                 </span>
               </div>
-              <EntityMultiSelect
+              <SimpleCampaignMultiSelect
                 id="organization-campaigns"
                 name="campaign_ids"
-                options={campaignOptions}
+                options={campaignOptionsConverted}
                 value={campaignIds}
                 onChange={setCampaignIds}
                 placeholder="Select campaigns"
                 emptyMessage="No campaigns available"
+                onCreateOption={handleCampaignCreated}
               />
             </section>
           ) : null}
@@ -174,14 +288,15 @@ export function OrganizationForm({
                   Linked Sessions
                 </span>
               </div>
-              <EntityMultiSelect
+              <SimpleSessionMultiSelect
                 id="organization-sessions"
                 name="session_ids"
-                options={sessionOptions}
+                options={sessionOptionsConverted}
                 value={sessionIds}
                 onChange={setSessionIds}
                 placeholder="Select sessions"
                 emptyMessage="No sessions available"
+                onCreateOption={handleSessionCreated}
               />
             </section>
           ) : null}
@@ -193,14 +308,15 @@ export function OrganizationForm({
                   Linked Characters
                 </span>
               </div>
-              <EntityMultiSelect
+              <SimpleCharacterMultiSelect
                 id="organization-characters"
                 name="character_ids"
-                options={characterOptions}
+                options={characterOptionsConverted}
                 value={characterIds}
                 onChange={setCharacterIds}
                 placeholder="Select characters"
                 emptyMessage="No characters available"
+                onCreateOption={handleCharacterCreated}
               />
             </section>
           ) : null}

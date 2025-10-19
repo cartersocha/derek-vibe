@@ -32,11 +32,12 @@ export default async function EditOrganizationPage({
 
   const organization = data;
 
-  const [campaignsResult, sessionsResult, charactersResult, campaignLinksResult, sessionLinksResult, characterLinksResult] =
+  const [campaignsResult, sessionsResult, charactersResult, organizationsResult, campaignLinksResult, sessionLinksResult, characterLinksResult] =
     await Promise.all([
       supabase.from("campaigns").select("id, name").order("name"),
       supabase.from("sessions").select("id, name, session_date").order("session_date", { ascending: false, nullsFirst: false }),
       supabase.from("characters").select("id, name, player_type, status").order("name"),
+      supabase.from("organizations").select("id, name").order("name"),
       supabase.from("organization_campaigns").select("campaign_id").eq("organization_id", id),
       supabase.from("organization_sessions").select("session_id").eq("organization_id", id),
       supabase.from("organization_characters").select("character_id").eq("organization_id", id),
@@ -68,6 +69,43 @@ export default async function EditOrganizationPage({
   const defaultCampaignIds = (campaignLinksResult.data ?? []).map((entry) => entry.campaign_id).filter(Boolean);
   const defaultSessionIds = (sessionLinksResult.data ?? []).map((entry) => entry.session_id).filter(Boolean);
   const defaultCharacterIds = (characterLinksResult.data ?? []).map((entry) => entry.character_id).filter(Boolean);
+
+  // Create mention targets for @ mentions
+  const mentionTargets = [
+    ...(charactersResult.data ?? [])
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/characters/${entry.id}`,
+        kind: 'character' as const,
+      })),
+    ...(organizationsResult.data ?? [])
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/organizations/${entry.id}`,
+        kind: 'organization' as const,
+      })),
+    ...(campaignsResult.data ?? [])
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/campaigns/${entry.id}`,
+        kind: 'campaign' as const,
+      })),
+    ...(sessionsResult.data ?? [])
+      .filter((entry): entry is { id: string; name: string } => Boolean(entry?.name))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        href: `/sessions/${entry.id}`,
+        kind: 'session' as const,
+      })),
+  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+
 
   async function handleUpdate(formData: FormData) {
     "use server";
@@ -103,6 +141,7 @@ export default async function EditOrganizationPage({
         defaultCampaignIds={defaultCampaignIds}
         defaultSessionIds={defaultSessionIds}
         defaultCharacterIds={defaultCharacterIds}
+        mentionTargets={mentionTargets}
         showLogoRemove
         submitLabel="Save Changes"
       />

@@ -31,6 +31,8 @@ export function renderNotesWithMentions(text: string, targets: MentionTarget[]):
             return 'text-[#ff6ad5] decoration-[#ff6ad5]/70 hover:text-[#ff94e3] focus-visible:ring-[#ff6ad5]/50'
           case 'organization':
             return 'text-[#fcee0c] decoration-[#fcee0c]/70 hover:text-[#fff89c] focus-visible:ring-[#fcee0c]/50'
+          case 'campaign':
+            return 'text-[#ff6b35] decoration-[#ff6b35]/70 hover:text-[#ff8a5b] focus-visible:ring-[#ff6b35]/50'
           default:
             return 'text-[#94a3b8] decoration-[#94a3b8]/70 hover:text-[#cbd5f5] focus-visible:ring-[#94a3b8]/50'
         }

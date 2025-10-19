@@ -471,7 +471,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                         {campaignRelation?.id && campaignRelation.name && (
                           <Link
                             href={`/campaigns/${campaignRelation.id}`}
-                            className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff00ff] transition-colors hover:text-[#ff6ad5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6ad5] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                            className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
                           >
                             Campaign: {campaignRelation.name}
                           </Link>

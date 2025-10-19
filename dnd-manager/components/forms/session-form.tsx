@@ -89,6 +89,8 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
   })
   const [selectedGroups, setSelectedGroups] = useState<string[]>(() => initialData?.organizationIds ?? [])
   const [campaignId, setCampaignId] = useState(() => initialData?.campaign_id || defaultCampaignId || '')
+  const manuallySelectedOrgsRef = useRef<Set<string>>(new Set())
+  const [manualOrgTrigger, setManualOrgTrigger] = useState(0)
   const [campaignDropdownKey, setCampaignDropdownKey] = useState(0)
   const [isCampaignCreatorOpen, setIsCampaignCreatorOpen] = useState(false)
   const [newCampaignName, setNewCampaignName] = useState('')
@@ -191,8 +193,33 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
   }, [defaultCampaignId, initialData?.campaign_id])
 
   useEffect(() => {
-    setSelectedGroups(initialData?.organizationIds ?? [])
-  }, [initialData?.organizationIds])
+    const initialOrgIds = initialData?.organizationIds ?? []
+    setSelectedGroups(initialOrgIds)
+    
+    // Initialize manually selected organizations
+    // These are organizations in initial data that don't come from characters
+    const orgsFromCharacters = new Set<string>()
+    const initialCharIds = initialData?.characterIds ?? []
+    
+    initialCharIds.forEach((characterId) => {
+      const character = characters.find((c) => c.id === characterId)
+      if (character?.organizations) {
+        character.organizations.forEach((org) => {
+          orgsFromCharacters.add(org.id)
+        })
+      }
+    })
+    
+    // Mark any initial organizations that aren't from characters as manually selected
+    const manuallySelected = new Set<string>()
+    initialOrgIds.forEach((orgId) => {
+      if (!orgsFromCharacters.has(orgId)) {
+        manuallySelected.add(orgId)
+      }
+    })
+    
+    manuallySelectedOrgsRef.current = manuallySelected
+  }, [initialData?.organizationIds, initialData?.characterIds, characters])
 
   useEffect(() => {
     if (!isCampaignCreatorOpen) {
@@ -503,24 +530,35 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
         return [...previous, target]
       })
 
-      if (target.kind !== 'character') {
-        return
+      if (target.kind === 'character') {
+        setSelectedCharacterIds((prev) => {
+          if (prev.includes(target.id)) {
+            return prev
+          }
+          return [...prev, target.id]
+        })
+
+        setCharacterList((prev) => {
+          if (prev.some((character) => character.id === target.id)) {
+            return prev
+          }
+          const next = [...prev, { id: target.id, name: target.name, race: null, class: null }]
+          return sortCharactersByName(next)
+        })
+      } else if (target.kind === 'organization') {
+        // Add organization to the list if not already present
+        setOrganizationList((prev) => {
+          if (prev.some((org) => org.id === target.id)) {
+            return prev
+          }
+          const next = [...prev, { id: target.id, name: target.name }]
+          return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+        })
+
+        // Mark as manually selected and trigger sync
+        manuallySelectedOrgsRef.current.add(target.id)
+        setManualOrgTrigger((prev) => prev + 1)
       }
-
-      setSelectedCharacterIds((prev) => {
-        if (prev.includes(target.id)) {
-          return prev
-        }
-        return [...prev, target.id]
-      })
-
-      setCharacterList((prev) => {
-        if (prev.some((character) => character.id === target.id)) {
-          return prev
-        }
-        const next = [...prev, { id: target.id, name: target.name, race: null, class: null }]
-        return sortCharactersByName(next)
-      })
     },
     [sortCharactersByName]
   )
@@ -564,7 +602,10 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
       return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
     })
 
-    setSelectedGroups((prev) => Array.from(new Set([...prev, option.value])))
+    // Mark newly created organizations as manually selected
+    manuallySelectedOrgsRef.current.add(option.value)
+    // Trigger sync effect to pick up the new manually selected org
+    setManualOrgTrigger((prev) => prev + 1)
 
     setMentionableTargets((previous) => {
       if (previous.some((entry) => entry.id === option.value)) {
@@ -635,23 +676,82 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
       }
     })
 
-    // Update selectedGroups to include organizations from characters
-    // while preserving any manually selected organizations
+    // Sync selectedGroups to include organizations from characters
+    // and preserve manually selected organizations
     setSelectedGroups((prev) => {
       const prevSet = new Set(prev)
-      let changed = false
-
-      // Add organizations from characters
-      organizationIdsFromCharacters.forEach((orgId) => {
+      const manuallySelected = manuallySelectedOrgsRef.current
+      
+      // Combine character organizations with manually selected ones
+      const newSet = new Set([
+        ...organizationIdsFromCharacters,
+        ...manuallySelected
+      ])
+      
+      // Check if there are any changes
+      if (prevSet.size !== newSet.size) {
+        return Array.from(newSet)
+      }
+      
+      for (const orgId of newSet) {
         if (!prevSet.has(orgId)) {
-          prevSet.add(orgId)
-          changed = true
+          return Array.from(newSet)
         }
-      })
-
-      return changed ? Array.from(prevSet) : prev
+      }
+      
+      for (const orgId of prevSet) {
+        if (!newSet.has(orgId)) {
+          return Array.from(newSet)
+        }
+      }
+      
+      return prev
     })
-  }, [selectedCharacterIds, characterList])
+  }, [selectedCharacterIds, characterList, manualOrgTrigger])
+
+  // Create a wrapped handler for organization selection changes
+  const handleOrganizationSelectionChange = useCallback((newSelectedIds: string[]) => {
+    // Calculate which organizations come from characters
+    const orgsFromCharacters = new Set<string>()
+    selectedCharacterIds.forEach((characterId) => {
+      const character = characterList.find((c) => c.id === characterId)
+      if (character?.organizations) {
+        character.organizations.forEach((org) => {
+          orgsFromCharacters.add(org.id)
+        })
+      }
+    })
+
+    const prevSet = new Set(selectedGroups)
+    const newSet = new Set(newSelectedIds)
+
+    // Update manually selected organizations
+    const manuallySelected = manuallySelectedOrgsRef.current
+    let refChanged = false
+    
+    // Find newly added organizations (not from characters)
+    newSet.forEach((orgId) => {
+      if (!prevSet.has(orgId) && !orgsFromCharacters.has(orgId)) {
+        manuallySelected.add(orgId)
+        refChanged = true
+      }
+    })
+    
+    // Find removed organizations that were manually added
+    prevSet.forEach((orgId) => {
+      if (!newSet.has(orgId) && manuallySelected.has(orgId)) {
+        manuallySelected.delete(orgId)
+        refChanged = true
+      }
+    })
+
+    // Trigger sync if we changed manually selected orgs
+    if (refChanged) {
+      setManualOrgTrigger((prev) => prev + 1)
+    }
+
+    setSelectedGroups(newSelectedIds)
+  }, [selectedCharacterIds, characterList, selectedGroups])
 
   const disableCampaignCreate = newCampaignName.trim().length === 0 || isCreatingCampaignInline
 
@@ -681,7 +781,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
             className="w-full rounded border border-[#00ffff] border-opacity-20 bg-[#0a0a1f] px-3 py-2 text-xs font-mono text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#ff00ff]"
           />
           {campaignCreationError ? (
-            <p className="text-xs font-mono text-[#ff6ad5]">{campaignCreationError}</p>
+            <p className="text-xs font-mono text-[#ff6b35]">{campaignCreationError}</p>
           ) : null}
           <div className="flex flex-col gap-2 sm:flex-row">
             <button
@@ -877,7 +977,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
             name="organization_ids"
             options={organizationSelectOptions}
             value={selectedGroups}
-            onChange={setSelectedGroups}
+            onChange={handleOrganizationSelectionChange}
             placeholder={organizationSelectOptions.length ? 'Select groups' : 'No groups available'}
             onCreateOption={handleOrganizationCreated}
           />

@@ -225,6 +225,8 @@ export default function OrganizationMultiSelect({
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
+      {/* Sentinel input to indicate this field was provided (even if empty) */}
+      <input type="hidden" name={`${name}_field_provided`} value="true" />
       {normalizedSelections.map((selection) => (
         <input key={selection} type="hidden" name={name} value={selection} />
       ))}

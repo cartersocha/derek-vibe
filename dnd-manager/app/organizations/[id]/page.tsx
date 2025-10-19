@@ -289,7 +289,7 @@ export default async function OrganizationDetailPage({
                     {session.campaign?.name ? (
                       <Link
                         href={`/campaigns/${session.campaign.id}`}
-                        className="pointer-events-auto mt-3 inline-flex items-center rounded border border-[#ff00ff]/40 bg-[#211027] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5] transition-colors hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6ad5]"
+                        className="pointer-events-auto mt-3 inline-flex items-center rounded border border-[#ff6b35]/40 bg-[#211027] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
                       >
                         {session.campaign.name}
                       </Link>
