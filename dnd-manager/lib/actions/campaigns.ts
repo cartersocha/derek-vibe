@@ -1,4 +1,16 @@
-"use server"
+"use server";
+// List campaigns with pagination, user scoping, and authorization
+export async function getCampaignsList(supabase: SupabaseClient, userId: string, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+  if (!userId) throw new Error('Unauthorized: Missing userId');
+  const { data, error } = await supabase
+    .from('campaigns')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
 
 import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
