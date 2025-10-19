@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { tokenizeMentions, type MentionTarget } from '@/lib/mentions'
+import { tokenizeMentions, type MentionTarget, type MentionKind } from '@/lib/mentions'
 
 export type { MentionTarget } from '@/lib/mentions'
 export { collectMentionTargets, isMentionBoundary } from '@/lib/mentions'
@@ -53,3 +53,61 @@ export function renderNotesWithMentions(text: string, targets: MentionTarget[]):
   })
 }
 
+type EntityWithName = {
+  id?: string | null
+  name?: string | null
+}
+
+export function mapEntitiesToMentionTargets<T extends EntityWithName>(
+  entries: readonly T[] | null | undefined,
+  kind: MentionKind,
+  hrefBuilder: (entry: T) => string
+): MentionTarget[] {
+  if (!entries?.length) {
+    return []
+  }
+
+  const results: MentionTarget[] = []
+
+  for (const entry of entries) {
+    if (!entry) {
+      continue
+    }
+
+    const { id, name } = entry
+    if (typeof id !== 'string' || !id || typeof name !== 'string' || !name) {
+      continue
+    }
+
+    results.push({
+      id,
+      name,
+      kind,
+      href: hrefBuilder(entry),
+    })
+  }
+
+  return results
+}
+
+export function mergeMentionTargets(...lists: Array<readonly MentionTarget[]>): MentionTarget[] {
+  const map = new Map<string, MentionTarget>()
+
+  for (const list of lists) {
+    if (!list?.length) {
+      continue
+    }
+
+    for (const target of list) {
+      if (!target?.id || !target?.name) {
+        continue
+      }
+      const key = `${target.kind}:${target.id}`
+      if (!map.has(key)) {
+        map.set(key, target)
+      }
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+}

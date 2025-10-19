@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { updateCharacter } from '@/lib/actions/characters'
 import CharacterEditForm from '@/components/forms/character-edit-form'
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-utils'
 
 export default async function CharacterEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -33,44 +34,11 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
       .eq('character_id', id),
   ])
 
-  const mentionTargets = [
-    ...(allCharacters ?? [])
-      .flatMap((entry) => {
-        if (!entry?.id || !entry?.name) {
-          return []
-        }
-        return [{
-          id: entry.id as string,
-          name: entry.name as string,
-          href: `/characters/${entry.id}`,
-          kind: 'character' as const,
-        }]
-      }),
-    ...(allSessions ?? [])
-      .flatMap((entry) => {
-        if (!entry?.id || !entry?.name) {
-          return []
-        }
-        return [{
-          id: entry.id as string,
-          name: entry.name as string,
-          href: `/sessions/${entry.id}`,
-          kind: 'session' as const,
-        }]
-      }),
-    ...(organizations ?? [])
-      .flatMap((entry) => {
-        if (!entry?.id || !entry?.name) {
-          return []
-        }
-        return [{
-          id: entry.id as string,
-          name: entry.name as string,
-          href: `/organizations/${entry.id}`,
-          kind: 'organization' as const,
-        }]
-      }),
-  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(allCharacters, 'character', (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(allSessions, 'session', (entry) => `/sessions/${entry.id}`),
+    mapEntitiesToMentionTargets(organizations, 'organization', (entry) => `/organizations/${entry.id}`)
+  )
 
   const updateCharacterWithId = updateCharacter.bind(null, id)
 

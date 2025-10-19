@@ -1,5 +1,6 @@
 import { OrganizationForm } from "@/components/organizations/organization-form";
 import { createOrganization } from "@/lib/actions/organizations";
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from "@/lib/mention-utils";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateStringForDisplay } from "@/lib/utils";
 
@@ -44,56 +45,12 @@ export default async function NewOrganizationPage() {
   });
 
   // Create mention targets for @ mentions
-  const mentionTargets = [
-    ...(charactersResult.data ?? [])
-      .flatMap((entry) => {
-        if (!entry?.id || !entry?.name) {
-          return []
-        }
-        return [{
-          id: entry.id as string,
-          name: entry.name as string,
-          href: `/characters/${entry.id}`,
-          kind: 'character' as const,
-        }]
-      }),
-    ...(organizationsResult.data ?? [])
-      .flatMap((entry) => {
-        if (!entry?.id || !entry?.name) {
-          return []
-        }
-        return [{
-          id: entry.id as string,
-          name: entry.name as string,
-          href: `/organizations/${entry.id}`,
-          kind: 'organization' as const,
-        }]
-      }),
-    ...(campaignsResult.data ?? [])
-      .flatMap((entry) => {
-        if (!entry?.id || !entry?.name) {
-          return []
-        }
-        return [{
-          id: entry.id as string,
-          name: entry.name as string,
-          href: `/campaigns/${entry.id}`,
-          kind: 'campaign' as const,
-        }]
-      }),
-    ...(sessionsResult.data ?? [])
-      .flatMap((entry) => {
-        if (!entry?.id || !entry?.name) {
-          return []
-        }
-        return [{
-          id: entry.id as string,
-          name: entry.name as string,
-          href: `/sessions/${entry.id}`,
-          kind: 'session' as const,
-        }]
-      }),
-  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(charactersResult.data, "character", (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(organizationsResult.data, "organization", (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(campaignsResult.data, "campaign", (entry) => `/campaigns/${entry.id}`),
+    mapEntitiesToMentionTargets(sessionsResult.data, "session", (entry) => `/sessions/${entry.id}`)
+  );
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">

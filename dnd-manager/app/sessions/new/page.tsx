@@ -1,4 +1,5 @@
 import { createSession } from '@/lib/actions/sessions'
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-utils'
 import { createClient } from '@/lib/supabase/server'
 import SessionForm from '@/components/forms/session-form'
 
@@ -68,56 +69,12 @@ export default async function NewSessionPage({
     }
   }) || []
 
-  const mentionTargets = [
-    ...charactersWithOrgs
-      .flatMap((entry) => {
-        if (!entry?.id || !entry?.name) {
-          return []
-        }
-        return [{
-          id: entry.id,
-          name: entry.name,
-          href: `/characters/${entry.id}`,
-          kind: 'character' as const,
-        }]
-      }),
-    ...(sessions ?? [])
-      .flatMap((entry) => {
-        if (!entry?.id || !entry?.name) {
-          return []
-        }
-        return [{
-          id: entry.id,
-          name: entry.name,
-          href: `/sessions/${entry.id}`,
-          kind: 'session' as const,
-        }]
-      }),
-    ...(organizations ?? [])
-      .flatMap((entry) => {
-        if (!entry?.id || !entry?.name) {
-          return []
-        }
-        return [{
-          id: entry.id,
-          name: entry.name,
-          href: `/organizations/${entry.id}`,
-          kind: 'organization' as const,
-        }]
-      }),
-    ...(campaigns ?? [])
-      .flatMap((entry) => {
-        if (!entry?.id || !entry?.name) {
-          return []
-        }
-        return [{
-          id: entry.id,
-          name: entry.name,
-          href: `/campaigns/${entry.id}`,
-          kind: 'campaign' as const,
-        }]
-      }),
-  ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(charactersWithOrgs, 'character', (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(sessions, 'session', (entry) => `/sessions/${entry.id}`),
+    mapEntitiesToMentionTargets(organizations, 'organization', (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(campaigns, 'campaign', (entry) => `/campaigns/${entry.id}`)
+  )
 
   return (
     <div className="max-w-3xl mx-auto">

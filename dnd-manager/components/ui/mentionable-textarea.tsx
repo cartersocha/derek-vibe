@@ -744,17 +744,7 @@ export default function MentionableTextarea({
     })
   }, [isMentionMenuOpen, totalMentionChoices])
 
-  useEffect(() => {
-    if (!isMentionMenuOpen) {
-      return
-    }
-
-    const textarea = textareaRef.current
-    if (!textarea) {
-      return
-    }
-
-    const anchorIndex = mentionStart ?? (typeof textarea.selectionStart === "number" ? textarea.selectionStart : 0)
+  const mentionMenuLabels = useMemo(() => {
     const labels = mentionOptions.map((option) => option.name)
     if (showCreateCharacterOption) {
       labels.push(`Create "${trimmedMentionQuery}" (Character)`)
@@ -768,8 +758,22 @@ export default function MentionableTextarea({
     if (showCreateCampaignOption) {
       labels.push(`Create "${trimmedMentionQuery}" (Campaign)`)
     }
+    return labels
+  }, [mentionOptions, showCreateCharacterOption, showCreateOrganizationOption, showCreateSessionOption, showCreateCampaignOption, trimmedMentionQuery])
+
+  useEffect(() => {
+    if (!isMentionMenuOpen) {
+      return
+    }
+
+    const textarea = textareaRef.current
+    if (!textarea) {
+      return
+    }
+
+    const anchorIndex = mentionStart ?? (typeof textarea.selectionStart === "number" ? textarea.selectionStart : 0)
     const reposition = () => {
-      updateMentionMenuPosition(textarea, anchorIndex, labels)
+      updateMentionMenuPosition(textarea, anchorIndex, mentionMenuLabels)
     }
 
     reposition()
@@ -788,7 +792,7 @@ export default function MentionableTextarea({
         window.removeEventListener('resize', reposition)
       }
     }
-  }, [isMentionMenuOpen, mentionOptions, mentionStart, showCreateCharacterOption, showCreateOrganizationOption, showCreateSessionOption, showCreateCampaignOption, trimmedMentionQuery, updateMentionMenuPosition])
+  }, [isMentionMenuOpen, mentionMenuLabels, mentionStart, updateMentionMenuPosition])
 
   const mentionDropdownStyle = useMemo<CSSProperties>(() => {
     if (!mentionDropdownPosition) {
