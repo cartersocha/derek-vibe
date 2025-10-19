@@ -7,8 +7,16 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedSchemes: ["http", "https", "mailto"],
 };
 
+const AMP_ENTITY_REGEX = /&amp;(?![a-zA-Z0-9]+;)/g;
+
 export function sanitizeText(value: string): string {
-  return sanitizeHtml(value, SANITIZE_OPTIONS);
+  const sanitized = sanitizeHtml(value, SANITIZE_OPTIONS);
+
+  if (!sanitized.includes("&amp;")) {
+    return sanitized;
+  }
+
+  return sanitized.replace(AMP_ENTITY_REGEX, "&");
 }
 
 export function sanitizeNullableText(value: unknown): string | null {

@@ -18,9 +18,9 @@ export function DeleteOrganizationButton() {
       type="submit"
       disabled={pending}
       onClick={handleClick}
-      className="inline-flex items-center justify-center rounded border border-red-500 border-opacity-50 bg-[#0f0f23] px-4 py-2 text-sm font-bold uppercase tracking-[0.35em] text-red-500 transition hover:bg-red-500 hover:text-black disabled:cursor-not-allowed disabled:opacity-60"
+      className="w-full sm:w-auto bg-[#0f0f23] border border-red-500 border-opacity-50 text-red-500 px-4 py-2 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover:bg-red-500 hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      {pending ? 'Deleting…' : 'Delete Organization'}
+      {pending ? 'Deleting...' : 'Delete'}
     </button>
   )
 }

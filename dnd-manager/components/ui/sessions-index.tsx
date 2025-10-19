@@ -7,6 +7,7 @@ import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils
 import { SessionParticipantPills } from "@/components/ui/session-participant-pills";
 
 type CampaignInfo = {
+  id: string | null;
   name: string | null;
 };
 
@@ -106,49 +107,54 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
             return (
               <article
                 key={session.id}
-                className="group bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50"
+                className="group relative overflow-hidden rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e] bg-opacity-50 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50"
               >
+                <Link
+                  href={`/sessions/${session.id}`}
+                  className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                  aria-label={`View session ${session.name}`}
+                >
+                  <span aria-hidden="true" />
+                </Link>
                 <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <Link
-                        href={`/sessions/${session.id}`}
-                        className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors hover:text-[#ff00ff] focus:text-[#ff00ff] focus:outline-none"
-                      >
+                  <div className="relative z-10 flex-1 pointer-events-none">
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
                         {session.name}
-                      </Link>
+                      </span>
                       {session.sessionNumber !== null && session.sessionNumber !== undefined && (
                         <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
                           Session #{session.sessionNumber}
                         </span>
                       )}
                     </div>
-                    {session.campaign && session.campaign.name && (
-                      <p className="text-sm text-[#ff00ff] mb-2 font-mono">
+                    {session.campaign && session.campaign.id && session.campaign.name && (
+                      <Link
+                        href={`/campaigns/${session.campaign.id}`}
+                        className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff00ff] transition-colors hover:text-[#ff6ad5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6ad5] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                      >
                         Campaign: {session.campaign.name}
-                      </p>
+                      </Link>
                     )}
                     {session.notes && (
-                      <div className="text-gray-400 line-clamp-2 font-mono text-sm whitespace-pre-line break-words">
+                      <div className="pointer-events-auto text-gray-400 line-clamp-2 font-mono text-sm whitespace-pre-line break-words">
                         {renderNotesWithMentions(session.notes, mentionTargets)}
                       </div>
                     )}
                     {players.length > 0 && (
-                      <SessionParticipantPills sessionId={session.id} players={players} className="mt-3" />
+                      <SessionParticipantPills
+                        sessionId={session.id}
+                        players={players}
+                        className="mt-3 pointer-events-auto"
+                      />
                     )}
                   </div>
-                  <div className="text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">
+                  <div className="relative z-10 pointer-events-none text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">
                     {session.session_date ? (
                       <div>{new Date(session.session_date).toLocaleDateString()}</div>
                     ) : (
                       <div>No date set</div>
                     )}
-                    <Link
-                      href={`/sessions/${session.id}`}
-                      className="mt-3 inline-flex text-[#ff00ff] text-[10px] uppercase tracking-widest font-bold hover:text-[#ff6ad5] focus:text-[#ff6ad5] focus:outline-none"
-                    >
-                      View session →
-                    </Link>
                   </div>
                 </div>
               </article>

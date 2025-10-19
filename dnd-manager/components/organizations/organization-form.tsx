@@ -1,6 +1,14 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import type { EntityOption } from "@/components/ui/entity-multi-select";
+import { EntityMultiSelect } from "@/components/ui/entity-multi-select";
+
+const dedupeList = (values?: string[]) => Array.from(new Set((values ?? []).filter(Boolean)));
+const listsMatch = (a: string[], b: string[]) => a.length === b.length && a.every((value, index) => value === b[index]);
 
 interface OrganizationFormProps {
   action: (formData: FormData) => Promise<void>;
@@ -13,6 +21,12 @@ interface OrganizationFormProps {
   submitLabel: string;
   showLogoRemove?: boolean;
   children?: ReactNode;
+  campaignOptions?: EntityOption[];
+  sessionOptions?: EntityOption[];
+  characterOptions?: EntityOption[];
+  defaultCampaignIds?: string[];
+  defaultSessionIds?: string[];
+  defaultCharacterIds?: string[];
 }
 
 export function OrganizationForm({
@@ -23,7 +37,32 @@ export function OrganizationForm({
   submitLabel,
   showLogoRemove = false,
   children,
+  campaignOptions = [],
+  sessionOptions = [],
+  characterOptions = [],
+  defaultCampaignIds,
+  defaultSessionIds,
+  defaultCharacterIds,
 }: OrganizationFormProps) {
+  const [campaignIds, setCampaignIds] = useState<string[]>(() => dedupeList(defaultCampaignIds));
+  const [sessionIds, setSessionIds] = useState<string[]>(() => dedupeList(defaultSessionIds));
+  const [characterIds, setCharacterIds] = useState<string[]>(() => dedupeList(defaultCharacterIds));
+
+  useEffect(() => {
+    const next = dedupeList(defaultCampaignIds);
+    setCampaignIds((current) => (listsMatch(current, next) ? current : next));
+  }, [defaultCampaignIds]);
+
+  useEffect(() => {
+    const next = dedupeList(defaultSessionIds);
+    setSessionIds((current) => (listsMatch(current, next) ? current : next));
+  }, [defaultSessionIds]);
+
+  useEffect(() => {
+    const next = dedupeList(defaultCharacterIds);
+    setCharacterIds((current) => (listsMatch(current, next) ? current : next));
+  }, [defaultCharacterIds]);
+
   return (
     <form
       action={action}
@@ -34,7 +73,7 @@ export function OrganizationForm({
           htmlFor="name"
           className="mb-2 block text-xs font-bold uppercase tracking-[0.35em] text-[#00ffff]"
         >
-          Organization Name *
+          Group Name *
         </label>
         <input
           type="text"
@@ -61,7 +100,7 @@ export function OrganizationForm({
           rows={4}
           defaultValue={defaultValues?.description ?? ""}
           className="w-full rounded border border-[#00ffff]/30 bg-[#050517] px-4 py-3 text-[#e2e8f0] outline-none transition focus:border-[#ff00ff] focus:ring-2 focus:ring-[#ff00ff]/40"
-          placeholder="Share the mission, history, or vibe of this organization."
+          placeholder="Share the mission, history, or vibe of this group."
         />
       </div>
 
@@ -80,9 +119,6 @@ export function OrganizationForm({
             accept="image/*"
             className="block w-full text-sm text-[#94a3b8] file:mr-4 file:rounded file:border-0 file:bg-[#00ffff] file:px-4 file:py-2 file:text-sm file:font-semibold file:tracking-[0.25em] file:text-black hover:file:bg-[#ff00ff]"
           />
-          <p className="mt-2 text-xs text-[#64748b]">
-            Optional image to represent the organization. PNG or SVG works best.
-          </p>
         </div>
 
         {logoUrl ? (
@@ -110,16 +146,77 @@ export function OrganizationForm({
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      {(campaignOptions.length > 0 || sessionOptions.length > 0 || characterOptions.length > 0) && (
+        <div className="space-y-6">
+          {campaignOptions.length > 0 ? (
+            <section className="space-y-3">
+              <div>
+                <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+                  Linked Campaigns
+                </span>
+              </div>
+              <EntityMultiSelect
+                id="organization-campaigns"
+                name="campaign_ids"
+                options={campaignOptions}
+                value={campaignIds}
+                onChange={setCampaignIds}
+                placeholder="Select campaigns"
+                emptyMessage="No campaigns available"
+              />
+            </section>
+          ) : null}
+
+          {sessionOptions.length > 0 ? (
+            <section className="space-y-3">
+              <div>
+                <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+                  Linked Sessions
+                </span>
+              </div>
+              <EntityMultiSelect
+                id="organization-sessions"
+                name="session_ids"
+                options={sessionOptions}
+                value={sessionIds}
+                onChange={setSessionIds}
+                placeholder="Select sessions"
+                emptyMessage="No sessions available"
+              />
+            </section>
+          ) : null}
+
+          {characterOptions.length > 0 ? (
+            <section className="space-y-3">
+              <div>
+                <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+                  Linked Characters
+                </span>
+              </div>
+              <EntityMultiSelect
+                id="organization-characters"
+                name="character_ids"
+                options={characterOptions}
+                value={characterIds}
+                onChange={setCharacterIds}
+                placeholder="Select characters"
+                emptyMessage="No characters available"
+              />
+            </section>
+          ) : null}
+        </div>
+      )}
+
+      <div className="flex flex-col gap-4 sm:flex-row">
         <button
           type="submit"
-          className="flex-1 rounded bg-[#ff00ff] px-4 py-3 text-sm font-bold uppercase tracking-[0.35em] text-black transition hover:bg-[#d400d4]"
+          className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-[#ff00ff] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50"
         >
           {submitLabel}
         </button>
         <Link
           href={cancelHref}
-          className="flex-1 rounded border border-[#00ffff]/30 px-4 py-3 text-center text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff] transition hover:border-[#ff00ff] hover:text-[#ff00ff]"
+          className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
         >
           Cancel
         </Link>

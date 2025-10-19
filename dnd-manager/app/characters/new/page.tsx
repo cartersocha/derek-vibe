@@ -49,7 +49,6 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-[#00ffff] uppercase tracking-wider">Create New Character</h1>
-        <p className="mt-2 text-gray-400 font-mono">Add a new character to your campaign</p>
       </div>
 
       <NewCharacterForm

@@ -36,6 +36,14 @@ export default async function SessionEditPage({
 
   const characterIds = sessionCharacters?.map(sc => sc.character_id) || []
 
+  // Fetch organizations linked to this session
+  const { data: sessionOrganizations } = await supabase
+    .from('organization_sessions')
+    .select('organization_id')
+    .eq('session_id', id)
+
+  const organizationIds = sessionOrganizations?.map(so => so.organization_id) || []
+
   // Fetch all campaigns and characters for the form
   const [{ data: campaigns }, { data: allCharacters }, { data: allSessions }, { data: organizations }] = await Promise.all([
     supabase.from('campaigns').select('id, name').order('name'),
@@ -62,6 +70,7 @@ export default async function SessionEditPage({
 
   const sessionPath = `/sessions/${id}/edit${sessionQuery.toString() ? `?${sessionQuery.toString()}` : ''}`
   const newCharacterHref = `/characters/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
+  const newGroupHref = `/organizations/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
 
   const mentionTargets = [
     ...(allCharacters ?? [])
@@ -108,14 +117,17 @@ export default async function SessionEditPage({
           session_date: session.session_date,
           notes: session.notes,
           header_image_url: session.header_image_url,
-          characterIds: characterIds
+          characterIds: characterIds,
+          organizationIds: organizationIds,
         }}
         campaigns={campaigns || []}
         characters={allCharacters || []}
+        organizations={organizations || []}
         submitLabel="Save Changes"
         cancelHref={`/sessions/${id}`}
         draftKey={`session-notes:${id}`}
         newCharacterHref={newCharacterHref}
+        newGroupHref={newGroupHref}
         preselectedCharacterIds={newCharacterId ? [newCharacterId] : undefined}
         mentionTargets={mentionTargets}
       />

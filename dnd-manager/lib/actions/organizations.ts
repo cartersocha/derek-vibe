@@ -1,4 +1,16 @@
-'use server'
+"use server";
+// List organizations with pagination, user scoping, and authorization
+export async function getOrganizationsList(supabase: SupabaseClient, userId: string, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+  if (!userId) throw new Error('Unauthorized: Missing userId');
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
 
 import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
@@ -157,6 +169,14 @@ export async function updateOrganization(id: string, formData: FormData): Promis
   if (error) {
     throw new Error(error.message)
   }
+
+  const campaignIds = getIdList(formData, 'campaign_ids')
+  const sessionIds = getIdList(formData, 'session_ids')
+  const characterIds = getIdList(formData, 'character_ids')
+
+  await syncOrganizationCampaigns(supabase, id, campaignIds)
+  await syncOrganizationSessions(supabase, id, sessionIds)
+  await syncOrganizationCharacters(supabase, id, characterIds)
 
   revalidatePath('/organizations')
   revalidatePath(`/organizations/${id}`)
@@ -398,4 +418,129 @@ function getFile(formData: FormData, key: string): File | null {
   }
 
   return null
+}
+
+function getIdList(formData: FormData, key: string): string[] {
+  return formData
+    .getAll(key)
+    .flatMap((value) => (typeof value === 'string' && value.trim() ? [value.trim()] : []))
+}
+
+async function syncOrganizationCampaigns(
+  supabase: SupabaseClient,
+  organizationId: string,
+  campaignIds: string[]
+): Promise<void> {
+  const uniqueIds = Array.from(new Set(campaignIds))
+
+  const { error: deleteError } = await supabase
+    .from('organization_campaigns')
+    .delete()
+    .eq('organization_id', organizationId)
+
+  if (deleteError) {
+    throw new Error(deleteError.message)
+  }
+
+  if (uniqueIds.length === 0) {
+    return
+  }
+
+  const inserts = uniqueIds.map((campaignId) => ({
+    organization_id: organizationId,
+    campaign_id: campaignId,
+  }))
+
+  const { error: insertError } = await supabase
+    .from('organization_campaigns')
+    .insert(inserts)
+
+  if (insertError) {
+    throw new Error(insertError.message)
+  }
+}
+
+async function syncOrganizationSessions(
+  supabase: SupabaseClient,
+  organizationId: string,
+  sessionIds: string[]
+): Promise<void> {
+  const uniqueIds = Array.from(new Set(sessionIds))
+
+  const { error: deleteError } = await supabase
+    .from('organization_sessions')
+    .delete()
+    .eq('organization_id', organizationId)
+
+  if (deleteError) {
+    throw new Error(deleteError.message)
+  }
+
+  if (uniqueIds.length === 0) {
+    return
+  }
+
+  const inserts = uniqueIds.map((sessionId) => ({
+    organization_id: organizationId,
+    session_id: sessionId,
+  }))
+
+  const { error: insertError } = await supabase
+    .from('organization_sessions')
+    .insert(inserts)
+
+  if (insertError) {
+    throw new Error(insertError.message)
+  }
+}
+
+async function syncOrganizationCharacters(
+  supabase: SupabaseClient,
+  organizationId: string,
+  characterIds: string[]
+): Promise<void> {
+  const uniqueIds = Array.from(new Set(characterIds))
+
+  const { data: existingLinks, error: existingError } = await supabase
+    .from('organization_characters')
+    .select('character_id, role')
+    .eq('organization_id', organizationId)
+
+  if (existingError) {
+    throw new Error(existingError.message)
+  }
+
+  const roleMap = new Map<string, string>()
+  existingLinks?.forEach((link) => {
+    if (link?.character_id) {
+      roleMap.set(link.character_id, link.role ?? 'npc')
+    }
+  })
+
+  const { error: deleteError } = await supabase
+    .from('organization_characters')
+    .delete()
+    .eq('organization_id', organizationId)
+
+  if (deleteError) {
+    throw new Error(deleteError.message)
+  }
+
+  if (uniqueIds.length === 0) {
+    return
+  }
+
+  const inserts = uniqueIds.map((characterId) => ({
+    organization_id: organizationId,
+    character_id: characterId,
+    role: roleMap.get(characterId) ?? 'npc',
+  }))
+
+  const { error: insertError } = await supabase
+    .from('organization_characters')
+    .insert(inserts)
+
+  if (insertError) {
+    throw new Error(insertError.message)
+  }
 }

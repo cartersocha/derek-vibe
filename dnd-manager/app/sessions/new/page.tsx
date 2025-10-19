@@ -44,6 +44,7 @@ export default async function NewSessionPage({
 
   const sessionPath = `/sessions/new${sessionQuery.toString() ? `?${sessionQuery.toString()}` : ''}`
   const newCharacterHref = `/characters/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
+  const newGroupHref = `/organizations/new?${new URLSearchParams({ redirectTo: sessionPath }).toString()}`
 
   const mentionTargets = [
     ...(characters ?? [])
@@ -76,18 +77,19 @@ export default async function NewSessionPage({
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-[#00ffff] uppercase tracking-wider">Create New Session</h1>
-        <p className="mt-2 text-gray-400 font-mono">Record a new game session</p>
       </div>
 
       <SessionForm
         action={createSession}
         campaigns={campaigns || []}
         characters={characters || []}
+        organizations={organizations || []}
         defaultCampaignId={defaultCampaignId || undefined}
         submitLabel="Create Session"
         cancelHref="/sessions"
         draftKey={draftKey}
         newCharacterHref={newCharacterHref}
+        newGroupHref={newGroupHref}
         preselectedCharacterIds={newCharacterId ? [newCharacterId] : undefined}
         mentionTargets={mentionTargets}
       />
