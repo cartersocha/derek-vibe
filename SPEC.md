@@ -50,11 +50,13 @@ dnd-manager/
 ├── components/                       # React components
 │   ├── ui/                          # Reusable UI components
 │   │   ├── auto-resize-textarea.tsx # Auto-growing textarea component
+│   │   ├── entity-multi-select.tsx  # Searchable multi-select dropdown
 │   │   ├── image-upload.tsx         # Image upload component
 │   │   ├── delete-character-button.tsx
 │   │   ├── delete-session-button.tsx
 │   │   └── delete-campaign-button.tsx
 │   ├── forms/                       # Form components
+│   │   ├── campaign-form.tsx        # Campaign create/edit form
 │   │   ├── character-edit-form.tsx  # Character edit form
 │   │   └── session-form.tsx         # Session form with character select
 │   ├── organizations/               # Organization-specific UI
@@ -88,7 +90,8 @@ dnd-manager/
 │       ├── 20241018_add_character_player_type_location.sql
 │       ├── 20241018_add_character_status.sql
 │       ├── 20241018_change_character_level_to_text.sql
-│       └── 20241020_add_organizations.sql
+│       ├── 20241020_add_organizations.sql
+│       └── 20241021_add_campaign_characters.sql
 ├── public/                          # Static assets
 ├── middleware.ts                    # Auth middleware
 ├── .env.local                       # Environment variables (not committed)
@@ -171,6 +174,9 @@ app/
 
 #### Form Components
 
+- `CampaignForm` - Shared campaign create/edit experience with linked entity selectors
+  - Location: `components/forms/campaign-form.tsx`
+  - Client component presenting a two-by-two grid with created date, groups, sessions, and characters while deduping selections and emitting hidden inputs for server actions
 - `CharacterEditForm` - Edit existing character with auto-resizing text areas
   - Location: `components/forms/character-edit-form.tsx`
   - Client component with form state management
@@ -186,6 +192,9 @@ app/
 - `AutoResizeTextarea` - Textarea that grows with content for long-form inputs using animation frame throttling
   - Location: `components/ui/auto-resize-textarea.tsx`
   - Client component shared by character and session forms for backstory and notes
+- `EntityMultiSelect` - Searchable multi-select adopted by campaign and session forms
+  - Location: `components/ui/entity-multi-select.tsx`
+  - Client component that handles deduped selections, optional inline creation links, and keyboard-friendly popover navigation
 - `SynthwaveDropdown` - Popover-driven select that powers all fixed-option dropdowns with synthwave styling and optional search/footers
   - Location: `components/ui/synthwave-dropdown.tsx`
   - Client component adopted by character and session forms, supports inline creation footers for workflows like campaign creation
@@ -241,11 +250,13 @@ app/
 
 - Create, read, update, delete campaigns
 - Associate campaigns with one or more organizations via the `organization_campaigns` join table; UI lets users toggle organization affiliations without duplicating campaign data
+- Associate campaigns with characters through the `campaign_characters` join table; create/edit forms surface a multi-select that writes to Supabase via server actions while de-duplicating selections
 - List all campaigns with session count, filtered by the active organization when one is selected
 - View campaign details with associated sessions and any organizations they belong to
 - Optional campaign assignment (sessions can exist without campaigns) still applies; affiliation records update automatically when linking or unlinking sessions and campaigns inside an organization
 - Campaigns display:
   - Name and description
+  - Editable created date (date-only); create/edit forms present the field alongside organization, session, and character selectors in a two-by-two grid for faster data entry
   - Total sessions count
   - Created and last updated dates
   - List of all sessions in campaign
@@ -387,6 +398,8 @@ app/
 > **Note (2025-10-20, late night):** Centralized attendee pill rendering into `SessionParticipantPills`, ensuring consistent ordering, focus states, and mobile wrapping across dashboard, campaign, session, and character views while trimming the dashboard recent session cards by removing the inline note preview block.
 
 > **Note (2025-10-21):** Hooked the application-level uniqueness guard (`assertUniqueValue`) into all entity actions to prevent case-insensitive duplicates and expanded mention tinting to include organizations alongside characters and sessions.
+
+> **Note (2025-10-21, evening):** Added the `campaign_characters` migration with backfill, updated campaign server actions to sync sessions/groups/characters together, exposed an editable created date, and refreshed the campaign create/edit form layout with a consistent two-by-two grid of inputs.
 
 
 ### Form Handling

@@ -77,7 +77,6 @@ export default async function NewSessionPage({
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-[#00ffff] uppercase tracking-wider">Create New Session</h1>
-        <p className="mt-2 text-gray-400 font-mono">Record a new game session</p>
       </div>
 
       <SessionForm

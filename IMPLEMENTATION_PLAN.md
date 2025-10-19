@@ -28,6 +28,8 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-20, late night):** Refactored attendee chip rendering into a shared `SessionParticipantPills` component for consistent ordering and focus states across pages, and streamlined the dashboard's recent sessions by removing the note preview block.
 
+> **Note (2025-10-21, evening):** Landed campaign create/edit form refinements: editable created dates, a consistent two-by-two grid of date and entity selectors, and multi-selects that persist linked groups, sessions, and characters through Supabase. Added the `campaign_characters` migration with backfill to keep historic associations intact.
+
 <!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
 
 ## Recent Enhancements (2025-10-18)
@@ -229,6 +231,17 @@ CREATE TRIGGER update_characters_updated_at BEFORE UPDATE ON characters
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 ```
 
+**Additional Migration (2025-10-21):** Added `campaign_characters` join table to persist campaign-to-character associations and backfilled relationships from existing `session_characters` data.
+
+**Files Created**:
+- `supabase/migrations/20241021_add_campaign_characters.sql`
+
+**SQL Highlights**:
+- Create `campaign_characters` with composite primary key and timestamp
+- Index by `character_id` for reverse lookups
+- Backfill historical data by joining sessions to existing session-character links
+- Safeguard with `on conflict do nothing` to avoid duplicate inserts during backfill
+
 ---
 
 #### Step 1.5: Setup Vercel Blob Storage ✅
@@ -388,6 +401,7 @@ export interface CharacterWithSessions extends Character {
 - Create Card component
 - Create Select component
 - Create Label component
+- Create multi-select dropdown with search support for entity linking
 - Configure component variants with Tailwind
 
 > **Enhancement (2025-10-18):** Added `components/ui/auto-resize-textarea.tsx` to auto-grow long-form inputs for session notes and character backstories.
@@ -398,6 +412,7 @@ export interface CharacterWithSessions extends Character {
 - `components/ui/input.tsx`
 - `components/ui/textarea.tsx`
 - `components/ui/auto-resize-textarea.tsx`
+- `components/ui/entity-multi-select.tsx`
 - `components/ui/card.tsx`
 - `components/ui/select.tsx`
 - `components/ui/label.tsx`
@@ -450,19 +465,20 @@ export interface CharacterWithSessions extends Character {
 **Tasks**:
 - Create campaigns list page
 - Create campaign card component
-- Create campaign form component
+- Create shared campaign form component with created-date control and linked entity selectors
 - Create new campaign page
 - Create campaign detail/edit page
 - Create server actions for CRUD operations
 - Add error handling and success messages
 
 **Files Created**:
-- `app/(protected)/campaigns/page.tsx`
-- `app/(protected)/campaigns/new/page.tsx`
-- `app/(protected)/campaigns/[id]/page.tsx`
-- `components/campaigns/campaign-card.tsx`
-- `components/campaigns/campaign-form.tsx`
-- `app/(protected)/campaigns/actions.ts`
+- `app/campaigns/page.tsx`
+- `app/campaigns/new/page.tsx`
+- `app/campaigns/[id]/page.tsx`
+- `app/campaigns/[id]/edit/page.tsx`
+- `components/forms/campaign-form.tsx`
+- `components/ui/delete-campaign-button.tsx`
+- `lib/actions/campaigns.ts`
 
 ---
 

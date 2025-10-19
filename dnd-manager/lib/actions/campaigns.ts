@@ -3,6 +3,7 @@
 import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { campaignSchema } from '@/lib/validations/schemas'
@@ -17,9 +18,11 @@ export async function createCampaignInline(
 ): Promise<{ id: string; name: string }> {
   const supabase = await createClient()
 
+  const sanitizedDescription = sanitizeNullableText(description ?? null)
+
   const data = {
     name: sanitizeText(name).trim(),
-    description: sanitizeNullableText(description ?? null),
+    description: sanitizedDescription ?? undefined,
   }
 
   const result = campaignSchema.safeParse(data)
@@ -68,14 +71,16 @@ export async function createCampaignInline(
 export async function createCampaign(formData: FormData): Promise<void> {
   const supabase = await createClient()
 
-  const organizationFieldProvided =
-    formData.has('organization_ids') || formData.has('organization_id')
   const discoveredOrganizationIds = extractOrganizationIds(formData)
+  const sessionIds = getIdList(formData, 'session_ids')
+  const characterIds = getIdList(formData, 'character_ids')
+  const createdAtOverride = getDateValue(formData, 'created_at')
 
   const rawName = formData.get('name')
+  const sanitizedDescription = sanitizeNullableText(formData.get('description'))
   const data = {
     name: typeof rawName === 'string' ? sanitizeText(rawName).trim() : '',
-    description: sanitizeNullableText(formData.get('description')),
+    description: sanitizedDescription ?? undefined,
   }
 
   const result = campaignSchema.safeParse(data)
@@ -91,29 +96,30 @@ export async function createCampaign(formData: FormData): Promise<void> {
   })
 
   const campaignId = randomUUID()
+  const descriptionValue = sanitizedDescription ?? null
 
   const { error } = await supabase
     .from('campaigns')
-    .insert({ id: campaignId, ...result.data })
+    .insert({
+      id: campaignId,
+      name: result.data.name,
+      description: descriptionValue,
+      ...(createdAtOverride ? { created_at: createdAtOverride } : {}),
+    })
 
   if (error) {
     throw new Error(error.message)
   }
 
-  let resolvedOrganizationIds = Array.from(new Set(discoveredOrganizationIds))
+  const resolvedOrganizationIds = Array.from(new Set(discoveredOrganizationIds))
+  await setCampaignOrganizations(supabase, campaignId, resolvedOrganizationIds)
 
-  if (resolvedOrganizationIds.length === 0 && !organizationFieldProvided) {
-    resolvedOrganizationIds = await resolveOrganizationIds(supabase, [])
-  }
+  await setCampaignSessions(supabase, campaignId, sessionIds)
+  await setCampaignCharacters(supabase, campaignId, characterIds)
 
-  if (resolvedOrganizationIds.length > 0 || organizationFieldProvided) {
-    await setCampaignOrganizations(supabase, campaignId, resolvedOrganizationIds)
-  }
-
-  if (resolvedOrganizationIds.length > 0) {
-    revalidatePath('/organizations')
-  }
-
+  revalidatePath('/organizations')
+  revalidatePath('/sessions')
+  revalidatePath('/characters')
   revalidatePath('/campaigns')
   redirect('/campaigns')
 }
@@ -121,14 +127,16 @@ export async function createCampaign(formData: FormData): Promise<void> {
 export async function updateCampaign(id: string, formData: FormData): Promise<void> {
   const supabase = await createClient()
 
-  const organizationFieldProvided =
-    formData.has('organization_ids') || formData.has('organization_id')
   const discoveredOrganizationIds = extractOrganizationIds(formData)
+  const sessionIds = getIdList(formData, 'session_ids')
+  const characterIds = getIdList(formData, 'character_ids')
+  const createdAtOverride = getDateValue(formData, 'created_at')
 
   const rawName = formData.get('name')
+  const sanitizedDescription = sanitizeNullableText(formData.get('description'))
   const data = {
     name: typeof rawName === 'string' ? sanitizeText(rawName).trim() : '',
-    description: sanitizeNullableText(formData.get('description')),
+    description: sanitizedDescription ?? undefined,
   }
 
   const result = campaignSchema.safeParse(data)
@@ -144,21 +152,30 @@ export async function updateCampaign(id: string, formData: FormData): Promise<vo
     errorMessage: 'Campaign name already exists. Choose a different name.',
   })
 
+  const descriptionValue = sanitizedDescription ?? null
+
   const { error } = await supabase
     .from('campaigns')
-    .update(result.data)
+    .update({
+      name: result.data.name,
+      description: descriptionValue,
+      ...(createdAtOverride ? { created_at: createdAtOverride } : {}),
+    })
     .eq('id', id)
 
   if (error) {
     throw new Error(error.message)
   }
 
-  if (organizationFieldProvided) {
-    const resolvedOrganizationIds = Array.from(new Set(discoveredOrganizationIds))
-    await setCampaignOrganizations(supabase, id, resolvedOrganizationIds)
-    revalidatePath('/organizations')
-  }
+  const resolvedOrganizationIds = Array.from(new Set(discoveredOrganizationIds))
+  await setCampaignOrganizations(supabase, id, resolvedOrganizationIds)
 
+  await setCampaignSessions(supabase, id, sessionIds)
+  await setCampaignCharacters(supabase, id, characterIds)
+
+  revalidatePath('/organizations')
+  revalidatePath('/sessions')
+  revalidatePath('/characters')
   revalidatePath('/campaigns')
   revalidatePath(`/campaigns/${id}`)
   redirect(`/campaigns/${id}`)
@@ -178,4 +195,118 @@ export async function deleteCampaign(id: string): Promise<void> {
 
   revalidatePath('/campaigns')
   redirect('/campaigns')
+}
+
+function getIdList(formData: FormData, field: string): string[] {
+  const rawValues = formData
+    .getAll(field)
+    .filter((entry): entry is string => typeof entry === 'string')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+
+  return Array.from(new Set(rawValues))
+}
+
+function getDateValue(formData: FormData, field: string): string | null {
+  const rawValue = formData.get(field)
+  if (typeof rawValue !== 'string') {
+    return null
+  }
+
+  const trimmed = rawValue.trim()
+  if (!trimmed) {
+    return null
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const [year, month, day] = trimmed.split('-').map((value) => Number.parseInt(value, 10))
+    if ([year, month, day].some((value) => Number.isNaN(value))) {
+      return null
+    }
+
+    return new Date(Date.UTC(year, month - 1, day)).toISOString()
+  }
+
+  const parsed = new Date(trimmed)
+  if (Number.isNaN(parsed.getTime())) {
+    return null
+  }
+
+  return parsed.toISOString()
+}
+
+async function setCampaignSessions(
+  supabase: SupabaseClient,
+  campaignId: string,
+  sessionIds: string[],
+): Promise<void> {
+  const uniqueIds = Array.from(new Set(sessionIds))
+
+  const { data: existingRows, error: existingError } = await supabase
+    .from('sessions')
+    .select('id')
+    .eq('campaign_id', campaignId)
+
+  if (existingError) {
+    throw new Error(existingError.message)
+  }
+
+  const existingIds = (existingRows ?? []).map((row) => row.id)
+  const removalIds = existingIds.filter((current) => !uniqueIds.includes(current))
+
+  if (removalIds.length > 0) {
+    const { error: detachError } = await supabase
+      .from('sessions')
+      .update({ campaign_id: null })
+      .in('id', removalIds)
+
+    if (detachError) {
+      throw new Error(detachError.message)
+    }
+  }
+
+  if (uniqueIds.length > 0) {
+    const { error: attachError } = await supabase
+      .from('sessions')
+      .update({ campaign_id: campaignId })
+      .in('id', uniqueIds)
+
+    if (attachError) {
+      throw new Error(attachError.message)
+    }
+  }
+}
+
+async function setCampaignCharacters(
+  supabase: SupabaseClient,
+  campaignId: string,
+  characterIds: string[],
+): Promise<void> {
+  const uniqueIds = Array.from(new Set(characterIds))
+
+  const { error: deleteError } = await supabase
+    .from('campaign_characters')
+    .delete()
+    .eq('campaign_id', campaignId)
+
+  if (deleteError) {
+    throw new Error(deleteError.message)
+  }
+
+  if (uniqueIds.length === 0) {
+    return
+  }
+
+  const inserts = uniqueIds.map((characterId) => ({
+    campaign_id: campaignId,
+    character_id: characterId,
+  }))
+
+  const { error: insertError } = await supabase
+    .from('campaign_characters')
+    .insert(inserts)
+
+  if (insertError) {
+    throw new Error(insertError.message)
+  }
 }
