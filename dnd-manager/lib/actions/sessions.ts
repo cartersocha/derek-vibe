@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
 import { sessionSchema } from '@/lib/validations/schemas'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
@@ -28,6 +29,13 @@ export async function createSession(formData: FormData): Promise<void> {
   const headerImageFile = getFile(formData, 'header_image')
 
   const sessionName = toTitleCase(getString(formData, 'name'))
+
+  await assertUniqueValue(supabase, {
+    table: 'sessions',
+    column: 'name',
+    value: sessionName,
+    errorMessage: 'Session name already exists. Choose a different name.',
+  })
 
   const baseData = {
     name: sessionName,
@@ -129,6 +137,16 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
   const removeHeader = formData.get('header_image_remove') === 'true'
   let headerImageUrl = existing.header_image_url
 
+  const sessionName = toTitleCase(getString(formData, 'name'))
+
+  await assertUniqueValue(supabase, {
+    table: 'sessions',
+    column: 'name',
+    value: sessionName,
+    excludeId: id,
+    errorMessage: 'Session name already exists. Choose a different name.',
+  })
+
   if (headerImageFile) {
     const { url, path, error: uploadError } = await uploadImage(
       SESSION_BUCKET,
@@ -166,8 +184,6 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
 
     headerImageUrl = null
   }
-
-  const sessionName = toTitleCase(getString(formData, 'name'))
 
   const data = {
     name: sessionName,

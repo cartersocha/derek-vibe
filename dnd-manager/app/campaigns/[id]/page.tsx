@@ -4,10 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 import { deleteCampaign } from '@/lib/actions/campaigns'
 import { DeleteCampaignButton } from '@/components/ui/delete-campaign-button'
 import {
-  cn,
   extractPlayerSummaries,
   type SessionCharacterRelation,
 } from '@/lib/utils'
+import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
 
 type SessionRow = {
   id: string
@@ -38,7 +38,17 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     .select(`
       *,
       session_characters:session_characters(
-        character:characters(id, name, class, race, level, player_type)
+        character:characters(
+          id,
+          name,
+          class,
+          race,
+          level,
+          player_type,
+          organization_memberships:organization_characters(
+            organizations(id, name)
+          )
+        )
       )
     `)
     .eq('campaign_id', id)
@@ -171,14 +181,14 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                 return (
                   <article
                     key={session.id}
-                    className="group p-4 border border-[#00ffff] border-opacity-20 rounded transition-all duration-200 hover:border-[#ff00ff] hover:bg-[#0f0f23]"
+                    className="group bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
                           <Link
                             href={`/sessions/${session.id}`}
-                            className="font-medium text-[#00ffff] font-mono transition-colors hover:text-[#ff00ff] focus:text-[#ff00ff] focus:outline-none"
+                            className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors hover:text-[#ff00ff] focus:text-[#ff00ff] focus:outline-none"
                           >
                             {session.name}
                           </Link>
@@ -189,40 +199,23 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                           )}
                         </div>
                         {session.notes && (
-                          <p className="text-sm text-gray-400 line-clamp-2 font-mono">{session.notes}</p>
+                          <p className="text-sm text-gray-400 line-clamp-2 font-mono">
+                            {session.notes}
+                          </p>
                         )}
                         {players.length > 0 && (
-                          <div className="mt-3 flex flex-wrap gap-2" aria-label="Players present">
-                            {players.map((player) => (
-                              <Link
-                                key={`${session.id}-${player.id}`}
-                                href={`/characters/${player.id}`}
-                                className={cn(
-                                  'rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2',
-                                  player.player_type === 'player'
-                                    ? 'border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
-                                    : 'border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]'
-                                )}
-                              >
-                                {player.name}
-                              </Link>
-                            ))}
-                          </div>
+                          <SessionParticipantPills sessionId={session.id} players={players} className="mt-3" />
                         )}
                       </div>
-                      <div className="flex flex-col items-start sm:items-end sm:ml-4 gap-2 text-sm text-gray-400 font-mono uppercase tracking-wider">
+                      <div className="text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">
                         {session.session_date ? (
-                          <span>
-                            {new Date(session.session_date).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </span>
-                        ) : null}
+                          <div>{new Date(session.session_date).toLocaleDateString()}</div>
+                        ) : (
+                          <div>No date set</div>
+                        )}
                         <Link
                           href={`/sessions/${session.id}`}
-                          className="text-[#ff00ff] text-[10px] font-bold uppercase tracking-widest hover:text-[#ff6ad5] focus:text-[#ff6ad5] focus:outline-none"
+                          className="mt-3 inline-flex text-[#ff00ff] text-[10px] uppercase tracking-widest font-bold hover:text-[#ff6ad5] focus:text-[#ff6ad5] focus:outline-none"
                         >
                           View session →
                         </Link>

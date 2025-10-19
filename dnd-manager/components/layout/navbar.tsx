@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { href: "/organizations", label: "Organizations", symbol: "🏛" },
+  { href: "/organizations", label: "Organizations", symbol: "⚙" },
   { href: "/campaigns", label: "Campaigns", symbol: "⚔" },
   { href: "/sessions", label: "Sessions", symbol: "✎" },
   { href: "/characters", label: "Characters", symbol: "♞" },

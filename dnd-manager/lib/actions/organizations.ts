@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
+import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
 import { organizationSchema, type CharacterOrganizationAffiliationInput } from '@/lib/validations/organization'
@@ -14,6 +15,18 @@ const LOGO_BUCKET = 'organization-logos' as const
 export async function createOrganization(formData: FormData): Promise<void> {
   const supabase = await createClient()
   const organizationId = randomUUID()
+
+  const rawName = getString(formData, 'name')
+  const sanitizedName = sanitizeText(rawName).trim()
+
+  await assertUniqueValue(supabase, {
+    table: 'organizations',
+    column: 'name',
+    value: sanitizedName,
+    errorMessage: 'Organization name already exists. Choose a different name.',
+  })
+
+  const description = sanitizeNullableText(formData.get('description'))
 
   const logoFile = getFile(formData, 'logo')
   let logoUrl: string | null = null
@@ -33,8 +46,8 @@ export async function createOrganization(formData: FormData): Promise<void> {
   }
 
   const data = {
-    name: sanitizeText(getString(formData, 'name')).trim(),
-    description: sanitizeNullableText(formData.get('description')),
+    name: sanitizedName,
+    description,
     logo_url: logoUrl,
   }
 
@@ -80,6 +93,19 @@ export async function updateOrganization(id: string, formData: FormData): Promis
   const removeLogo = formData.get('logo_remove') === 'true'
   let logoUrl = existing.logo_url
 
+  const rawName = getString(formData, 'name')
+  const sanitizedName = sanitizeText(rawName).trim()
+
+  await assertUniqueValue(supabase, {
+    table: 'organizations',
+    column: 'name',
+    value: sanitizedName,
+    excludeId: id,
+    errorMessage: 'Organization name already exists. Choose a different name.',
+  })
+
+  const description = sanitizeNullableText(formData.get('description'))
+
   if (logoFile) {
     const { url, path, error } = await uploadImage(
       LOGO_BUCKET,
@@ -113,8 +139,8 @@ export async function updateOrganization(id: string, formData: FormData): Promis
   }
 
   const data = {
-    name: sanitizeText(getString(formData, 'name')).trim(),
-    description: sanitizeNullableText(formData.get('description')),
+    name: sanitizedName,
+    description,
     logo_url: logoUrl,
   }
 
@@ -181,6 +207,12 @@ export async function createOrganizationInline(name: string): Promise<{ id: stri
   }
 
   const truncated = sanitized.slice(0, 200)
+  await assertUniqueValue(supabase, {
+    table: 'organizations',
+    column: 'name',
+    value: truncated,
+    errorMessage: 'Organization name already exists. Choose a different name.',
+  })
   const organizationId = randomUUID()
 
   const { error } = await supabase

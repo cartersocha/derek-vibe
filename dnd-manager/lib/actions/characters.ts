@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { collectMentionTargets } from "@/lib/mentions";
+import { assertUniqueValue } from "@/lib/supabase/ensure-unique";
 import { createClient } from "@/lib/supabase/server";
 import {
   deleteImage,
@@ -39,6 +40,15 @@ export async function createCharacter(formData: FormData): Promise<void> {
   const imageFile = getFile(formData, "image");
   let imageUrl: string | null = null;
 
+  const normalizedName = toTitleCase(getString(formData, "name"));
+
+  await assertUniqueValue(supabase, {
+    table: "characters",
+    column: "name",
+    value: normalizedName,
+    errorMessage: "Character name already exists. Choose a different name.",
+  });
+
   if (imageFile) {
     const { url, error } = await uploadImage(
       CHARACTER_BUCKET,
@@ -52,8 +62,6 @@ export async function createCharacter(formData: FormData): Promise<void> {
 
     imageUrl = url;
   }
-
-  const normalizedName = toTitleCase(getString(formData, "name"));
 
   const data = {
     name: normalizedName,
@@ -156,6 +164,12 @@ export async function createCharacterInline(
 
   const normalized = toTitleCase(sanitized);
   const truncated = normalized.slice(0, 100);
+  await assertUniqueValue(supabase, {
+    table: "characters",
+    column: "name",
+    value: truncated,
+    errorMessage: "Character name already exists. Choose a different name.",
+  });
   const characterId = randomUUID();
   const { error } = await supabase.from("characters").insert({
     id: characterId,
@@ -223,6 +237,16 @@ export async function updateCharacter(
   const removeImage = formData.get("image_remove") === "true";
   let imageUrl = existing.image_url;
 
+  const normalizedName = toTitleCase(getString(formData, "name"));
+
+  await assertUniqueValue(supabase, {
+    table: "characters",
+    column: "name",
+    value: normalizedName,
+    excludeId: id,
+    errorMessage: "Character name already exists. Choose a different name.",
+  });
+
   if (imageFile) {
     const { url, path, error } = await uploadImage(
       CHARACTER_BUCKET,
@@ -260,8 +284,6 @@ export async function updateCharacter(
 
     imageUrl = null;
   }
-
-  const normalizedName = toTitleCase(getString(formData, "name"));
 
   const data = {
     name: normalizedName,

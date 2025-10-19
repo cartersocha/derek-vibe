@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { campaignSchema } from '@/lib/validations/schemas'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
 import { resolveOrganizationIds, setCampaignOrganizations } from '@/lib/actions/organizations'
@@ -25,6 +26,13 @@ export async function createCampaignInline(
   if (!result.success) {
     throw new Error('Validation failed')
   }
+
+  await assertUniqueValue(supabase, {
+    table: 'campaigns',
+    column: 'name',
+    value: result.data.name,
+    errorMessage: 'Campaign name already exists. Choose a different name.',
+  })
 
   const campaignId = randomUUID()
 
@@ -75,6 +83,13 @@ export async function createCampaign(formData: FormData): Promise<void> {
     throw new Error('Validation failed')
   }
 
+  await assertUniqueValue(supabase, {
+    table: 'campaigns',
+    column: 'name',
+    value: result.data.name,
+    errorMessage: 'Campaign name already exists. Choose a different name.',
+  })
+
   const campaignId = randomUUID()
 
   const { error } = await supabase
@@ -120,6 +135,14 @@ export async function updateCampaign(id: string, formData: FormData): Promise<vo
   if (!result.success) {
     throw new Error('Validation failed')
   }
+
+  await assertUniqueValue(supabase, {
+    table: 'campaigns',
+    column: 'name',
+    value: result.data.name,
+    excludeId: id,
+    errorMessage: 'Campaign name already exists. Choose a different name.',
+  })
 
   const { error } = await supabase
     .from('campaigns')

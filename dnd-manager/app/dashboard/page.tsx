@@ -2,9 +2,9 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import {
   extractPlayerSummaries,
-  getVisiblePlayers,
   type SessionCharacterRelation,
 } from '@/lib/utils'
+import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -32,7 +32,17 @@ export default async function DashboardPage() {
       notes,
       campaign:campaigns(id, name),
       session_characters:session_characters(
-        character:characters(id, name, class, race, level)
+        character:characters(
+          id,
+          name,
+          class,
+          race,
+          level,
+          player_type,
+          organization_memberships:organization_characters(
+            organizations(id, name)
+          )
+        )
       )
     `)
     .order('created_at', { ascending: false })
@@ -146,13 +156,6 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {recentSessions.map((session) => {
               const sessionNumber = sessionNumberMap.get(session.id)
-              const scheduledDate = session.session_date
-                ? new Date(session.session_date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })
-                : null
               const campaignRelation = Array.isArray(session.campaign)
                 ? session.campaign[0]
                 : session.campaign
@@ -160,61 +163,51 @@ export default async function DashboardPage() {
                 ? (session.session_characters as SessionCharacterRelation[])
                 : null
               const players = extractPlayerSummaries(rawLinks)
-              const { visible: visiblePlayers, hiddenCount } = getVisiblePlayers(players, 4)
 
               return (
-                <Link
+                <article
                   key={session.id}
-                  href={`/sessions/${session.id}`}
-                  className="flex h-full flex-col gap-4 rounded-lg border border-[#00ffff] border-opacity-25 bg-[#0f0f23] p-5 transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[0_0_25px_rgba(255,0,255,0.35)]"
+                  className="group bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50"
                 >
-                  <div className="flex flex-col gap-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-lg font-semibold text-[#00ffff] font-mono tracking-wider">
-                        {session.name}
-                      </h3>
-                      {sessionNumber !== undefined && sessionNumber !== null && (
-                        <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-[11px] font-mono uppercase tracking-widest text-[#ff00ff]">
-                          Session #{sessionNumber}
-                        </span>
-                      )}
-                    </div>
-                    {campaignRelation?.name && (
-                      <p className="text-xs text-[#ff00ff] font-mono uppercase tracking-widest">
-                        Campaign: {campaignRelation.name}
-                      </p>
-                    )}
-                    {players.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {visiblePlayers.map((player) => (
-                          <span
-                            key={`${session.id}-${player.id}`}
-                            className="rounded border border-[#00ffff] border-opacity-25 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]"
-                          >
-                            {player.name}
-                          </span>
-                        ))}
-                        {hiddenCount > 0 && (
-                          <span className="rounded border border-dashed border-[#00ffff]/40 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff]/70">
-                            +{hiddenCount} more
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <Link
+                          href={`/sessions/${session.id}`}
+                          className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors hover:text-[#ff00ff] focus:text-[#ff00ff] focus:outline-none"
+                        >
+                          {session.name}
+                        </Link>
+                        {sessionNumber !== undefined && sessionNumber !== null && (
+                          <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
+                            Session #{sessionNumber}
                           </span>
                         )}
                       </div>
-                    )}
+                      {campaignRelation?.name && (
+                        <p className="text-xs text-[#ff00ff] font-mono uppercase tracking-widest">
+                          Campaign: {campaignRelation.name}
+                        </p>
+                      )}
+                      {players.length > 0 && (
+                        <SessionParticipantPills sessionId={session.id} players={players} className="mt-3" />
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">
+                      {session.session_date ? (
+                        <div>{new Date(session.session_date).toLocaleDateString()}</div>
+                      ) : (
+                        <div>No date set</div>
+                      )}
+                      <Link
+                        href={`/sessions/${session.id}`}
+                        className="mt-3 inline-flex text-[#ff00ff] text-[10px] uppercase tracking-widest font-bold hover:text-[#ff6ad5] focus:text-[#ff6ad5] focus:outline-none"
+                      >
+                        View session →
+                      </Link>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1 text-xs text-gray-400 font-mono uppercase tracking-wider">
-                    {scheduledDate ? (
-                      <span>Session Date: {scheduledDate}</span>
-                    ) : (
-                      <span>Session Date: Not set</span>
-                    )}
-                  </div>
-                  {session.notes && (
-                    <p className="text-sm text-gray-300 font-mono line-clamp-3 leading-relaxed">
-                      {session.notes}
-                    </p>
-                  )}
-                </Link>
+                </article>
               )
             })}
           </div>
