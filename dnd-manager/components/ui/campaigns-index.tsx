@@ -87,7 +87,7 @@ export function CampaignsIndex({ campaigns }: CampaignsIndexProps) {
               {campaign.description && (
                 <p className="text-gray-400 line-clamp-3 font-mono text-sm">{campaign.description}</p>
               )}
-              <div className="mt-4 text-xs text-gray-500 font-mono uppercase tracking-wider">
+              <div className="mt-4 text-xs text-orange-500 font-mono uppercase tracking-wider">
                 Created {formatTimestampForDisplay(campaign.created_at) ?? "Unknown"}
               </div>
             </Link>
