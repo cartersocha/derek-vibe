@@ -149,8 +149,16 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                         {renderNotesWithMentions(session.notes, mentionTargets)}
                       </div>
                     )}
+                    {players.length > 0 && (
+                      <SessionParticipantPills
+                        sessionId={session.id}
+                        players={players}
+                        className={`pointer-events-auto ${groups.length > 0 ? 'mt-3' : 'mt-3'}`}
+                        showOrganizations={false}
+                      />
+                    )}
                     {groups.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2 pointer-events-auto">
+                      <div className={`flex flex-wrap gap-2 pointer-events-auto ${players.length > 0 ? 'mt-2' : 'mt-3'}`}>
                         {groups.map((organization) => (
                           <Link
                             key={organization.id}
@@ -161,14 +169,6 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                           </Link>
                         ))}
                       </div>
-                    )}
-                    {players.length > 0 && (
-                      <SessionParticipantPills
-                        sessionId={session.id}
-                        players={players}
-                        className={`pointer-events-auto ${groups.length > 0 ? 'mt-2' : 'mt-3'}`}
-                        showOrganizations={false}
-                      />
                     )}
                   </div>
                   <div className="relative z-10 pointer-events-none text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">

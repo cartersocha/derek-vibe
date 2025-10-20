@@ -279,24 +279,22 @@ export default function CharacterMultiSelect({
                   const checked = normalizedSelections.includes(option.value)
                   return (
                     <li key={option.value}>
-                      <label className="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[#00ffff] transition-colors duration-150 hover:bg-[#1a1a3e]/60">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleSelection(option.value)}
-                          className="h-4 w-4 rounded border-[#00ffff]/40 bg-[#0f0f23] text-[#ff00ff] focus:ring-[#ff00ff]"
-                        />
-                        <span className="flex-1">
-                          <span className="block truncate font-semibold uppercase tracking-[0.25em]">
-                            {option.label}
-                          </span>
-                          {option.hint ? (
-                            <span className="text-[10px] uppercase tracking-[0.3em] text-[#64748b]">
+                      <button
+                        type="button"
+                        onClick={() => toggleSelection(option.value)}
+                        className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[#1a1a3e]/60 ${
+                          checked ? 'text-[#ff00ff]' : 'text-[#00ffff]'
+                        }`}
+                      >
+                        <span className="truncate">
+                          {checked ? "✓ " : ""}{option.label}
+                          {option.hint && (
+                            <span className="ml-2 text-gray-400 text-xs">
                               {option.hint}
                             </span>
-                          ) : null}
+                          )}
                         </span>
-                      </label>
+                      </button>
                     </li>
                   )
                 })}
