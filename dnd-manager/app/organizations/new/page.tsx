@@ -25,6 +25,11 @@ export default async function NewOrganizationPage() {
     label: campaign.name ?? "Untitled Campaign",
   }));
 
+  // Get the newest campaign as default
+  const defaultCampaignIds = campaignsResult.data && campaignsResult.data.length > 0 
+    ? [campaignsResult.data[0].id] 
+    : [];
+
   const sessionOptions = (sessionsResult.data ?? []).map((session) => ({
     value: session.id,
     label: session.name ?? "Untitled Session",
@@ -67,6 +72,7 @@ export default async function NewOrganizationPage() {
         campaignOptions={campaignOptions}
         sessionOptions={sessionOptions}
         characterOptions={characterOptions}
+        defaultCampaignIds={defaultCampaignIds}
         mentionTargets={mentionTargets}
       />
     </div>
