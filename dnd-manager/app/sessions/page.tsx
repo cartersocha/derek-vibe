@@ -91,14 +91,19 @@ export default async function SessionsPage() {
 
     const organizations = Array.isArray(session.session_organizations)
       ? session.session_organizations
-          .map((entry) => {
+          .map((entry: {
+            organization:
+              | { id: string | null; name: string | null }
+              | { id: string | null; name: string | null }[]
+              | null
+          }) => {
             const org = Array.isArray(entry?.organization) ? entry?.organization?.[0] : entry?.organization
             if (!org?.id || !org?.name) {
               return null
             }
             return { id: org.id, name: org.name }
           })
-          .filter((value): value is { id: string; name: string } => Boolean(value))
+          .filter((value: { id: string; name: string } | null): value is { id: string; name: string } => Boolean(value))
       : []
 
     return {
