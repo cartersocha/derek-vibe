@@ -192,9 +192,9 @@ export default async function OrganizationDetailPage({
         </header>
 
         <div className="space-y-6 md:space-y-0 md:flex md:flex-row-reverse md:items-stretch md:gap-8">
-          <aside className="md:flex md:flex-col md:w-80 md:max-w-sm md:self-stretch w-full max-w-sm rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-lg shadow-[#00ffff]/20 font-mono text-sm text-gray-200">
-            <div className="p-4 flex h-full flex-col">
-              {organization.logo_url ? (
+          {organization.logo_url && (
+            <aside className="md:flex md:flex-col md:w-80 md:max-w-sm md:self-stretch w-full max-w-sm rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-lg shadow-[#00ffff]/20 font-mono text-sm text-gray-200">
+              <div className="p-4 flex h-full flex-col">
                 <div className="space-y-3">
                   <div className="relative aspect-[5/6] overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-black">
                     <Image
@@ -209,10 +209,10 @@ export default async function OrganizationDetailPage({
                     {organization.name}
                   </p>
                 </div>
-              ) : null}
-              <div className="mt-auto" />
-            </div>
-          </aside>
+                <div className="mt-auto" />
+              </div>
+            </aside>
+          )}
 
           <section className="flex-1 space-y-3 text-gray-300 font-mono leading-relaxed text-base sm:text-lg">
             <h2 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Overview</h2>
@@ -308,7 +308,7 @@ export default async function OrganizationDetailPage({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {characters.map((character) => {
-                const isPlayer = character.role === "player";
+                const isPlayer = character.player_type === "player";
                 const badgeClasses = isPlayer
                   ? "border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] group-hover:border-[#00ffff] group-hover:text-[#ff00ff]"
                   : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] group-hover:border-[#ff6ad5] group-hover:text-[#ff9de6]";
