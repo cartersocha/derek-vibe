@@ -45,6 +45,9 @@ export default async function DashboardPage() {
             organizations(id, name)
           )
         )
+      ),
+      session_organizations:organization_sessions(
+        organization:organizations(id, name)
       )
     `)
     .order('created_at', { ascending: false })
@@ -170,6 +173,23 @@ export default async function DashboardPage() {
                 : null
               const players = extractPlayerSummaries(rawLinks)
 
+              const organizations = Array.isArray(session.session_organizations)
+                ? session.session_organizations
+                    .map((entry: {
+                      organization:
+                        | { id: string | null; name: string | null }
+                        | { id: string | null; name: string | null }[]
+                        | null
+                    }) => {
+                      const org = Array.isArray(entry?.organization) ? entry?.organization?.[0] : entry?.organization
+                      if (!org?.id || !org?.name) {
+                        return null
+                      }
+                      return { id: org.id, name: org.name }
+                    })
+                    .filter((value: { id: string; name: string } | null): value is { id: string; name: string } => Boolean(value))
+                : []
+
               return (
                 <article
                   key={session.id}
@@ -206,9 +226,23 @@ export default async function DashboardPage() {
                         <SessionParticipantPills
                           sessionId={session.id}
                           players={players}
-                          className="mt-3 pointer-events-auto"
+                          className={`pointer-events-auto ${organizations.length > 0 ? 'mt-3' : 'mt-3'}`}
+                          showOrganizations={false}
                         />
-                    )}
+                      )}
+                      {organizations.length > 0 && (
+                        <div className={`flex flex-wrap gap-2 pointer-events-auto ${players.length > 0 ? 'mt-2' : 'mt-3'}`}>
+                          {organizations.map((organization) => (
+                            <Link
+                              key={organization.id}
+                              href={`/organizations/${organization.id}`}
+                              className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447]"
+                            >
+                              {organization.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
                   </div>
                   <div className="relative z-10 pointer-events-none text-xs font-mono uppercase tracking-wider text-gray-500 sm:ml-4 sm:text-right">
                     {session.session_date ? (
