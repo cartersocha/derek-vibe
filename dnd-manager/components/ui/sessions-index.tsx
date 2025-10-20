@@ -55,7 +55,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h1>
+        <h1 className="retro-title text-3xl font-bold text-[#00ffff]">Sessions</h1>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
           <label className="sr-only" htmlFor="session-search">
             Search sessions

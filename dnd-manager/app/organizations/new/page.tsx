@@ -55,7 +55,7 @@ export default async function NewOrganizationPage() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div>
-        <h2 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">
+        <h2 className="retro-title text-2xl font-bold text-[#00ffff]">
           Create Group
         </h2>
       </div>

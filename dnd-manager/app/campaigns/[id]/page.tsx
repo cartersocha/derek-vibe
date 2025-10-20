@@ -59,6 +59,24 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     .order('created_at', { ascending: false })
     .returns<SessionRow[]>()
 
+  const { data: campaignCharacterRows } = await supabase
+    .from('campaign_characters')
+    .select(`
+      character:characters(
+        id,
+        name,
+        class,
+        race,
+        level,
+        player_type,
+        organization_memberships:organization_characters(
+          organizations(id, name)
+        )
+      )
+    `)
+    .eq('campaign_id', id)
+    .returns<Array<{ character: SessionCharacterRelation['character'] }>>()
+
   const sessionNumberMap = new Map<string, number>()
 
   const rawSessions = sessions ?? []
@@ -96,6 +114,32 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     }
   })
 
+  const campaignCharacterRelations: SessionCharacterRelation[] =
+    campaignCharacterRows?.map((row) => ({
+      character: row.character,
+    })) ?? []
+
+  const campaignCharacters = extractPlayerSummaries(campaignCharacterRelations)
+
+  const characterMap = new Map<string, typeof campaignCharacters[number]>()
+  campaignCharacters.forEach((player) => {
+    if (player.id) {
+      characterMap.set(player.id, player)
+    }
+  })
+
+  sessionsWithPlayers.forEach((session) => {
+    session.players.forEach((player) => {
+      if (player.id && !characterMap.has(player.id)) {
+        characterMap.set(player.id, player)
+      }
+    })
+  })
+
+  const combinedCharacters = Array.from(characterMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+  )
+
   const deleteCampaignWithId = deleteCampaign.bind(null, id)
 
   return (
@@ -120,7 +164,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
       <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8 space-y-8">
         {/* Campaign Name and Description */}
         <div>
-          <h1 className="text-4xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">{campaign.name}</h1>
+          <h1 className="retro-title text-4xl font-bold text-[#00ffff] mb-4 text-center">{campaign.name}</h1>
           {campaign.description && (
             <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-6">
               <p className="text-gray-300 whitespace-pre-wrap font-mono">{campaign.description}</p>
@@ -154,6 +198,22 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
               ) ?? 'Unknown'}
             </div>
           </div>
+        </div>
+
+        {/* Campaign Characters */}
+        <div>
+          <h2 className="mb-4 text-xl font-bold uppercase tracking-wider text-[#00ffff]">Characters &amp; Groups</h2>
+          {combinedCharacters.length === 0 ? (
+            <p className="text-sm font-mono text-gray-400">
+              No characters have been linked to this campaign yet.
+            </p>
+          ) : (
+            <SessionParticipantPills
+              sessionId={`campaign-${id}`}
+              players={combinedCharacters}
+              className="pointer-events-auto"
+            />
+          )}
         </div>
 
         {/* Sessions */}

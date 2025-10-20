@@ -28,7 +28,7 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#00ffff] uppercase tracking-wider">Create New Character</h1>
+        <h1 className="retro-title text-3xl font-bold text-[#00ffff]">Create New Character</h1>
       </div>
 
       <NewCharacterForm
