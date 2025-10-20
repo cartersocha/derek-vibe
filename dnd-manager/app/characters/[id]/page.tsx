@@ -216,7 +216,12 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     
     // Handle organizations data - only available in full SessionRow
     const organizations = 'session_organizations' in session && session.session_organizations
-      ? session.session_organizations
+      ? (session.session_organizations as Array<{
+          organization:
+            | { id: string | null; name: string | null }
+            | { id: string | null; name: string | null }[]
+            | null
+        }>)
           .map((link) => {
             const organization = Array.isArray(link.organization)
               ? link.organization[0]
