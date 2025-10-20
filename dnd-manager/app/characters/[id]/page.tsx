@@ -9,6 +9,7 @@ import {
   extractPlayerSummaries,
   dateStringToLocalDate,
   formatDateStringForDisplay,
+  type SessionCharacterRelation,
 } from '@/lib/utils'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
@@ -210,7 +211,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
     // Handle players data - only available in full SessionRow
     const players = 'session_characters' in session && session.session_characters 
-      ? extractPlayerSummaries(session.session_characters) 
+      ? extractPlayerSummaries(session.session_characters as SessionCharacterRelation[]) 
       : []
     
     // Handle organizations data - only available in full SessionRow
