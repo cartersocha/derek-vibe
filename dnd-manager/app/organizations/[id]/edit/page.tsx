@@ -97,10 +97,7 @@ export default async function EditOrganizationPage({
       </div>
 
       <div className="space-y-2">
-  <h2 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Edit Group</h2>
-        <p className="text-sm text-[#94a3b8]">
-          Update the details below or replace the current logo. Removing the logo falls back to the default icon.
-        </p>
+        <h2 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Edit Group</h2>
       </div>
 
       <OrganizationForm
