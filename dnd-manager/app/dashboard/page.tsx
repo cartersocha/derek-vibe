@@ -51,7 +51,7 @@ export default async function DashboardPage() {
       )
     `)
     .order('created_at', { ascending: false })
-    .limit(6)
+    .limit(3)
 
   const sessionNumberMap = new Map<string, number>()
 
@@ -120,49 +120,14 @@ export default async function DashboardPage() {
         <h1 className="retro-title glitch-subtle text-3xl font-bold text-[#00ffff]" data-text="DASHBOARD">Dashboard</h1>
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link
-          href="/campaigns"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
-        >
-          <h3 className="text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Campaigns</h3>
-          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{campaignsCount || 0}</p>
-        </Link>
-
-        <Link
-          href="/sessions"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
-        >
-          <h3 className="text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Sessions</h3>
-          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{sessionsCount || 0}</p>
-        </Link>
-
-        <Link
-          href="/characters"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
-        >
-          <h3 className="text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Characters</h3>
-          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{charactersCount || 0}</p>
-        </Link>
-      </div>
-
       {/* Recent Sessions */}
       {recentSessions && recentSessions.length > 0 && (
         <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Recent Sessions</h2>
-              <p className="text-sm text-gray-400 font-mono">Your latest adventures at a glance</p>
-            </div>
-            <Link
-              href="/sessions"
-              className="text-[#ff00ff] hover:text-[#cc00cc] text-sm font-mono uppercase tracking-wider"
-            >
-              View all sessions →
-            </Link>
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Recent Sessions</h2>
+            <p className="text-sm text-gray-400 font-mono">Your latest adventures at a glance</p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 gap-5">
             {recentSessions.map((session) => {
               const sessionNumber = sessionNumberMap.get(session.id)
               const campaignRelation = Array.isArray(session.campaign)
@@ -258,6 +223,33 @@ export default async function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link
+          href="/campaigns"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
+        >
+          <h3 className="text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Campaigns</h3>
+          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{campaignsCount || 0}</p>
+        </Link>
+
+        <Link
+          href="/sessions"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
+        >
+          <h3 className="text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Sessions</h3>
+          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{sessionsCount || 0}</p>
+        </Link>
+
+        <Link
+          href="/characters"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
+        >
+          <h3 className="text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Characters</h3>
+          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{charactersCount || 0}</p>
+        </Link>
+      </div>
     </div>
   )
 }
