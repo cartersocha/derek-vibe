@@ -79,7 +79,7 @@ export default async function NewSessionPage({
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#00ffff] uppercase tracking-wider">Create New Session</h1>
+        <h1 className="retro-title text-3xl font-bold text-[#00ffff]">Create New Session</h1>
       </div>
 
       <SessionForm

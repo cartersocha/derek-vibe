@@ -8,9 +8,10 @@ type SessionParticipantPillsProps = {
   sessionId: string
   players: PlayerSummary[]
   className?: string
+  showOrganizations?: boolean
 }
 
-export function SessionParticipantPills({ sessionId, players: rawPlayers, className }: SessionParticipantPillsProps) {
+export function SessionParticipantPills({ sessionId, players: rawPlayers, className, showOrganizations = true }: SessionParticipantPillsProps) {
   if (!rawPlayers || rawPlayers.length === 0) {
     return null
   }
@@ -24,6 +25,9 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
   })
 
   const uniqueOrganizations = useMemo(() => {
+    if (!showOrganizations) {
+      return [] as { id: string; name: string }[]
+    }
     const seen = new Set<string>()
     const result: { id: string; name: string }[] = []
     for (const player of sortedPlayers) {
@@ -35,7 +39,7 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
       }
     }
     return result.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-  }, [sortedPlayers])
+  }, [sortedPlayers, showOrganizations])
 
   const playerPills = sortedPlayers.map((player) => {
     return (
@@ -54,15 +58,17 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
     )
   })
 
-  const organizationPills = uniqueOrganizations.map((organization) => (
-    <Link
-      key={`${sessionId}-org-${organization.id}`}
-      href={`/organizations/${organization.id}`}
-      className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
-    >
-      {organization.name}
-    </Link>
-  ))
+  const organizationPills = showOrganizations
+    ? uniqueOrganizations.map((organization) => (
+        <Link
+          key={`${sessionId}-org-${organization.id}`}
+          href={`/organizations/${organization.id}`}
+          className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+        >
+          {organization.name}
+        </Link>
+      ))
+    : []
 
   return (
     <div className={cn('flex flex-wrap gap-2', className)} aria-label="Players present">

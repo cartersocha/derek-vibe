@@ -4,41 +4,16 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { deleteCharacter, updateCharacterSessions } from '@/lib/actions/characters'
 import { DeleteCharacterButton } from '@/components/ui/delete-character-button'
-import MultiSelectDropdown from '@/components/ui/multi-select-dropdown'
+import SessionManager from '@/components/ui/session-manager'
 import {
   extractPlayerSummaries,
   dateStringToLocalDate,
   formatDateStringForDisplay,
-  type PlayerSummary,
   type SessionCharacterRelation,
 } from '@/lib/utils'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
-
-type SessionSummary = {
-  id: string
-  name: string
-  session_date: string | null
-  notes: string | null
-  created_at: string | null
-  campaign_id: string | null
-  campaign: {
-    id: string
-    name: string
-  } | null
-  players: PlayerSummary[]
-}
-
-type SessionRow = {
-  id: string
-  name: string
-  session_date: string | null
-  notes: string | null
-  created_at: string | null
-  campaign_id: string | null
-  campaign: { id: string; name: string } | { id: string; name: string }[] | null
-  session_characters: SessionCharacterRelation[] | null
-}
+import type { SessionRow, SessionSummary } from '@/lib/types/sessions'
 
 export default async function CharacterPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -148,8 +123,10 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
   const sessionIds = sessionCharacters?.map(sc => sc.session_id) || []
   const linkedSessionIds = new Set(sessionIds)
+  
 
-  const { data: allSessionsData } = await supabase
+  // First, let's check if there are any sessions at all
+  const { data: simpleSessions, error: simpleError } = await supabase
     .from('sessions')
     .select(`
       id,
@@ -171,18 +148,90 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             organizations(id, name)
           )
         )
+      ),
+      session_organizations:organization_sessions(
+        organization:organizations(id, name)
+      )
+    `)
+    .order('session_date', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
+    
+
+  // Try a simpler query first to see if we can get basic session data
+  const { data: basicSessions, error: basicError } = await supabase
+    .from('sessions')
+    .select('id, name, session_date, notes, created_at, campaign_id')
+    .order('session_date', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
+    
+
+  const { data: allSessionsData, error: sessionsError } = await supabase
+    .from('sessions')
+    .select(`
+      id,
+      name,
+      session_date,
+      notes,
+      created_at,
+      campaign_id,
+      campaign:campaigns(id, name),
+      session_characters:session_characters(
+        character:characters(
+          id,
+          name,
+          class,
+          race,
+          level,
+          player_type,
+          organization_memberships:organization_characters(
+            organizations(id, name)
+          )
+        )
+      ),
+      session_organizations:organization_sessions(
+        organization:organizations(id, name)
       )
     `)
     .order('session_date', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
     .returns<SessionRow[]>()
+    
+  
+  // Use complex query first, fallback to basic sessions if it fails
+  const sessionsToUse = allSessionsData || basicSessions || []
+  
+  
+  const allSessions: SessionSummary[] = sessionsToUse.map((session) => {
+    // Handle campaign data - only available in full SessionRow, not in basic sessions
+    const campaign = 'campaign' in session ? (
+      Array.isArray(session.campaign)
+        ? session.campaign[0] ?? null
+        : session.campaign ?? null
+    ) : null
 
-  const allSessions: SessionSummary[] = (allSessionsData || []).map((session) => {
-    const campaign = Array.isArray(session.campaign)
-      ? session.campaign[0] ?? null
-      : session.campaign ?? null
-
-    const players = extractPlayerSummaries(session.session_characters)
+    // Handle players data - only available in full SessionRow
+    const players = 'session_characters' in session && session.session_characters 
+      ? extractPlayerSummaries(session.session_characters as SessionCharacterRelation[]) 
+      : []
+    
+    // Handle organizations data - only available in full SessionRow
+    const organizations = 'session_organizations' in session && session.session_organizations
+      ? (session.session_organizations as Array<{
+          organization:
+            | { id: string | null; name: string | null }
+            | { id: string | null; name: string | null }[]
+            | null
+        }>)
+          .map((link) => {
+            const organization = Array.isArray(link.organization)
+              ? link.organization[0]
+              : link.organization
+            return organization
+          })
+          .filter((org): org is { id: string; name: string } => 
+            Boolean(org?.id && org?.name)
+          )
+      : []
 
     return {
       id: session.id,
@@ -193,6 +242,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
       campaign_id: session.campaign_id,
       campaign,
       players,
+      organizations,
     }
   })
   const linkedSessions = allSessions.filter(session => linkedSessionIds.has(session.id))
@@ -296,32 +346,25 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     checked: linkedSessionIds.has(session.id),
   }))
 
-  async function handleSessionUpdate(selectedIds: string[]) {
-    'use server'
-    const formData = new FormData()
-    const uniqueSelections = Array.from(new Set(selectedIds)).filter(Boolean)
-    uniqueSelections.forEach((sessionId) => formData.append('session_ids', sessionId))
-    await updateCharacterSessionsWithId(formData)
-  }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <Link href="/characters" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
-          ← Back to Characters
-        </Link>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <Link
-            href={`/characters/${id}/edit`}
-            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
-          >
-            Edit Character
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <Link href="/characters" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
+            ← Back to Characters
           </Link>
-          <form action={deleteCharacterWithId}>
-            <DeleteCharacterButton />
-          </form>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              href={`/characters/${id}/edit`}
+              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-3 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
+            >
+              Edit Character
+            </Link>
+            <form action={deleteCharacterWithId}>
+              <DeleteCharacterButton />
+            </form>
+          </div>
         </div>
-      </div>
 
       <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8 space-y-6">
         <header>
@@ -427,24 +470,24 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h3>
             {allSessions.length > 0 ? (
               /* Dropdown control to link/unlink sessions without large inline form */
-              <MultiSelectDropdown
-                label="Manage Sessions"
+              <SessionManager
+                characterId={id}
                 options={dropdownOptions}
-                onSubmit={handleSessionUpdate}
                 emptyMessage="No sessions available"
                 submitLabel="Save Sessions"
-                className="md:w-60 w-full md:shrink-0"
-                menuWidthClass="w-60"
+                className="w-full sm:w-auto sm:max-w-xs"
+                menuWidthClass="w-full sm:w-60"
               />
             ) : (
-              <p className="text-xs text-gray-500 font-mono uppercase tracking-wider md:text-right">Create a session to link it.</p>
+              <p className="text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right">Create a session to link it.</p>
             )}
           </div>
 
           {linkedSessions.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {linkedSessions.map((session) => {
                 const players = session.players
+                const groups = session.organizations
                 const sessionNumber = sessionNumberMap.get(session.id)
                 const campaignRelation = session.campaign
                 const sessionDateLabel = formatDateStringForDisplay(session.session_date)
@@ -460,14 +503,14 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                     >
                       <span aria-hidden="true" />
                     </Link>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
                       <div className="relative z-10 flex-1 pointer-events-none">
-                        <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <span className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
+                        <div className="mb-2 flex flex-col sm:flex-row sm:items-center gap-2">
+                          <span className="text-lg sm:text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
                             {session.name}
                           </span>
                           {sessionNumber !== undefined && sessionNumber !== null && (
-                            <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
+                            <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff] w-fit">
                               Session #{sessionNumber}
                             </span>
                           )}
@@ -480,16 +523,39 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                             Campaign: {campaignRelation.name}
                           </Link>
                         )}
+                        {session.notes && (
+                          <div className="pointer-events-auto text-gray-400 line-clamp-2 font-mono text-sm whitespace-pre-line break-words">
+                            {renderNotesWithMentions(session.notes, mentionTargets)}
+                          </div>
+                        )}
+                        {groups.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2 pointer-events-auto">
+                            {groups.map((organization) => (
+                              <Link
+                                key={organization.id}
+                                href={`/organizations/${organization.id}`}
+                                className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447]"
+                              >
+                                {organization.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
                         {players.length > 0 && (
                           <SessionParticipantPills
                             sessionId={session.id}
                             players={players}
-                            className="mt-3 pointer-events-auto"
+                            className={`pointer-events-auto ${groups.length > 0 ? 'mt-2' : 'mt-3'}`}
+                            showOrganizations={false}
                           />
                         )}
                       </div>
-                      <div className="relative z-10 pointer-events-none text-xs text-gray-500 font-mono uppercase tracking-wider sm:ml-4 sm:text-right">
-                        {sessionDateLabel ? <div>{sessionDateLabel}</div> : <div>No date set</div>}
+                      <div className="relative z-10 pointer-events-none text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">
+                        {sessionDateLabel ? (
+                          <div>{sessionDateLabel}</div>
+                        ) : (
+                          <div>No date set</div>
+                        )}
                       </div>
                     </div>
                   </article>

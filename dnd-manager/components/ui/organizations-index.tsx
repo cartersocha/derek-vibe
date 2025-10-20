@@ -40,7 +40,7 @@ export function OrganizationsIndex({ organizations }: OrganizationsIndexProps) {
   return (
     <section className="space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-extrabold uppercase tracking-[0.35em] text-[#00ffff]">
+        <h1 className="retro-title text-3xl font-extrabold text-[#00ffff]">
           Groups
         </h1>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">

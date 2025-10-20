@@ -13,10 +13,10 @@ const NAV_LINKS = [
   { href: "/organizations", label: "Groups", symbol: "⚙" },
 ];
 
-const DEFAULT_WIDTH = 208;
+const DEFAULT_WIDTH = 200;
 const COLLAPSED_WIDTH = 72;
 const COLLAPSE_THRESHOLD = 120;
-const INITIAL_MAX_WIDTH = 320;
+const INITIAL_MAX_WIDTH = 288;
 const SIDEBAR_WIDTH_STORAGE_KEY = "sidebar-width";
 const SIDEBAR_MODE_STORAGE_KEY = "sidebar-width-mode";
 const SIDEBAR_MODE_CUSTOM = "custom";
@@ -33,12 +33,13 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isDragging, setIsDragging] = useState(false);
-  const dragState = useRef({ startX: 0, startWidth: DEFAULT_WIDTH });
-  const isDraggingRef = useRef(false);
-  const widthFrameRef = useRef<number | null>(null);
-  const hasCustomWidthRef = useRef(false);
-  const measuredWidthRef = useRef(Math.max(DEFAULT_WIDTH, COLLAPSED_WIDTH));
-  const lastExpandedWidthRef = useRef(DEFAULT_WIDTH);
+const dragState = useRef({ startX: 0, startWidth: DEFAULT_WIDTH });
+const isDraggingRef = useRef(false);
+const widthFrameRef = useRef<number | null>(null);
+const hasCustomWidthRef = useRef(false);
+const measuredWidthRef = useRef(Math.max(DEFAULT_WIDTH, COLLAPSED_WIDTH));
+const lastExpandedWidthRef = useRef(DEFAULT_WIDTH);
+const hasAppliedAutoWidthRef = useRef(false);
 
   const clampWidth = useCallback((value: number) => clampWithMax(value, maxWidth), [maxWidth]);
 
@@ -121,9 +122,10 @@ export default function Navbar() {
     const measureNode = measurementRef.current;
     if (!measureNode) return;
     const measured = Math.ceil(measureNode.scrollWidth + 16);
-    const normalizedMeasured = Math.max(measured, COLLAPSED_WIDTH);
-    measuredWidthRef.current = normalizedMeasured;
-    const nextMax = Math.max(normalizedMeasured, DEFAULT_WIDTH);
+    const limitedMeasured = Math.min(measured, INITIAL_MAX_WIDTH);
+    const clampedMeasured = Math.max(limitedMeasured, DEFAULT_WIDTH);
+    measuredWidthRef.current = clampedMeasured;
+    const nextMax = Math.min(Math.max(clampedMeasured, DEFAULT_WIDTH), INITIAL_MAX_WIDTH);
     setMaxWidth(nextMax);
     setWidth((prev) => {
       if (prev <= COLLAPSE_THRESHOLD) {
@@ -133,8 +135,14 @@ export default function Navbar() {
         const clampedPrev = Math.min(Math.max(prev, COLLAPSED_WIDTH), nextMax);
         return clampedPrev;
       }
-      lastExpandedWidthRef.current = normalizedMeasured;
-      return normalizedMeasured;
+      if (!hasAppliedAutoWidthRef.current) {
+        hasAppliedAutoWidthRef.current = true;
+        const autoWidth = Math.min(Math.max(DEFAULT_WIDTH, COLLAPSED_WIDTH), nextMax);
+        measuredWidthRef.current = autoWidth;
+        lastExpandedWidthRef.current = autoWidth;
+        return autoWidth;
+      }
+      return prev;
     });
   }, []);
 
@@ -213,8 +221,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between px-4 py-4">
           <Link
             href="/dashboard"
-            className="text-xl font-bold text-[#00ffff] glitch-subtle tracking-[0.2em] uppercase"
-            data-text="RAT PALACE"
+            className="retro-title text-xl font-bold text-[#00ffff]"
+            style={{ "--retro-letter-spacing": "0.24em" } as CSSProperties}
           >
             RAT PALACE
           </Link>
@@ -286,18 +294,29 @@ export default function Navbar() {
             <Link
               href="/dashboard"
               className={cn(
-                "text-2xl font-bold text-[#00ffff] glitch-subtle uppercase",
-                isCollapsed ? "tracking-[0.35em]" : "tracking-[0.2em]"
+                "retro-title font-bold text-[#00ffff] leading-tight",
+                isCollapsed && "text-center"
               )}
-              data-text={isCollapsed ? "RAT" : "RAT PALACE"}
+              style={
+                {
+                  "--retro-letter-spacing": isCollapsed ? "0.14em" : "0.22em",
+                } as CSSProperties
+              }
             >
               {isCollapsed ? (
-                <span>RAT</span>
+                <>
+                  <span
+                    aria-hidden
+                    className="text-2xl leading-none tracking-[0.14em] text-[#00ffff] drop-shadow-[0_0_10px_rgba(0,255,255,0.45)]"
+                  >
+                    R
+                  </span>
+                  <span className="sr-only">Rat Palace</span>
+                </>
               ) : (
                 <>
-                  RAT
-                  <br />
-                  PALACE
+                  <span className="block text-xl leading-tight">RAT</span>
+                  <span className="block text-xl leading-tight">PALACE</span>
                 </>
               )}
             </Link>
@@ -321,7 +340,7 @@ export default function Navbar() {
                 title={isCollapsed ? link.label : undefined}
                 aria-label={isCollapsed ? link.label : undefined}
                 className={cn(
-                  "group relative flex items-center rounded transition-all duration-200 uppercase tracking-wider font-bold",
+                  "group relative flex items-center rounded transition-all duration-200 uppercase tracking-wider font-bold overflow-hidden",
                   isCollapsed
                     ? "justify-center aspect-square w-14 p-0 text-xs"
                     : "px-5 py-3 text-lg",
@@ -410,14 +429,16 @@ export default function Navbar() {
       >
         <div className="flex w-max flex-col border border-[#00ffff] border-opacity-20 bg-[#0f0f23]">
           <div className="w-full border-b border-[#00ffff] border-opacity-10 p-6">
-            <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold uppercase tracking-[0.2em] text-[#00ffff]">
-                RAT
-                <br />
-                PALACE
-              </span>
-            </div>
+          <div className="flex items-center justify-between">
+            <span
+              className="retro-title font-bold text-[#00ffff]"
+              style={{ "--retro-letter-spacing": "0.22em" } as CSSProperties}
+            >
+              <span className="block text-xl leading-tight">RAT</span>
+              <span className="block text-xl leading-tight">PALACE</span>
+            </span>
           </div>
+        </div>
           <div className="px-4 py-6">
             <div className="space-y-2">
               {NAV_LINKS.map((link) => (

@@ -13,7 +13,6 @@ import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
 import { toTitleCase } from '@/lib/utils'
 import {
-  getCampaignOrganizationIds,
   resolveOrganizationIds,
   setSessionOrganizations,
   syncSessionOrganizationsFromCharacters,
@@ -160,19 +159,11 @@ export async function createSession(formData: FormData): Promise<void> {
     preferredOrganizationIds = await resolveOrganizationIds(supabase, [])
   }
 
-  const campaignOrganizationIds = await getCampaignOrganizationIds(
-    supabase,
-    result.data.campaign_id ?? null
-  )
-
-  const finalOrganizationIds = Array.from(
-    new Set([...preferredOrganizationIds, ...campaignOrganizationIds])
-  )
+  const finalOrganizationIds = preferredOrganizationIds
 
   if (
-    finalOrganizationIds.length > 0 ||
     organizationFieldProvided ||
-    campaignOrganizationIds.length > 0
+    finalOrganizationIds.length > 0
   ) {
     const touchedOrganizationIds = await setSessionOrganizations(
       supabase,
@@ -363,14 +354,7 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
     }
   }
 
-  const campaignOrganizationIds = await getCampaignOrganizationIds(
-    supabase,
-    result.data.campaign_id ?? null
-  )
-
-  const finalOrganizationIds = Array.from(
-    new Set([...preferredOrganizationIds, ...campaignOrganizationIds])
-  )
+  const finalOrganizationIds = preferredOrganizationIds
 
   const touchedOrganizationIds = await setSessionOrganizations(
     supabase,
@@ -492,4 +476,3 @@ export async function deleteSession(id: string): Promise<void> {
   revalidatePath('/sessions')
   redirect('/sessions')
 }
-

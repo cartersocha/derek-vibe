@@ -76,7 +76,7 @@ export default async function NewCampaignPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#00ffff] uppercase tracking-wider">Create New Campaign</h1>
+        <h1 className="retro-title text-3xl font-bold text-[#00ffff]">Create New Campaign</h1>
       </div>
 
       <CampaignForm

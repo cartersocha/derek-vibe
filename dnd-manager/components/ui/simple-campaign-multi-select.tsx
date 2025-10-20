@@ -131,30 +131,26 @@ export default function SimpleCampaignMultiSelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-2 text-left font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
           open
             ? 'border-[#ff00ff] text-[#ff00ff] shadow-lg shadow-[#ff00ff]/30'
-            : normalizedSelections.length > 0
-              ? 'border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]'
-              : 'border-[#00ffff] text-gray-500 hover:border-[#ff00ff] hover:text-[#ff00ff]'
+            : 'border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]'
         }`}
       >
-        <span className="truncate">{selectedLabels || placeholder}</span>
-        <span className="text-xs uppercase tracking-wider">
-          {open ? '▲' : '▼'}
-        </span>
+        <span>{selectedLabels || placeholder}</span>
+        <span className="text-xs text-[#ff00ff]">{open ? "▲" : "▼"}</span>
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-50 w-full mt-1 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded shadow-lg">
-          <div className="p-2">
+        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20">
+          <div className="border-b border-[#1a1a3e] px-3 py-2">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search campaigns..."
-              className="w-full px-3 py-2 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono text-sm"
+              className="w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
               autoFocus
             />
           </div>
@@ -209,13 +205,20 @@ export default function SimpleCampaignMultiSelect({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-2 border-t border-[#00ffff] border-opacity-20 bg-[#0f0f23] px-3 py-2">
+          <div className="flex items-center justify-between gap-2 border-t border-[#00ffff]/20 bg-[#050517] px-3 py-2">
             <button
               type="button"
-              className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#00ffff] hover:text-[#ff00ff]"
+              className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#00ffff] transition hover:text-[#ff00ff]"
               onClick={() => setOpen(false)}
             >
-              Close
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="rounded bg-[#ff00ff] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[#cc00cc]"
+              onClick={() => setOpen(false)}
+            >
+              Done
             </button>
           </div>
         </div>

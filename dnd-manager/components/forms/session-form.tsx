@@ -1,17 +1,15 @@
 'use client'
-
-import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import Link from 'next/link'
 import MentionableTextarea from '@/components/ui/mentionable-textarea'
+import ImageUpload from '@/components/ui/image-upload'
 import CharacterMultiSelect, { type CharacterOption } from '@/components/ui/character-multi-select'
 import OrganizationMultiSelect, { type OrganizationOption } from '@/components/ui/organization-multi-select'
 import { collectMentionTargets, type MentionTarget } from '@/lib/mention-utils'
 import { getTodayDateInputValue } from '@/lib/utils'
 import { createCampaignInline } from '@/lib/actions/campaigns'
 
-const ImageUpload = dynamic(() => import('@/components/ui/image-upload'), { ssr: false })
-const SynthwaveDropdown = dynamic(() => import('@/components/ui/synthwave-dropdown'))
+import SynthwaveDropdown from '@/components/ui/synthwave-dropdown'
 
 const AUTO_SAVE_DELAY_MS = 2000
 const DEFAULT_DRAFT_KEY = 'session-notes:draft'
@@ -87,7 +85,11 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     preselectedCharacterIds?.forEach((id) => initialSet.add(id))
     return Array.from(initialSet)
   })
-  const [selectedGroups, setSelectedGroups] = useState<string[]>(() => initialData?.organizationIds ?? [])
+  const [selectedGroups, setSelectedGroups] = useState<string[]>(() => {
+    // For new sessions, start with empty array
+    // For editing sessions, use the existing organizationIds
+    return initialData?.organizationIds ?? []
+  })
   const [campaignId, setCampaignId] = useState(() => initialData?.campaign_id || defaultCampaignId || '')
   const manuallySelectedOrgsRef = useRef<Set<string>>(new Set())
   const [manualOrgTrigger, setManualOrgTrigger] = useState(0)
@@ -194,31 +196,41 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
 
   useEffect(() => {
     const initialOrgIds = initialData?.organizationIds ?? []
-    setSelectedGroups(initialOrgIds)
-    
-    // Initialize manually selected organizations
-    // These are organizations in initial data that don't come from characters
-    const orgsFromCharacters = new Set<string>()
     const initialCharIds = initialData?.characterIds ?? []
     
-    initialCharIds.forEach((characterId) => {
-      const character = characters.find((c) => c.id === characterId)
-      if (character?.organizations) {
-        character.organizations.forEach((org) => {
-          orgsFromCharacters.add(org.id)
-        })
-      }
-    })
-    
-    // Mark any initial organizations that aren't from characters as manually selected
-    const manuallySelected = new Set<string>()
-    initialOrgIds.forEach((orgId) => {
-      if (!orgsFromCharacters.has(orgId)) {
-        manuallySelected.add(orgId)
-      }
-    })
-    
-    manuallySelectedOrgsRef.current = manuallySelected
+    // For new sessions (no initialData.organizationIds), start with organizations from characters
+    if (initialData?.organizationIds === undefined) {
+      // This is a new session - let the auto-sync effect handle organization selection
+      // based on selected characters
+      setSelectedGroups([])
+      manuallySelectedOrgsRef.current = new Set()
+    } else {
+      // This is editing an existing session - preserve the existing organizationIds
+      setSelectedGroups(initialOrgIds)
+      
+      // Initialize manually selected organizations
+      // These are organizations in initial data that don't come from characters
+      const orgsFromCharacters = new Set<string>()
+      
+      initialCharIds.forEach((characterId) => {
+        const character = characters.find((c) => c.id === characterId)
+        if (character?.organizations) {
+          character.organizations.forEach((org) => {
+            orgsFromCharacters.add(org.id)
+          })
+        }
+      })
+      
+      // Mark any initial organizations that aren't from characters as manually selected
+      const manuallySelected = new Set<string>()
+      initialOrgIds.forEach((orgId) => {
+        if (!orgsFromCharacters.has(orgId)) {
+          manuallySelected.add(orgId)
+        }
+      })
+      
+      manuallySelectedOrgsRef.current = manuallySelected
+    }
   }, [initialData?.organizationIds, initialData?.characterIds, characters])
 
   useEffect(() => {

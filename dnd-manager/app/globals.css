@@ -22,6 +22,18 @@ body {
   font-family: var(--font-geist-mono), monospace;
 }
 
+.retro-title {
+  font-family: var(--font-press-start), var(--font-geist-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: var(--retro-letter-spacing, 0.28em);
+  text-shadow:
+    2px 2px 0 rgba(255, 0, 255, 0.75),
+    -2px -2px 0 rgba(0, 255, 255, 0.75),
+    0 0 10px rgba(0, 255, 255, 0.5);
+  -webkit-font-smoothing: none;
+  font-smoothing: never;
+}
+
 /* Glitch text effect */
 .glitch {
   position: relative;
