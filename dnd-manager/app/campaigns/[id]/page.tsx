@@ -8,6 +8,7 @@ import {
   dateStringToLocalDate,
   formatDateStringForDisplay,
   formatTimestampForDisplay,
+  type SessionCharacterRelation,
 } from '@/lib/utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
 import { renderNotesWithMentions, mapEntitiesToMentionTargets, mergeMentionTargets, type MentionTarget } from '@/lib/mention-utils'
