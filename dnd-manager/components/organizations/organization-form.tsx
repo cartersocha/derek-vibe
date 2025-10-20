@@ -15,9 +15,7 @@ import { createSessionInline } from "@/lib/actions/sessions";
 import { createCampaignInline } from "@/lib/actions/campaigns";
 import { createOrganizationInline } from "@/lib/actions/organizations";
 import type { MentionTarget } from "@/lib/mention-utils";
-
-const dedupeList = (values?: string[]) => Array.from(new Set((values ?? []).filter(Boolean)));
-const listsMatch = (a: string[], b: string[]) => a.length === b.length && a.every((value, index) => value === b[index]);
+import { useConvertedOptions, dedupeList, listsMatch } from "@/lib/utils/form-optimization";
 
 interface OrganizationFormProps {
   action: (formData: FormData) => Promise<void>;
@@ -74,24 +72,12 @@ export function OrganizationForm({
     });
   }, [mentionTargets]);
 
-  // Convert EntityOption arrays to specialized option types
-  const campaignOptionsConverted = campaignOptions.map(option => ({
-    value: option.value,
-    label: option.label,
-    hint: option.hint,
-  }));
-
-  const sessionOptionsConverted = sessionOptions.map(option => ({
-    value: option.value,
-    label: option.label,
-    hint: option.hint,
-  }));
-
-  const characterOptionsConverted = characterOptions.map(option => ({
-    value: option.value,
-    label: option.label,
-    hint: option.hint,
-  }));
+  // Convert EntityOption arrays to specialized option types (memoized for performance)
+  const { campaignOptionsConverted, sessionOptionsConverted, characterOptionsConverted } = useConvertedOptions(
+    campaignOptions,
+    sessionOptions,
+    characterOptions
+  );
 
   // Inline creation handlers
   const handleCharacterCreated = async (option: { value: string; label: string }) => {
@@ -323,16 +309,16 @@ export function OrganizationForm({
         </div>
       )}
 
-      <div className="flex flex-col gap-4 sm:flex-row">
+      <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
         <button
           type="submit"
-          className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-[#ff00ff] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50"
+          className="w-full sm:flex-1 px-4 py-3 text-sm sm:text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-[#ff00ff] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50"
         >
           {submitLabel}
         </button>
         <Link
           href={cancelHref}
-          className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
+          className="w-full sm:flex-1 px-4 py-3 text-sm sm:text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
         >
           Cancel
         </Link>

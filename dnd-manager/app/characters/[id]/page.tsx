@@ -9,43 +9,10 @@ import {
   extractPlayerSummaries,
   dateStringToLocalDate,
   formatDateStringForDisplay,
-  type PlayerSummary,
-  type SessionCharacterRelation,
 } from '@/lib/utils'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
-
-type SessionSummary = {
-  id: string
-  name: string
-  session_date: string | null
-  notes: string | null
-  created_at: string | null
-  campaign_id: string | null
-  campaign: {
-    id: string
-    name: string
-  } | null
-  players: PlayerSummary[]
-  organizations: Array<{ id: string; name: string }>
-}
-
-type SessionRow = {
-  id: string
-  name: string
-  session_date: string | null
-  notes: string | null
-  created_at: string | null
-  campaign_id: string | null
-  campaign: { id: string; name: string } | { id: string; name: string }[] | null
-  session_characters: SessionCharacterRelation[] | null
-  session_organizations: Array<{
-    organization:
-      | { id: string | null; name: string | null }
-      | { id: string | null; name: string | null }[]
-      | null
-  }> | null
-}
+import type { SessionRow, SessionSummary } from '@/lib/types/sessions'
 
 export default async function CharacterPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -234,26 +201,31 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
   
   
   const allSessions: SessionSummary[] = sessionsToUse.map((session) => {
-    const campaign = Array.isArray(session.campaign)
-      ? session.campaign[0] ?? null
-      : session.campaign ?? null
+    // Handle campaign data - only available in full SessionRow, not in basic sessions
+    const campaign = 'campaign' in session ? (
+      Array.isArray(session.campaign)
+        ? session.campaign[0] ?? null
+        : session.campaign ?? null
+    ) : null
 
-    const players = session.session_characters ? extractPlayerSummaries(session.session_characters) : []
+    // Handle players data - only available in full SessionRow
+    const players = 'session_characters' in session && session.session_characters 
+      ? extractPlayerSummaries(session.session_characters) 
+      : []
     
-    const organizations = (session.session_organizations || [])
-      .map((link) => {
-        const organization = Array.isArray(link.organization)
-          ? link.organization[0]
-          : link.organization
-        return organization
-      })
-      .filter((org): org is { id: string; name: string } => 
-        Boolean(org?.id && org?.name)
-      )
-    
-    // If we're using basic sessions, we won't have relationship data
-    // This is a fallback to ensure sessions still show even without pills
-
+    // Handle organizations data - only available in full SessionRow
+    const organizations = 'session_organizations' in session && session.session_organizations
+      ? session.session_organizations
+          .map((link) => {
+            const organization = Array.isArray(link.organization)
+              ? link.organization[0]
+              : link.organization
+            return organization
+          })
+          .filter((org): org is { id: string; name: string } => 
+            Boolean(org?.id && org?.name)
+          )
+      : []
 
     return {
       id: session.id,
@@ -371,22 +343,22 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <Link href="/characters" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
-          ← Back to Characters
-        </Link>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <Link
-            href={`/characters/${id}/edit`}
-            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
-          >
-            Edit Character
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <Link href="/characters" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
+            ← Back to Characters
           </Link>
-          <form action={deleteCharacterWithId}>
-            <DeleteCharacterButton />
-          </form>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              href={`/characters/${id}/edit`}
+              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-3 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
+            >
+              Edit Character
+            </Link>
+            <form action={deleteCharacterWithId}>
+              <DeleteCharacterButton />
+            </form>
+          </div>
         </div>
-      </div>
 
       <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8 space-y-6">
         <header>
@@ -497,11 +469,11 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                 options={dropdownOptions}
                 emptyMessage="No sessions available"
                 submitLabel="Save Sessions"
-                className="md:w-60 w-full md:shrink-0"
-                menuWidthClass="w-60"
+                className="w-full sm:w-auto sm:max-w-xs"
+                menuWidthClass="w-full sm:w-60"
               />
             ) : (
-              <p className="text-xs text-gray-500 font-mono uppercase tracking-wider md:text-right">Create a session to link it.</p>
+              <p className="text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right">Create a session to link it.</p>
             )}
           </div>
 
@@ -527,12 +499,12 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                     </Link>
                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
                       <div className="relative z-10 flex-1 pointer-events-none">
-                        <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <span className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
+                        <div className="mb-2 flex flex-col sm:flex-row sm:items-center gap-2">
+                          <span className="text-lg sm:text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
                             {session.name}
                           </span>
                           {sessionNumber !== undefined && sessionNumber !== null && (
-                            <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
+                            <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff] w-fit">
                               Session #{sessionNumber}
                             </span>
                           )}

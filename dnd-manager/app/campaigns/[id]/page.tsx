@@ -8,27 +8,10 @@ import {
   dateStringToLocalDate,
   formatDateStringForDisplay,
   formatTimestampForDisplay,
-  type SessionCharacterRelation,
 } from '@/lib/utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
 import { renderNotesWithMentions, mapEntitiesToMentionTargets, mergeMentionTargets, type MentionTarget } from '@/lib/mention-utils'
-
-type SessionRow = {
-  id: string
-  name: string
-  notes: string | null
-  session_date: string | null
-  created_at: string | null
-  session_characters: SessionCharacterRelation[] | null
-  session_organizations: Array<{
-    organization:
-      | { id: string | null; name: string | null }
-      | Array<{ id: string | null; name: string | null }>
-      | null
-  }> | null
-  campaign: { id: string | null; name: string | null } | Array<{ id: string | null; name: string | null }> | null
-  campaign_id: string | null
-}
+import type { SessionRow } from '@/lib/types/sessions'
 
 export default async function CampaignPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
