@@ -11,6 +11,7 @@ import {
   type SessionCharacterRelation,
 } from '@/lib/utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
+import { renderNotesWithMentions, mapEntitiesToMentionTargets, mergeMentionTargets, type MentionTarget } from '@/lib/mention-utils'
 
 type SessionRow = {
   id: string
@@ -19,6 +20,14 @@ type SessionRow = {
   session_date: string | null
   created_at: string | null
   session_characters: SessionCharacterRelation[] | null
+  session_organizations: Array<{
+    organization:
+      | { id: string | null; name: string | null }
+      | Array<{ id: string | null; name: string | null }>
+      | null
+  }> | null
+  campaign: { id: string | null; name: string | null } | Array<{ id: string | null; name: string | null }> | null
+  campaign_id: string | null
 }
 
 export default async function CampaignPage({ params }: { params: Promise<{ id: string }> }) {
@@ -40,6 +49,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     .from('sessions')
     .select(`
       *,
+      campaign:campaigns(id, name),
       session_characters:session_characters(
         character:characters(
           id,
@@ -52,6 +62,9 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
             organizations(id, name)
           )
         )
+      ),
+      session_organizations:organization_sessions(
+        organization:organizations(id, name)
       )
     `)
     .eq('campaign_id', id)
@@ -59,23 +72,53 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     .order('created_at', { ascending: false })
     .returns<SessionRow[]>()
 
-  const { data: campaignCharacterRows } = await supabase
-    .from('campaign_characters')
-    .select(`
-      character:characters(
-        id,
-        name,
-        class,
-        race,
-        level,
-        player_type,
-        organization_memberships:organization_characters(
-          organizations(id, name)
+  const [
+    { data: campaignCharacterRows, error: campaignCharacterError },
+    { data: organizationCampaignRows, error: organizationCampaignError },
+    { data: mentionCharacters },
+    { data: mentionOrganizations },
+  ] = await Promise.all([
+    supabase
+      .from('campaign_characters')
+      .select(`
+        character:characters(
+          id,
+          name,
+          class,
+          race,
+          level,
+          player_type,
+          organization_memberships:organization_characters(
+            organizations(id, name)
+          )
         )
-      )
-    `)
-    .eq('campaign_id', id)
-    .returns<Array<{ character: SessionCharacterRelation['character'] }>>()
+      `)
+      .eq('campaign_id', id),
+    supabase
+      .from('organization_campaigns')
+      .select(`
+        organization:organizations(id, name)
+      `)
+      .eq('campaign_id', id),
+    supabase.from('characters').select('id, name').order('name'),
+    supabase.from('organizations').select('id, name').order('name'),
+  ])
+
+  const isMissingCampaignCharactersTable = (error: { message?: string | null; code?: string | null } | null | undefined) => {
+    if (!error) return false
+    const code = error.code?.toUpperCase()
+    if (code === '42P01') return true
+    const message = error.message?.toLowerCase() ?? ''
+    return message.includes('campaign_characters')
+  }
+
+  if (campaignCharacterError && !isMissingCampaignCharactersTable(campaignCharacterError)) {
+    throw new Error(campaignCharacterError.message)
+  }
+
+  if (organizationCampaignError) {
+    throw new Error(organizationCampaignError.message)
+  }
 
   const sessionNumberMap = new Map<string, number>()
 
@@ -107,17 +150,37 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
 
   const sessionsWithPlayers = rawSessions.map((session) => {
     const players = extractPlayerSummaries(session.session_characters)
+    const campaignRelation = Array.isArray(session.campaign)
+      ? session.campaign[0] ?? null
+      : session.campaign ?? null
+
+    const organizations = Array.isArray(session.session_organizations)
+      ? session.session_organizations
+          .map((entry) => {
+            const org = Array.isArray(entry?.organization) ? entry?.organization?.[0] : entry?.organization
+            if (!org?.id || !org?.name) {
+              return null
+            }
+            return { id: org.id, name: org.name }
+          })
+          .filter((value): value is { id: string; name: string } => Boolean(value))
+      : []
 
     return {
       ...session,
+      campaign: campaignRelation,
       players,
+      organizations,
+      sessionNumber: sessionNumberMap.get(session.id) ?? null,
     }
   })
 
   const campaignCharacterRelations: SessionCharacterRelation[] =
-    campaignCharacterRows?.map((row) => ({
-      character: row.character,
-    })) ?? []
+    (campaignCharacterError && isMissingCampaignCharactersTable(campaignCharacterError))
+      ? []
+      : (campaignCharacterRows ?? []).map((row) => ({
+          character: row.character,
+        }))
 
   const campaignCharacters = extractPlayerSummaries(campaignCharacterRelations)
 
@@ -138,6 +201,32 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
 
   const combinedCharacters = Array.from(characterMap.values()).sort((a, b) =>
     a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+  )
+
+  const organizationMap = new Map<string, { id: string; name: string }>()
+
+  const directOrganizations = (organizationCampaignRows ?? [])
+    .map((row) => {
+      const entry = Array.isArray(row.organization) ? row.organization[0] : row.organization
+      if (!entry?.id || !entry?.name) {
+        return null
+      }
+      return { id: entry.id, name: entry.name }
+    })
+    .filter((value): value is { id: string; name: string } => Boolean(value))
+
+  directOrganizations.forEach((org) => {
+    organizationMap.set(org.id, org)
+  })
+
+  const combinedOrganizations = Array.from(organizationMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+  )
+
+  const mentionTargets: MentionTarget[] = mergeMentionTargets(
+    mapEntitiesToMentionTargets(mentionCharacters ?? [], 'character', (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(mentionOrganizations ?? [], 'organization', (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(rawSessions, 'session', (entry) => `/sessions/${entry.id}`)
   )
 
   const deleteCampaignWithId = deleteCampaign.bind(null, id)
@@ -201,19 +290,43 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         </div>
 
         {/* Campaign Characters */}
-        <div>
-          <h2 className="mb-4 text-xl font-bold uppercase tracking-wider text-[#00ffff]">Characters &amp; Groups</h2>
-          {combinedCharacters.length === 0 ? (
-            <p className="text-sm font-mono text-gray-400">
-              No characters have been linked to this campaign yet.
-            </p>
-          ) : (
-            <SessionParticipantPills
-              sessionId={`campaign-${id}`}
-              players={combinedCharacters}
-              className="pointer-events-auto"
-            />
-          )}
+        <div className="space-y-4">
+          <div>
+            <h2 className="mb-4 text-xl font-bold uppercase tracking-wider text-[#00ffff]">Characters</h2>
+            {combinedCharacters.length === 0 ? (
+              <p className="text-sm font-mono text-gray-400">
+                No characters have been linked to this campaign yet.
+              </p>
+            ) : (
+              <SessionParticipantPills
+                sessionId={`campaign-${id}`}
+                players={combinedCharacters}
+                className="pointer-events-auto"
+                showOrganizations={false}
+              />
+            )}
+          </div>
+
+          <div>
+            <h3 className="mb-3 text-lg font-semibold uppercase tracking-[0.3em] text-[#00ffff]">Groups</h3>
+            {combinedOrganizations.length === 0 ? (
+              <p className="text-sm font-mono text-gray-400">
+                No groups have been linked to this campaign yet.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {combinedOrganizations.map((organization) => (
+                  <Link
+                    key={organization.id}
+                    href={`/organizations/${organization.id}`}
+                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-3 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447]"
+                  >
+                    {organization.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Sessions */}
@@ -261,22 +374,36 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                           <span className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
                             {session.name}
                           </span>
-                          {sessionNumberMap.has(session.id) && (
+                          {session.sessionNumber !== null && session.sessionNumber !== undefined && (
                             <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
-                              Session #{sessionNumberMap.get(session.id)}
+                              Session #{session.sessionNumber}
                             </span>
                           )}
                         </div>
                         {session.notes && (
-                          <p className="text-sm text-gray-400 line-clamp-2 font-mono">
-                            {session.notes}
-                          </p>
+                          <div className="pointer-events-auto text-gray-400 line-clamp-2 font-mono text-sm whitespace-pre-line break-words">
+                            {renderNotesWithMentions(session.notes, mentionTargets)}
+                          </div>
+                        )}
+                        {session.organizations.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2 pointer-events-auto">
+                            {session.organizations.map((organization) => (
+                              <Link
+                                key={organization.id}
+                                href={`/organizations/${organization.id}`}
+                                className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447]"
+                              >
+                                {organization.name}
+                              </Link>
+                            ))}
+                          </div>
                         )}
                         {players.length > 0 && (
                           <SessionParticipantPills
                             sessionId={session.id}
                             players={players}
-                            className="mt-3 pointer-events-auto"
+                            className={`pointer-events-auto ${session.organizations.length > 0 ? 'mt-2' : 'mt-3'}`}
+                            showOrganizations={false}
                           />
                         )}
                       </div>

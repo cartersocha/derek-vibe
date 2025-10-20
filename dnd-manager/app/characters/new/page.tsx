@@ -10,10 +10,32 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
   const supabase = await createClient()
   const params = await searchParams
 
-  const [{ data: allCharacters }, { data: allSessions }, { data: organizations }] = await Promise.all([
+  const [
+    { data: allCharacters },
+    { data: allSessions },
+    { data: organizations },
+    { data: locationRows },
+    { data: raceRows },
+    { data: classRows },
+  ] = await Promise.all([
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('sessions').select('id, name').order('name'),
     supabase.from('organizations').select('id, name').order('name'),
+    supabase
+      .from('characters')
+      .select('last_known_location')
+      .not('last_known_location', 'is', null)
+      .neq('last_known_location', ''),
+    supabase
+      .from('characters')
+      .select('race')
+      .not('race', 'is', null)
+      .neq('race', ''),
+    supabase
+      .from('characters')
+      .select('class')
+      .not('class', 'is', null)
+      .neq('class', ''),
   ])
 
   const mentionTargets = mergeMentionTargets(
@@ -24,6 +46,18 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
 
   const redirectValue = params?.redirectTo
   const redirectTo = Array.isArray(redirectValue) ? redirectValue[0] ?? null : redirectValue ?? null
+  const locationSuggestions =
+    (locationRows ?? [])
+      .map((entry) => entry.last_known_location)
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  const raceSuggestions =
+    (raceRows ?? [])
+      .map((entry) => entry.race)
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  const classSuggestions =
+    (classRows ?? [])
+      .map((entry) => entry.class)
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -38,6 +72,9 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
           id: organization.id,
           name: organization.name ?? 'Untitled Organization',
         }))}
+        locationSuggestions={locationSuggestions}
+        raceSuggestions={raceSuggestions}
+        classSuggestions={classSuggestions}
       />
     </div>
   )

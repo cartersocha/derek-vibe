@@ -11,6 +11,11 @@ type CampaignInfo = {
   name: string | null;
 };
 
+type SessionOrganization = {
+  id: string
+  name: string
+}
+
 type SessionRecord = {
   id: string;
   name: string;
@@ -21,6 +26,7 @@ type SessionRecord = {
   campaign: CampaignInfo | null;
   sessionNumber: number | null;
   players: PlayerSummary[];
+  organizations: SessionOrganization[];
 };
 
 type SessionsIndexProps = {
@@ -103,6 +109,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
         <div className="space-y-4">
           {filteredSessions.map((session) => {
             const players = session.players;
+            const groups = session.organizations;
             const sessionDateLabel = formatDateStringForDisplay(session.session_date);
 
             return (
@@ -142,11 +149,25 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                         {renderNotesWithMentions(session.notes, mentionTargets)}
                       </div>
                     )}
+                    {groups.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2 pointer-events-auto">
+                        {groups.map((organization) => (
+                          <Link
+                            key={organization.id}
+                            href={`/organizations/${organization.id}`}
+                            className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447]"
+                          >
+                            {organization.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                     {players.length > 0 && (
                       <SessionParticipantPills
                         sessionId={session.id}
                         players={players}
-                        className="mt-3 pointer-events-auto"
+                        className={`pointer-events-auto ${groups.length > 0 ? 'mt-2' : 'mt-3'}`}
+                        showOrganizations={false}
                       />
                     )}
                   </div>

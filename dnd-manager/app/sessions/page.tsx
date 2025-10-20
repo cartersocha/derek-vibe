@@ -24,6 +24,9 @@ export default async function SessionsPage() {
               organizations(id, name)
             )
           )
+        ),
+        session_organizations:organization_sessions(
+          organization:organizations(id, name)
         )
       `)
       .order('session_date', { ascending: false, nullsFirst: false })
@@ -86,11 +89,24 @@ export default async function SessionsPage() {
       ? session.campaign[0] ?? null
       : session.campaign ?? null
 
+    const organizations = Array.isArray(session.session_organizations)
+      ? session.session_organizations
+          .map((entry) => {
+            const org = Array.isArray(entry?.organization) ? entry?.organization?.[0] : entry?.organization
+            if (!org?.id || !org?.name) {
+              return null
+            }
+            return { id: org.id, name: org.name }
+          })
+          .filter((value): value is { id: string; name: string } => Boolean(value))
+      : []
+
     return {
       ...session,
       sessionNumber: sessionNumberMap.get(session.id) ?? null,
       campaign: campaignRelation,
       players,
+      organizations,
     }
   })
 

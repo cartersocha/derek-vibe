@@ -37,6 +37,9 @@ interface CharacterEditFormProps {
   mentionTargets: MentionTarget[]
   organizations: { id: string; name: string }[]
   organizationAffiliations?: string[]
+  locationSuggestions?: string[]
+  raceSuggestions?: string[]
+  classSuggestions?: string[]
 }
 
 const RACE_STORAGE_KEY = 'character-race-options'
@@ -50,6 +53,9 @@ export default function CharacterEditForm({
   mentionTargets,
   organizations,
   organizationAffiliations,
+  locationSuggestions = [],
+  raceSuggestions = [],
+  classSuggestions = [],
 }: CharacterEditFormProps) {
   const toTitleCase = useCallback((value: string) => {
     const trimmed = value.trim()
@@ -75,6 +81,69 @@ export default function CharacterEditForm({
       )
       .join(' ')
   }, [])
+
+  const dedupeAndNormalize = useCallback((values: readonly string[] | string[] | undefined) => {
+    const seen = new Set<string>()
+    const result: string[] = []
+    if (!values) {
+      return result
+    }
+    values.forEach((entry) => {
+      const normalized = toTitleCase(entry ?? '')
+      if (!normalized) {
+        return
+      }
+      const key = normalized.toLowerCase()
+      if (seen.has(key)) {
+        return
+      }
+      seen.add(key)
+      result.push(normalized)
+    })
+    return result
+  }, [toTitleCase])
+
+  const locationOptions = useMemo(() => {
+    const seen = new Set<string>()
+    const options: string[] = []
+
+    const addOption = (input?: string | null) => {
+      if (!input) {
+        return
+      }
+      const normalized = toTitleCase(input)
+      if (!normalized) {
+        return
+      }
+      const key = normalized.toLowerCase()
+      if (seen.has(key)) {
+        return
+      }
+      seen.add(key)
+      options.push(normalized)
+    }
+
+    dedupeAndNormalize(LOCATION_SUGGESTIONS).forEach(addOption)
+    dedupeAndNormalize(locationSuggestions).forEach(addOption)
+
+    return options.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+  }, [dedupeAndNormalize, locationSuggestions])
+
+  const raceOptions = useMemo(() => {
+    const combined = [
+      ...dedupeAndNormalize(RACE_OPTIONS),
+      ...dedupeAndNormalize(raceSuggestions),
+    ]
+    return Array.from(new Set(combined)).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+  }, [dedupeAndNormalize, raceSuggestions])
+
+  const classOptions = useMemo(() => {
+    const combined = [
+      ...dedupeAndNormalize(CLASS_OPTIONS),
+      ...dedupeAndNormalize(classSuggestions),
+    ]
+    return Array.from(new Set(combined)).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+  }, [classSuggestions, dedupeAndNormalize])
 
   const [playerType, setPlayerType] = useState<Character['player_type']>(character.player_type ?? 'npc')
   const [race, setRace] = useState(() => toTitleCase(character.race ?? ''))
@@ -259,7 +328,7 @@ export default function CharacterEditForm({
             name="race"
             value={race}
             onChange={handleRaceChange}
-            options={RACE_OPTIONS}
+            options={raceOptions}
             placeholder="Select or create a race"
             storageKey={RACE_STORAGE_KEY}
             normalizeOption={toTitleCase}
@@ -277,7 +346,7 @@ export default function CharacterEditForm({
             name="class"
             value={characterClass}
             onChange={handleClassChange}
-            options={CLASS_OPTIONS}
+            options={classOptions}
             placeholder="Select or create a class"
             storageKey={CLASS_STORAGE_KEY}
             normalizeOption={toTitleCase}
@@ -338,7 +407,7 @@ export default function CharacterEditForm({
             name="last_known_location"
             value={lastKnownLocation}
             onChange={handleLocationChange}
-            options={LOCATION_SUGGESTIONS}
+            options={locationOptions}
             placeholder="Select or create a location"
             storageKey={LOCATION_STORAGE_KEY}
             normalizeOption={toTitleCase}

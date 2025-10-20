@@ -24,6 +24,9 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
     { data: allSessions },
     { data: organizations },
     { data: organizationLinks },
+    { data: locationRows },
+    { data: raceRows },
+    { data: classRows },
   ] = await Promise.all([
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('sessions').select('id, name').order('name'),
@@ -32,6 +35,21 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
       .from('organization_characters')
       .select('organization_id, role')
       .eq('character_id', id),
+    supabase
+      .from('characters')
+      .select('last_known_location')
+      .not('last_known_location', 'is', null)
+      .neq('last_known_location', ''),
+    supabase
+      .from('characters')
+      .select('race')
+      .not('race', 'is', null)
+      .neq('race', ''),
+    supabase
+      .from('characters')
+      .select('class')
+      .not('class', 'is', null)
+      .neq('class', ''),
   ])
 
   const mentionTargets = mergeMentionTargets(
@@ -41,6 +59,18 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
   )
 
   const updateCharacterWithId = updateCharacter.bind(null, id)
+  const locationSuggestions =
+    (locationRows ?? [])
+      .map((entry) => entry.last_known_location)
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  const raceSuggestions =
+    (raceRows ?? [])
+      .map((entry) => entry.race)
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  const classSuggestions =
+    (classRows ?? [])
+      .map((entry) => entry.class)
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -62,6 +92,9 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
           name: organization.name ?? 'Untitled Organization',
         }))}
         organizationAffiliations={(organizationLinks ?? []).map((entry) => entry.organization_id)}
+        locationSuggestions={locationSuggestions}
+        raceSuggestions={raceSuggestions}
+        classSuggestions={classSuggestions}
       />
     </div>
   )

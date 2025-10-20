@@ -26,9 +26,19 @@ type NewCharacterFormProps = {
   redirectTo?: string | null
   mentionTargets: MentionTarget[]
   organizations: { id: string; name: string }[]
+  locationSuggestions?: string[]
+  raceSuggestions?: string[]
+  classSuggestions?: string[]
 }
 
-export function NewCharacterForm({ redirectTo, mentionTargets, organizations }: NewCharacterFormProps) {
+export function NewCharacterForm({
+  redirectTo,
+  mentionTargets,
+  organizations,
+  locationSuggestions = [],
+  raceSuggestions = [],
+  classSuggestions = [],
+}: NewCharacterFormProps) {
   const [playerType, setPlayerType] = useState<"npc" | "player">("npc")
   const [race, setRace] = useState("")
   const [characterClass, setCharacterClass] = useState("")
@@ -59,12 +69,74 @@ export function NewCharacterForm({ redirectTo, mentionTargets, organizations }: 
 
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(baseMentionTargets)
 
+  const toTitleCase = useCallback((value: string) => {
+    const trimmed = value.trim()
+    if (!trimmed) {
+      return ""
+    }
+
+    return trimmed
+      .split(/\s+/)
+      .map((word) =>
+        word
+          .split(/([-'])/)
+          .map((segment) => {
+            if (segment === "-" || segment === "'") {
+              return segment
+            }
+            if (!segment) {
+              return segment
+            }
+            return segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()
+          })
+          .join("")
+      )
+      .join(" ")
+  }, [])
+
   const organizationOptions = useMemo(() => {
     return organizations.map((organization) => ({
       value: organization.id,
       label: organization.name || "Untitled Organization",
     }))
   }, [organizations])
+
+  const dedupeAndNormalize = useCallback((values: readonly string[] | string[] | undefined) => {
+    const seen = new Set<string>()
+    const result: string[] = []
+    if (!values) {
+      return result
+    }
+    values.forEach((entry) => {
+      const normalized = toTitleCase(entry ?? "")
+      if (!normalized) {
+        return
+      }
+      const key = normalized.toLowerCase()
+      if (seen.has(key)) {
+        return
+      }
+      seen.add(key)
+      result.push(normalized)
+    })
+    return result
+  }, [toTitleCase])
+
+  const raceOptions = useMemo(() => {
+    const combined = [
+      ...dedupeAndNormalize(RACE_OPTIONS),
+      ...dedupeAndNormalize(raceSuggestions),
+    ]
+    return Array.from(new Set(combined)).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+  }, [dedupeAndNormalize, raceSuggestions])
+
+  const classOptions = useMemo(() => {
+    const combined = [
+      ...dedupeAndNormalize(CLASS_OPTIONS),
+      ...dedupeAndNormalize(classSuggestions),
+    ]
+    return Array.from(new Set(combined)).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+  }, [classSuggestions, dedupeAndNormalize])
 
   useEffect(() => {
     setMentionableTargets((previous) => {
@@ -120,30 +192,31 @@ export function NewCharacterForm({ redirectTo, mentionTargets, organizations }: 
     []
   )
 
-  const toTitleCase = useCallback((value: string) => {
-    const trimmed = value.trim()
-    if (!trimmed) {
-      return ""
+  const locationOptions = useMemo(() => {
+    const seen = new Set<string>()
+    const options: string[] = []
+
+    const pushOption = (input?: string | null) => {
+      if (!input) {
+        return
+      }
+      const normalized = toTitleCase(input)
+      if (!normalized) {
+        return
+      }
+      const key = normalized.toLowerCase()
+      if (seen.has(key)) {
+        return
+      }
+      seen.add(key)
+      options.push(normalized)
     }
 
-    return trimmed
-      .split(/\s+/)
-      .map((word) =>
-        word
-          .split(/([-'])/)
-          .map((segment) => {
-            if (segment === "-" || segment === "'") {
-              return segment
-            }
-            if (!segment) {
-              return segment
-            }
-            return segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()
-          })
-          .join("")
-      )
-      .join(" ")
-  }, [])
+    dedupeAndNormalize(LOCATION_SUGGESTIONS).forEach(pushOption)
+    dedupeAndNormalize(locationSuggestions).forEach(pushOption)
+
+    return options.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+  }, [dedupeAndNormalize, locationSuggestions])
 
   const levelLabel = playerType === "player" ? "Level" : "Challenge Rating"
 
@@ -180,7 +253,7 @@ export function NewCharacterForm({ redirectTo, mentionTargets, organizations }: 
             name="race"
             value={race}
             onChange={(next) => setRace(next ? toTitleCase(next) : "")}
-            options={RACE_OPTIONS}
+            options={raceOptions}
             placeholder="Select or create a race"
             storageKey={RACE_STORAGE_KEY}
             normalizeOption={toTitleCase}
@@ -198,7 +271,7 @@ export function NewCharacterForm({ redirectTo, mentionTargets, organizations }: 
             name="class"
             value={characterClass}
             onChange={(next) => setCharacterClass(next ? toTitleCase(next) : "")}
-            options={CLASS_OPTIONS}
+            options={classOptions}
             placeholder="Select or create a class"
             storageKey={CLASS_STORAGE_KEY}
             normalizeOption={toTitleCase}
@@ -258,7 +331,7 @@ export function NewCharacterForm({ redirectTo, mentionTargets, organizations }: 
             name="last_known_location"
             value={lastKnownLocation}
             onChange={(next) => setLastKnownLocation(next ? toTitleCase(next) : "")}
-            options={LOCATION_SUGGESTIONS}
+            options={locationOptions}
             placeholder="Select or create a location"
             storageKey={LOCATION_STORAGE_KEY}
             normalizeOption={toTitleCase}

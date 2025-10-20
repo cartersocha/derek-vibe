@@ -9,8 +9,8 @@ export const campaignSchema = z.object({
 export const sessionSchema = z.object({
   name: z.string().min(1, "Session name is required").max(200),
   campaign_id: z.string().uuid().nullable().optional(),
-  session_date: z.string().optional(),
-  notes: z.string().optional(),
+  session_date: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
   header_image_url: z.string().url().optional().nullable(),
 });
 
