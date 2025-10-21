@@ -93,6 +93,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
   const [campaignId, setCampaignId] = useState(() => initialData?.campaign_id || defaultCampaignId || '')
   const manuallySelectedOrgsRef = useRef<Set<string>>(new Set())
   const syncedCharactersRef = useRef<Set<string>>(new Set())
+  const initialAssociationsSnapshotRef = useRef<string | null>(null)
   const [campaignDropdownKey, setCampaignDropdownKey] = useState(0)
   const [isCampaignCreatorOpen, setIsCampaignCreatorOpen] = useState(false)
   const [newCampaignName, setNewCampaignName] = useState('')
@@ -226,47 +227,55 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
   }, [defaultCampaignId, initialData?.campaign_id])
 
   useEffect(() => {
-    const initialOrgIds = initialData?.organizationIds ?? []
-    const initialCharIds = initialData?.characterIds ?? []
-    
-    // For new sessions (no initialData.organizationIds), start with organizations from characters
-    if (initialData?.organizationIds === undefined) {
-      // This is a new session - preserve any manually selected organizations
-      const currentManuallySelected = Array.from(manuallySelectedOrgsRef.current)
-      setSelectedGroups(currentManuallySelected)
-    } else {
-      // This is editing an existing session - preserve the existing organizationIds
-      setSelectedGroups(initialOrgIds)
-      
-      // Initialize manually selected organizations
-      // These are organizations in initial data that don't come from characters
-      const orgsFromCharacters = new Set<string>()
-      
-      initialCharIds.forEach((characterId) => {
-        const character = characters.find((c) => c.id === characterId)
-        if (character?.organizations) {
-          character.organizations.forEach((org) => {
-            orgsFromCharacters.add(org.id)
-          })
-        }
-      })
-      
-      // Mark any initial organizations that aren't from characters as manually selected
-      const manuallySelected = new Set<string>()
-      initialOrgIds.forEach((orgId) => {
-        if (!orgsFromCharacters.has(orgId)) {
-          manuallySelected.add(orgId)
-        }
-      })
-      
-      manuallySelectedOrgsRef.current = manuallySelected
-      
-      // Mark existing characters as already synced to prevent re-syncing their orgs
-      initialCharIds.forEach((charId) => {
-        syncedCharactersRef.current.add(charId)
-      })
+    const snapshot = JSON.stringify({
+      orgs: initialData?.organizationIds ?? null,
+      chars: initialData?.characterIds ?? null,
+    })
+
+    // Avoid clobbering user selections on re-renders unless the incoming defaults actually changed
+    if (initialAssociationsSnapshotRef.current === snapshot) {
+      return
     }
-  }, [initialData?.organizationIds, initialData?.characterIds, characters])
+
+    const initialOrgIds = Array.from(new Set(initialData?.organizationIds ?? []))
+    const initialCharIds = Array.from(new Set(initialData?.characterIds ?? []))
+
+    // Defer initialization until we have character data when editing existing sessions
+    if (initialCharIds.length > 0 && characters.length === 0) {
+      return
+    }
+
+    initialAssociationsSnapshotRef.current = snapshot
+
+    if (initialData?.organizationIds === undefined) {
+      // New session – keep whatever the user has manually selected so far
+      setSelectedGroups(Array.from(manuallySelectedOrgsRef.current))
+      syncedCharactersRef.current = new Set(initialCharIds)
+      return
+    }
+
+    setSelectedGroups(initialOrgIds)
+
+    const orgsFromCharacters = new Set<string>()
+    initialCharIds.forEach((characterId) => {
+      const character = characters.find((c) => c.id === characterId)
+      if (character?.organizations) {
+        character.organizations.forEach((org) => {
+          orgsFromCharacters.add(org.id)
+        })
+      }
+    })
+
+    const manuallySelected = new Set<string>()
+    initialOrgIds.forEach((orgId) => {
+      if (!orgsFromCharacters.has(orgId)) {
+        manuallySelected.add(orgId)
+      }
+    })
+
+    manuallySelectedOrgsRef.current = manuallySelected
+    syncedCharactersRef.current = new Set(initialCharIds)
+  }, [characters, initialData?.characterIds, initialData?.organizationIds])
 
   useEffect(() => {
     if (!isCampaignCreatorOpen) {
