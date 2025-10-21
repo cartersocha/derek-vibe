@@ -13,6 +13,16 @@ export default async function OrganizationsPage() {
         organization_characters (
           role,
           character:characters (id, name, player_type, status, image_url)
+        ),
+        organization_sessions (
+          session:sessions (
+            id,
+            name,
+            campaign:campaigns (id, name)
+          )
+        ),
+        organization_campaigns (
+          campaign:campaigns (id, name)
         )
       `)
       .order("name", { ascending: true }),
@@ -67,6 +77,61 @@ export default async function OrganizationsPage() {
           )
       : [];
 
+    const organizationSessions = Array.isArray(organizationEntry?.organization_sessions)
+      ? organizationEntry.organization_sessions
+          .map((membership) => {
+            const rawSession = Array.isArray(membership?.session)
+              ? membership.session[0]
+              : membership?.session;
+            if (!rawSession?.id || !rawSession?.name) {
+              return null;
+            }
+            const rawCampaign = Array.isArray(rawSession?.campaign)
+              ? rawSession.campaign[0]
+              : rawSession?.campaign;
+            return {
+              session: {
+                id: String(rawSession.id),
+                name: String(rawSession.name),
+                campaign: rawCampaign?.id && rawCampaign?.name
+                  ? {
+                      id: String(rawCampaign.id),
+                      name: String(rawCampaign.name),
+                    }
+                  : null,
+              },
+            };
+          })
+          .filter(
+            (
+              entry,
+            ): entry is NonNullable<OrganizationRecord["organization_sessions"]>[number] => entry !== null,
+          )
+      : [];
+
+    const organizationCampaigns = Array.isArray(organizationEntry?.organization_campaigns)
+      ? organizationEntry.organization_campaigns
+          .map((membership) => {
+            const rawCampaign = Array.isArray(membership?.campaign)
+              ? membership.campaign[0]
+              : membership?.campaign;
+            if (!rawCampaign?.id || !rawCampaign?.name) {
+              return null;
+            }
+            return {
+              campaign: {
+                id: String(rawCampaign.id),
+                name: String(rawCampaign.name),
+              },
+            };
+          })
+          .filter(
+            (
+              entry,
+            ): entry is NonNullable<OrganizationRecord["organization_campaigns"]>[number] => entry !== null,
+          )
+      : [];
+
     return {
       id: String(organizationEntry.id),
       name: String(organizationEntry.name),
@@ -75,6 +140,8 @@ export default async function OrganizationsPage() {
       logo_url: organizationEntry.logo_url ? String(organizationEntry.logo_url) : null,
       created_at: String(organizationEntry.created_at),
       organization_characters: organizationCharacters,
+      organization_sessions: organizationSessions,
+      organization_campaigns: organizationCampaigns,
     };
   });
   const mentionTargets = mergeMentionTargets(

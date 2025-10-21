@@ -14,6 +14,22 @@ type CharacterWithOrganizations = Character & {
       name: string;
     };
   }[];
+  session_characters?: {
+    session: {
+      id: string;
+      name: string;
+      campaign: {
+        id: string;
+        name: string;
+      } | null;
+    };
+  }[];
+  campaign_characters?: {
+    campaign: {
+      id: string;
+      name: string;
+    };
+  }[];
 };
 
 export type CharacterSearchProps = {
@@ -40,6 +56,14 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
         character.last_known_location,
         character.player_type,
         character.status,
+        // Add related organizations to search
+        character.organization_characters?.map((org) => org.organization.name).join(" ") ?? "",
+        // Add related sessions to search
+        character.session_characters?.map((session) => session.session.name).join(" ") ?? "",
+        // Add related campaigns to search (from sessions)
+        character.session_characters?.map((session) => session.session.campaign?.name).filter(Boolean).join(" ") ?? "",
+        // Add direct campaign relationships
+        character.campaign_characters?.map((campaign) => campaign.campaign.name).join(" ") ?? "",
       ]
         .filter(Boolean)
         .join(" ")

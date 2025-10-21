@@ -34,7 +34,18 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
     }
 
     return campaigns.filter((campaign) => {
-      const haystack = [campaign.name, campaign.description ?? ""].join(" ").toLowerCase();
+      const haystack = [
+        campaign.name,
+        campaign.description ?? "",
+        // Add related sessions to search
+        campaign.sessions.map((session) => session.name).join(" "),
+        // Add related characters to search
+        campaign.characters.map((character) => character.name).join(" "),
+        // Add related organizations to search
+        campaign.organizations.map((org) => org.name).join(" "),
+      ]
+        .join(" ")
+        .toLowerCase();
       return haystack.includes(normalizedQuery);
     });
   }, [campaigns, normalizedQuery]);
