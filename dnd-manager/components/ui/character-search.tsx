@@ -39,9 +39,22 @@ export type CharacterSearchProps = {
 export function CharacterSearch({ characters }: CharacterSearchProps) {
   const [query, setQuery] = useState("");
   const [expandedCharacters, setExpandedCharacters] = useState<Set<string>>(new Set());
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const toggleCharacterSessions = (characterId: string) => {
     setExpandedCharacters(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(characterId)) {
+        newSet.delete(characterId);
+      } else {
+        newSet.add(characterId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleCharacterGroups = (characterId: string) => {
+    setExpandedGroups(prev => {
       const newSet = new Set(prev);
       if (newSet.has(characterId)) {
         newSet.delete(characterId);
@@ -185,7 +198,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                 >
                   <span aria-hidden="true" />
                 </Link>
-                <div className="relative z-10 flex h-full flex-col gap-3 pointer-events-none">
+                <div className="relative z-10 flex flex-col gap-3 pointer-events-none">
                   <div>
                     <h3
                       className={cn(
@@ -206,21 +219,45 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                   </div>
 
                   {character.organization_characters && character.organization_characters.length > 0 ? (
-                    <div className="pointer-events-auto mt-auto flex flex-wrap gap-2">
-                      {character.organization_characters.map(({ organization }) => (
-                        <Link
-                          key={`${character.id}-org-${organization.id}`}
-                          href={`/organizations/${organization.id}`}
-                          className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
-                        >
-                          {organization.name}
-                        </Link>
-                      ))}
+                    <div className="pointer-events-auto mt-2">
+                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                        Groups
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {(expandedGroups.has(character.id) 
+                          ? character.organization_characters 
+                          : character.organization_characters.slice(0, 4)
+                        ).map(({ organization }) => (
+                          <Link
+                            key={`${character.id}-org-${organization.id}`}
+                            href={`/organizations/${organization.id}`}
+                            className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+                          >
+                            {organization.name}
+                          </Link>
+                        ))}
+                        {!expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
+                          <button
+                            onClick={() => toggleCharacterGroups(character.id)}
+                            className="inline-flex items-center rounded-full border border-dashed border-[#fcee0c]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c]"
+                          >
+                            +{character.organization_characters.length - 4} more
+                          </button>
+                        )}
+                        {expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
+                          <button
+                            onClick={() => toggleCharacterGroups(character.id)}
+                            className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                          >
+                            Show less
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ) : null}
 
                   {character.session_characters && character.session_characters.length > 0 && (
-                    <div className="pointer-events-auto">
+                    <div className="pointer-events-auto mt-2">
                       <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
                         Sessions
                       </div>

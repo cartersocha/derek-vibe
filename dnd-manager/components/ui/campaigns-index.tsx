@@ -26,12 +26,25 @@ type CampaignsIndexProps = {
 export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProps) {
   const [query, setQuery] = useState("");
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const hasCampaigns = campaigns.length > 0;
   const normalizedQuery = query.trim().toLowerCase();
 
   const toggleCampaignSessions = (campaignId: string) => {
     setExpandedCampaigns(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(campaignId)) {
+        newSet.delete(campaignId);
+      } else {
+        newSet.add(campaignId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleCampaignGroups = (campaignId: string) => {
+    setExpandedGroups(prev => {
       const newSet = new Set(prev);
       if (newSet.has(campaignId)) {
         newSet.delete(campaignId);
@@ -153,7 +166,10 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         Groups
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {campaign.organizations.map((organization) => (
+                        {(expandedGroups.has(campaign.id) 
+                          ? campaign.organizations 
+                          : campaign.organizations.slice(0, 6)
+                        ).map((organization) => (
                           <Link
                             key={`${campaign.id}-org-${organization.id}`}
                             href={`/organizations/${organization.id}`}
@@ -162,6 +178,22 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                             {organization.name}
                           </Link>
                         ))}
+                        {!expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
+                          <button
+                            onClick={() => toggleCampaignGroups(campaign.id)}
+                            className="inline-flex items-center rounded-full border border-dashed border-[#fcee0c]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c]"
+                          >
+                            +{campaign.organizations.length - 6} more
+                          </button>
+                        )}
+                        {expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
+                          <button
+                            onClick={() => toggleCampaignGroups(campaign.id)}
+                            className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                          >
+                            Show less
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}

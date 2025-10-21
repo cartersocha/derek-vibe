@@ -37,6 +37,19 @@ type SessionsIndexProps = {
 
 export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) {
   const [query, setQuery] = useState("");
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  const toggleSessionGroups = (sessionId: string) => {
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sessionId)) {
+        newSet.delete(sessionId);
+      } else {
+        newSet.add(sessionId);
+      }
+      return newSet;
+    });
+  };
 
   const hasSessions = sessions.length > 0;
   const normalizedQuery = query.trim().toLowerCase();
@@ -136,16 +149,40 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                       />
                     )}
                     {groups.length > 0 && (
-                      <div className={`pointer-events-auto flex flex-wrap gap-2 ${players.length > 0 ? "mt-2" : "mt-3"}`}>
-                        {groups.map((organization) => (
-                          <Link
-                            key={organization.id}
-                            href={`/organizations/${organization.id}`}
-                            className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447]"
-                          >
-                            {organization.name}
-                          </Link>
-                        ))}
+                      <div className={`pointer-events-auto ${players.length > 0 ? "mt-2" : "mt-3"}`}>
+                        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                          Groups
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(expandedGroups.has(session.id) 
+                            ? groups 
+                            : groups.slice(0, 6)
+                          ).map((organization) => (
+                            <Link
+                              key={organization.id}
+                              href={`/organizations/${organization.id}`}
+                              className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c]"
+                            >
+                              {organization.name}
+                            </Link>
+                          ))}
+                          {!expandedGroups.has(session.id) && groups.length > 6 && (
+                            <button
+                              onClick={() => toggleSessionGroups(session.id)}
+                              className="inline-flex items-center rounded-full border border-dashed border-[#fcee0c]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c]"
+                            >
+                              +{groups.length - 6} more
+                            </button>
+                          )}
+                          {expandedGroups.has(session.id) && groups.length > 6 && (
+                            <button
+                              onClick={() => toggleSessionGroups(session.id)}
+                              className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                            >
+                              Show less
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>

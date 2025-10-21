@@ -128,7 +128,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
               >
                 <span aria-hidden="true" />
               </Link>
-              <div className="relative z-10 flex h-full flex-col gap-4 pointer-events-none">
+              <div className="relative z-10 flex flex-col gap-3 pointer-events-none">
                 <div className="flex items-center gap-4">
                   {organization.logo_url ? (
                     <div className="pointer-events-auto relative h-14 w-14 overflow-hidden rounded border border-[#00ffff]/30 bg-[#050517]">
@@ -147,7 +147,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                     </h2>
                   </div>
                 </div>
-                <div className="flex-1 text-sm leading-relaxed text-[#cbd5f5] pointer-events-auto">
+                <div className="text-sm leading-relaxed text-[#cbd5f5] pointer-events-auto">
                   {organization.description ? (
                     <p className="line-clamp-4 text-[#cbd5f5]">
                       {renderNotesWithMentions(organization.description, mentionTargets)}
@@ -161,7 +161,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                 
                 {/* Character Pills */}
                 {organization.organization_characters && organization.organization_characters.length > 0 && (
-                  <div className="pointer-events-auto mt-3 flex flex-wrap gap-2">
+                  <div className="pointer-events-auto mt-2 flex flex-wrap gap-2">
                     {organization.organization_characters.map(({ character }) => (
                       <Link
                         key={`${organization.id}-char-${character.id}`}
@@ -181,7 +181,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
 
                 {/* Session Pills */}
                 {organization.organization_sessions && organization.organization_sessions.length > 0 && (
-                  <div className="pointer-events-auto">
+                  <div className="pointer-events-auto mt-2">
                     <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
                       Sessions
                     </div>
