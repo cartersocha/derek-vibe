@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import AutoCapitalizeProvider from "@/components/providers/auto-capitalize-provider";
 
@@ -49,6 +50,7 @@ export default function RootLayout({
           {children}
         </AutoCapitalizeProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
