@@ -5,6 +5,7 @@ import { DeleteOrganizationButton } from "@/components/ui/delete-organization-bu
 import { deleteOrganization } from "@/lib/actions/organizations";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateStringForDisplay, formatTimestampForDisplay } from "@/lib/utils";
+import { mapEntitiesToMentionTargets, mergeMentionTargets, renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 
 interface OrganizationRecord {
   id: string;
@@ -157,6 +158,13 @@ export default async function OrganizationDetailPage({
     ];
   });
 
+  const mentionTargets: MentionTarget[] = mergeMentionTargets(
+    mapEntitiesToMentionTargets(characters, "character", (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(sessions, "session", (entry) => `/sessions/${entry.id}`),
+    mapEntitiesToMentionTargets(campaigns, "campaign", (entry) => `/campaigns/${entry.id}`),
+    mapEntitiesToMentionTargets([organization], "organization", (entry) => `/organizations/${entry.id}`)
+  );
+
   async function handleDelete() {
     "use server";
     await deleteOrganization(id);
@@ -217,7 +225,9 @@ export default async function OrganizationDetailPage({
           <section className="flex-1 space-y-3 text-gray-300 font-mono leading-relaxed text-base sm:text-lg">
             <h2 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Overview</h2>
             {organization.description ? (
-              <p className="whitespace-pre-wrap leading-relaxed">{organization.description}</p>
+              <div className="whitespace-pre-wrap leading-relaxed">
+                {renderNotesWithMentions(organization.description, mentionTargets)}
+              </div>
             ) : (
               <p className="text-gray-500 italic">No description available for this group yet.</p>
             )}

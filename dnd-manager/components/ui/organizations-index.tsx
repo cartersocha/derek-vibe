@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 
 export type OrganizationRecord = {
   id: string;
@@ -14,9 +15,10 @@ export type OrganizationRecord = {
 
 type OrganizationsIndexProps = {
   organizations: OrganizationRecord[];
+  mentionTargets: MentionTarget[];
 };
 
-export function OrganizationsIndex({ organizations }: OrganizationsIndexProps) {
+export function OrganizationsIndex({ organizations, mentionTargets }: OrganizationsIndexProps) {
   const [query, setQuery] = useState("");
   const hasOrganizations = organizations.length > 0;
   const normalizedQuery = query.trim().toLowerCase();
@@ -115,7 +117,7 @@ export function OrganizationsIndex({ organizations }: OrganizationsIndexProps) {
               <div className="flex-1 text-sm leading-relaxed text-[#cbd5f5]">
                 {organization.description ? (
                   <p className="line-clamp-4 text-[#cbd5f5]">
-                    {organization.description}
+                    {renderNotesWithMentions(organization.description, mentionTargets)}
                   </p>
                 ) : (
                   <p className="text-[#64748b]">
