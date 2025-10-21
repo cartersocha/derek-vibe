@@ -217,11 +217,11 @@ const hasAppliedAutoWidthRef = useRef(false);
       style={sidebarStyles}
     >
       {/* Mobile header */}
-      <div className="md:hidden border-b border-[#00ffff] border-opacity-20 bg-[#0f0f23]">
-        <div className="flex items-center justify-between px-4 py-4">
+      <div className="md:hidden border-b border-[#00ffff] border-opacity-20 bg-[#0f0f23] sticky top-0 z-50">
+        <div className="flex items-center justify-between px-4 py-3 sm:py-4">
           <Link
             href="/dashboard"
-            className="retro-title text-xl font-bold text-[#00ffff]"
+            className="retro-title text-lg sm:text-xl font-bold text-[#00ffff] break-words"
             style={{ "--retro-letter-spacing": "0.24em" } as CSSProperties}
           >
             RAT PALACE
@@ -231,7 +231,7 @@ const hasAppliedAutoWidthRef = useRef(false);
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-nav"
-            className="inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-40 p-2 text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff] transition-colors"
+            className="inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-40 p-2 text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff] transition-colors min-h-[44px] min-w-[44px]"
           >
             <span className="sr-only">Toggle navigation</span>
             <svg
@@ -251,7 +251,7 @@ const hasAppliedAutoWidthRef = useRef(false);
         <div
           id="mobile-nav"
           className={cn(
-            "px-4 pb-4 space-y-3 bg-[#0f0f23] shadow-lg shadow-[#00ffff]/10",
+            "px-4 pb-4 space-y-2 bg-[#0f0f23] shadow-lg shadow-[#00ffff]/10",
             isMobileMenuOpen ? "block" : "hidden"
           )}
         >
@@ -262,12 +262,13 @@ const hasAppliedAutoWidthRef = useRef(false);
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "block w-full px-4 py-3 text-sm font-bold uppercase tracking-wider rounded transition-colors duration-200",
+                  "block w-full px-4 py-3 text-sm font-bold uppercase tracking-wider rounded transition-colors duration-200 min-h-[44px] flex items-center",
                   isActive
                     ? "bg-[#ff00ff] text-black shadow-lg shadow-[#ff00ff]/50"
                     : "text-[#00ffff] hover:bg-[#1a1a3e] hover:text-[#ff00ff]"
                 )}
               >
+                <span className="mr-3 text-lg">{link.symbol}</span>
                 {link.label}
               </Link>
             );

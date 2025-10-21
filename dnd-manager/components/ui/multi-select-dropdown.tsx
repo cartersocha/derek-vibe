@@ -103,7 +103,7 @@ export default function MultiSelectDropdown({
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         disabled={loading}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-2 text-left font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`flex w-full items-center justify-between gap-2 sm:gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-3 sm:px-4 py-3 text-left font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] disabled:cursor-not-allowed disabled:opacity-60 min-h-[44px] ${
           open
             ? 'border-[#ff00ff] text-[#ff00ff] shadow-lg shadow-[#ff00ff]/30'
             : 'border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]'
@@ -114,24 +114,24 @@ export default function MultiSelectDropdown({
       </button>
 
       {open && (
-        <div className={`absolute right-0 z-20 mt-2 overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20 ${menuWidth}`}>
+        <div className={`absolute right-0 z-20 mt-2 overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20 ${menuWidth} max-w-[calc(100vw-2rem)] sm:max-w-none`}>
           <div className="max-h-64 overflow-y-auto">
             {options.length > 0 ? (
               <ul className="divide-y divide-[#1a1a3e]">
                 {options.map((option) => (
                   <li key={option.id}>
-                    <label className="flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-[#1a1a3e]/50">
+                    <label className="flex cursor-pointer items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-[#1a1a3e]/50 min-h-[44px]">
                       <input
                         type="checkbox"
                         checked={selected.has(option.id)}
                         onChange={() => toggleOption(option.id)}
                         disabled={loading}
-                        className="rounded border-[#00ffff] border-opacity-30 text-[#ff00ff] focus:ring-[#ff00ff] bg-[#0f0f23] disabled:opacity-60"
+                        className="rounded border-[#00ffff] border-opacity-30 text-[#ff00ff] focus:ring-[#ff00ff] bg-[#0f0f23] disabled:opacity-60 w-4 h-4 flex-shrink-0"
                       />
                       <span className="flex flex-1 flex-col">
-                        <span className="text-[#00ffff] text-sm">{option.label}</span>
+                        <span className="text-[#00ffff] text-sm break-words">{option.label}</span>
                         {option.subLabel && (
-                          <span className="text-xs text-gray-500 uppercase tracking-wider">{option.subLabel}</span>
+                          <span className="text-xs text-gray-500 uppercase tracking-wider break-words">{option.subLabel}</span>
                         )}
                       </span>
                     </label>
@@ -139,7 +139,7 @@ export default function MultiSelectDropdown({
                 ))}
               </ul>
             ) : (
-              <p className="px-4 py-6 text-center text-xs font-mono text-gray-500">{emptyMessage}</p>
+              <p className="px-3 sm:px-4 py-6 text-center text-xs font-mono text-gray-500">{emptyMessage}</p>
             )}
           </div>
 
@@ -147,7 +147,7 @@ export default function MultiSelectDropdown({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#00ffff] hover:text-[#ff00ff]"
+              className="rounded px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#00ffff] hover:text-[#ff00ff] min-h-[36px] flex items-center"
               disabled={loading}
             >
               Cancel
@@ -155,7 +155,7 @@ export default function MultiSelectDropdown({
             <button
               type="button"
               onClick={handleSubmit}
-              className="rounded bg-[#ff00ff] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black hover:bg-[#cc00cc] disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded bg-[#ff00ff] px-3 py-2 text-xs font-bold uppercase tracking-wider text-black hover:bg-[#cc00cc] disabled:cursor-not-allowed disabled:opacity-60 min-h-[36px] flex items-center"
               disabled={loading}
             >
               {loading ? "Saving…" : submitLabel}

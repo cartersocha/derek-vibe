@@ -11,6 +11,7 @@ import {
   type SessionCharacterRelation,
 } from '@/lib/utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
+import { CampaignSessionCard } from '@/components/ui/campaign-session-card'
 import { renderNotesWithMentions, mapEntitiesToMentionTargets, mergeMentionTargets, type MentionTarget } from '@/lib/mention-utils'
 import type { SessionRow } from '@/lib/types/sessions'
 
@@ -348,65 +349,13 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                 const players = session.players
 
                 return (
-                  <article
+                  <CampaignSessionCard
                     key={session.id}
-                    className="group relative overflow-hidden rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e] bg-opacity-50 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50"
-                  >
-                    <Link
-                      href={`/sessions/${session.id}`}
-                      className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
-                      aria-label={`View session ${session.name}`}
-                    >
-                      <span aria-hidden="true" />
-                    </Link>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="relative z-10 flex-1 pointer-events-none">
-                        <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <span className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
-                            {session.name}
-                          </span>
-                          {session.sessionNumber !== null && session.sessionNumber !== undefined && (
-                            <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
-                              Session #{session.sessionNumber}
-                            </span>
-                          )}
-                        </div>
-                        {session.notes && (
-                          <div className="pointer-events-auto text-gray-400 line-clamp-2 font-mono text-sm whitespace-pre-line break-words">
-                            {renderNotesWithMentions(session.notes, mentionTargets)}
-                          </div>
-                        )}
-                        {players.length > 0 && (
-                          <SessionParticipantPills
-                            sessionId={session.id}
-                            players={players}
-                            className={`pointer-events-auto ${session.organizations.length > 0 ? 'mt-3' : 'mt-3'}`}
-                            showOrganizations={false}
-                          />
-                        )}
-                        {session.organizations.length > 0 && (
-                          <div className={`flex flex-wrap gap-2 pointer-events-auto ${players.length > 0 ? 'mt-2' : 'mt-3'}`}>
-                            {session.organizations.map((organization) => (
-                              <Link
-                                key={organization.id}
-                                href={`/organizations/${organization.id}`}
-                                className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447]"
-                              >
-                                {organization.name}
-                              </Link>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className="relative z-10 pointer-events-none text-xs text-gray-500 font-mono uppercase tracking-wider sm:ml-4 sm:text-right">
-                        {session.session_date ? (
-                          <div>{formatDateStringForDisplay(session.session_date) ?? 'No date set'}</div>
-                        ) : (
-                          <div>No date set</div>
-                        )}
-                      </div>
-                    </div>
-                  </article>
+                    session={session}
+                    mentionTargets={mentionTargets}
+                    sessionNumber={session.sessionNumber}
+                    campaignRelation={{ id: campaign.id, name: campaign.name }}
+                  />
                 )
               })}
             </div>

@@ -6,6 +6,7 @@ import { deleteSession } from '@/lib/actions/sessions'
 import { DeleteSessionButton } from '@/components/ui/delete-session-button'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
 import { formatDateStringForDisplay } from '@/lib/utils'
+import { SessionCharacterCard } from '@/components/ui/session-character-card'
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -295,7 +296,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
                 <Link
                   key={group.id}
                   href={`/organizations/${group.id}`}
-                  className="inline-flex items-center rounded border border-[#fcee0c]/70 bg-[#1a1400] px-3 py-1.5 text-xs font-mono uppercase tracking-widest text-[#fcee0c] transition-colors hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+                  className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-3 py-1.5 text-xs font-mono uppercase tracking-widest text-[#fcee0c] transition-colors hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
                 >
                   {group.name}
                 </Link>
@@ -319,66 +320,13 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             return (
               <div>
                 <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Characters</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                  {sortedCharacters.map((character) => {
-                const isPlayer = character.player_type === 'player'
-                const badgeClasses = isPlayer
-                  ? 'border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] group-hover:border-[#00ffff] group-hover:text-[#ff00ff]'
-                  : 'border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] group-hover:border-[#ff6ad5] group-hover:text-[#ff9de6]'
-                const cardClasses = isPlayer
-                  ? 'border border-[#00ffff] border-opacity-20 bg-[#0f0f23]/70 hover:border-[#ff00ff] hover:bg-[#0f0f23] focus-visible:ring-[#00ffff]'
-                  : 'border border-[#ff00ff] border-opacity-30 bg-[#1a0220] hover:border-[#ff6ad5] hover:bg-[#1a0220] focus-visible:ring-[#ff6ad5]'
-                const nameClasses = isPlayer
-                  ? 'font-medium text-[#00ffff] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
-                  : 'font-medium text-[#ff6ad5] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff9de6] focus-visible:ring-[#ff6ad5]'
-                const organizationChipClasses = isPlayer
-                  ? 'inline-flex items-center rounded border border-[#00ffff]/30 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff] transition-colors hover:border-[#ff00ff] hover:text-[#ff00ff] focus-visible:ring-[#ff00ff]'
-                  : 'inline-flex items-center rounded border border-[#ff6ad5]/40 bg-[#1a0220] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5] transition-colors hover:border-[#ff9de6] hover:text-[#ff9de6] focus-visible:ring-[#ff9de6]'
-                const levelLabel = character.level
-                  ? isPlayer
-                    ? `Level ${character.level}`
-                    : `CR ${character.level}`
-                  : null
-
-                return (
-                  <div
-                    key={character.id}
-                    className={`group p-3 rounded transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 ${cardClasses}`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <Link
-                        href={`/characters/${character.id}`}
-                        className={`focus-visible:outline-none focus-visible:ring-2 ${nameClasses}`}
-                      >
-                        {character.name}
-                      </Link>
-                      {character.player_type ? (
-                        <span className={`rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest transition-colors ${badgeClasses}`}>
-                          {isPlayer ? 'Player' : 'NPC'}
-                        </span>
-                      ) : null}
-                    </div>
-                    {levelLabel ? (
-                      <p className="mt-2 text-[11px] text-gray-400 font-mono uppercase tracking-wider">
-                        {levelLabel}
-                      </p>
-                    ) : null}
-                    {character.organizations.length > 0 ? (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {character.organizations.map((organization) => (
-                          <Link
-                            key={`${character.id}-${organization.id}`}
-                            href={`/organizations/${organization.id}`}
-                            className={`focus-visible:outline-none focus-visible:ring-2 ${organizationChipClasses}`}
-                          >
-                            {organization.name}
-                          </Link>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                )
-                  })}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {sortedCharacters.map((character) => (
+                    <SessionCharacterCard
+                      key={character.id}
+                      character={character}
+                    />
+                  ))}
                 </div>
               </div>
             )

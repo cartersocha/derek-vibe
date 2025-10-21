@@ -902,7 +902,7 @@ export default function MentionableTextarea({
         aria-autocomplete="list"
         aria-expanded={isMentionMenuOpen}
         aria-controls={isMentionMenuOpen ? mentionListId : undefined}
-        className={cn("pr-3", className)}
+        className={cn("pr-3 text-sm sm:text-base", className)}
         maxHeight={400}
       />
 
@@ -910,7 +910,7 @@ export default function MentionableTextarea({
         createPortal(
           <div
             id={mentionListId}
-            className="fixed overflow-y-auto rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20"
+            className="fixed overflow-y-auto rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20 max-w-[calc(100vw-2rem)] sm:max-w-none"
             role="listbox"
             style={{
               ...mentionDropdownStyle,
@@ -964,11 +964,11 @@ export default function MentionableTextarea({
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => handleMentionClick(option)}
                     onMouseEnter={() => handleMentionHover(index)}
-                    className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
+                    className={`flex w-full items-center justify-between gap-2 px-3 py-3 text-left font-mono text-sm transition-colors min-h-[44px] ${
                       isActive ? `bg-[#1a1a3e] ${activeTextColor}` : `${baseTextColor} hover:bg-[#11112b]`
                     }`}
                   >
-                    <span className="font-semibold">{option.name}</span>
+                    <span className="font-semibold break-words flex-1 text-left">{option.name}</span>
                     <MentionKindLabel kind={option.kind} />
                   </button>
                 )

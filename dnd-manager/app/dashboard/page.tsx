@@ -6,7 +6,7 @@ import {
   formatDateStringForDisplay,
   type SessionCharacterRelation,
 } from '@/lib/utils'
-import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
+import { DashboardSessionCard } from '@/components/ui/dashboard-session-card'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -115,19 +115,19 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8">
       <div>
-        <h1 className="retro-title glitch-subtle text-3xl font-bold text-[#00ffff]" data-text="DASHBOARD">Dashboard</h1>
+        <h1 className="retro-title glitch-subtle text-2xl sm:text-3xl font-bold text-[#00ffff] break-words" data-text="DASHBOARD">Dashboard</h1>
       </div>
 
       {/* Recent Sessions */}
       {recentSessions && recentSessions.length > 0 && (
-        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Recent Sessions</h2>
-            <p className="text-sm text-gray-400 font-mono">Your latest adventures at a glance</p>
+        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-4 sm:p-6 lg:p-8">
+          <div className="mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Recent Sessions</h2>
+            <p className="text-xs sm:text-sm text-gray-400 font-mono">Your latest adventures at a glance</p>
           </div>
-          <div className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:gap-5">
             {recentSessions.map((session) => {
               const sessionNumber = sessionNumberMap.get(session.id)
               const campaignRelation = Array.isArray(session.campaign)
@@ -156,98 +156,51 @@ export default async function DashboardPage() {
                 : []
 
               return (
-                <article
+                <DashboardSessionCard
                   key={session.id}
-                  className="group relative overflow-hidden rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e] bg-opacity-50 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50"
-                >
-                  <Link
-                    href={`/sessions/${session.id}`}
-                    className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
-                    aria-label={`View session ${session.name}`}
-                  >
-                    <span aria-hidden="true" />
-                  </Link>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex-1 relative z-10 pointer-events-none">
-                      <div className="mb-2 flex flex-wrap items-center gap-2">
-                        <span className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
-                          {session.name}
-                        </span>
-                        {sessionNumber !== undefined && sessionNumber !== null && (
-                          <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
-                            Session #{sessionNumber}
-                          </span>
-                        )}
-                      </div>
-                      {campaignRelation?.name && campaignRelation.id && (
-                        <Link
-                          href={`/campaigns/${campaignRelation.id}`}
-                          className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
-                        >
-                          Campaign: {campaignRelation.name}
-                        </Link>
-                      )}
-                      {players.length > 0 && (
-                        <SessionParticipantPills
-                          sessionId={session.id}
-                          players={players}
-                          className={`pointer-events-auto ${organizations.length > 0 ? 'mt-3' : 'mt-3'}`}
-                          showOrganizations={false}
-                        />
-                      )}
-                      {organizations.length > 0 && (
-                        <div className={`flex flex-wrap gap-2 pointer-events-auto ${players.length > 0 ? 'mt-2' : 'mt-3'}`}>
-                          {organizations.map((organization) => (
-                            <Link
-                              key={organization.id}
-                              href={`/organizations/${organization.id}`}
-                              className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447]"
-                            >
-                              {organization.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                  </div>
-                  <div className="relative z-10 pointer-events-none text-xs font-mono uppercase tracking-wider text-gray-500 sm:ml-4 sm:text-right">
-                    {session.session_date ? (
-                      <div>{formatDateStringForDisplay(session.session_date) ?? 'No date set'}</div>
-                    ) : (
-                      <div>No date set</div>
-                    )}
-                  </div>
-                </div>
-              </article>
-            )
-          })}
+                  session={{
+                    id: session.id,
+                    name: session.name,
+                    session_date: session.session_date,
+                    created_at: session.created_at,
+                    campaign: campaignRelation,
+                    session_characters: rawLinks,
+                    session_organizations: []
+                  }}
+                  sessionNumber={sessionNumber}
+                  players={players}
+                  organizations={organizations}
+                />
+              )
+            })}
           </div>
         </div>
       )}
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <Link
           href="/campaigns"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center"
         >
-          <h3 className="text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Campaigns</h3>
-          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{campaignsCount || 0}</p>
+          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Campaigns</h3>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{campaignsCount || 0}</p>
         </Link>
 
         <Link
           href="/sessions"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center"
         >
-          <h3 className="text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Sessions</h3>
-          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{sessionsCount || 0}</p>
+          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Sessions</h3>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{sessionsCount || 0}</p>
         </Link>
 
         <Link
           href="/characters"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517]"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center sm:col-span-2 lg:col-span-1"
         >
-          <h3 className="text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Characters</h3>
-          <p className="mt-2 text-3xl font-bold text-[#00ffff]">{charactersCount || 0}</p>
+          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Characters</h3>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{charactersCount || 0}</p>
         </Link>
       </div>
     </div>

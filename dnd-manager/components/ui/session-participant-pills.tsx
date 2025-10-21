@@ -9,9 +9,10 @@ type SessionParticipantPillsProps = {
   players: PlayerSummary[]
   className?: string
   showOrganizations?: boolean
+  organizationMemberCounts?: Map<string, number>
 }
 
-export function SessionParticipantPills({ sessionId, players: rawPlayers, className, showOrganizations = true }: SessionParticipantPillsProps) {
+export function SessionParticipantPills({ sessionId, players: rawPlayers, className, showOrganizations = true, organizationMemberCounts }: SessionParticipantPillsProps) {
   const sortedPlayers = useMemo(() => {
     if (!rawPlayers?.length) {
       return [] as PlayerSummary[]
@@ -39,8 +40,19 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
         }
       }
     }
-    return result.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-  }, [sortedPlayers, showOrganizations])
+    return result.sort((a, b) => {
+      if (organizationMemberCounts) {
+        const aCount = organizationMemberCounts.get(a.id) || 0
+        const bCount = organizationMemberCounts.get(b.id) || 0
+        
+        // Sort by member count (descending), then by name (ascending) as tiebreaker
+        if (aCount !== bCount) {
+          return bCount - aCount
+        }
+      }
+      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    })
+  }, [sortedPlayers, showOrganizations, organizationMemberCounts])
 
   if (sortedPlayers.length === 0) {
     return null

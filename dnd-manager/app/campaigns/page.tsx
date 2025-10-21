@@ -5,7 +5,7 @@ import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-
 export default async function CampaignsPage() {
   const supabase = await createClient()
 
-  const [campaignsResult, charactersResult, sessionsResult, organizationsResult] = await Promise.all([
+  const [campaignsResult, charactersResult, sessionsResult, organizationsResult, organizationMemberCountsResult] = await Promise.all([
     supabase
       .from('campaigns')
       .select('*')
@@ -17,11 +17,19 @@ export default async function CampaignsPage() {
       .order('session_date', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false }),
     supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('organization_characters').select('organization_id'),
   ])
 
   const campaigns = campaignsResult.data ?? []
   const campaignIds = campaigns.map((campaign) => campaign.id).filter((id): id is string => Boolean(id))
   const campaignIdSet = new Set(campaignIds)
+
+  // Process organization member counts
+  const organizationMemberCounts = new Map<string, number>()
+  organizationMemberCountsResult.data?.forEach(row => {
+    const orgId = row.organization_id
+    organizationMemberCounts.set(orgId, (organizationMemberCounts.get(orgId) || 0) + 1)
+  })
 
   const [campaignCharactersResult, organizationCampaignsResult] = campaignIds.length
     ? await Promise.all([
@@ -159,9 +167,16 @@ export default async function CampaignsPage() {
   }
 
   const enrichedCampaigns = campaigns.map((campaign) => {
-    const organizations = [...(organizationsByCampaign.get(campaign.id) ?? [])].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-    )
+    const organizations = [...(organizationsByCampaign.get(campaign.id) ?? [])].sort((a, b) => {
+      const aCount = organizationMemberCounts.get(a.id) || 0
+      const bCount = organizationMemberCounts.get(b.id) || 0
+      
+      // Sort by member count (descending), then by name (ascending) as tiebreaker
+      if (aCount !== bCount) {
+        return bCount - aCount
+      }
+      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    })
     const characters = [...(charactersByCampaign.get(campaign.id) ?? [])].sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
     )
@@ -171,11 +186,16 @@ export default async function CampaignsPage() {
       id: entry.id,
       name: entry.name,
     }))
+    const allSessionsFormatted = allSessions.map((entry) => ({
+      id: entry.id,
+      name: entry.name,
+    }))
     return {
       ...campaign,
       organizations,
       characters,
       sessions: sessionPreview,
+      allSessions: allSessionsFormatted,
       sessionCount: allSessions.length,
     }
   })
