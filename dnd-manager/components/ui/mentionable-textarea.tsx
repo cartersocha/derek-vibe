@@ -413,6 +413,7 @@ export default function MentionableTextarea({
       }
 
       const query = preceding.slice(atIndex + 1)
+      const trimmedQuery = query.trim()
 
       // Allow spaces in mention queries for multi-word names
       // Only close menu on newlines or tabs
@@ -421,13 +422,37 @@ export default function MentionableTextarea({
         return
       }
 
+      const lastChar = query.slice(-1)
+      if (trimmedQuery && lastChar && mentionEndPattern.test(lastChar)) {
+        const canonicalQuery = trimmedQuery.replace(/[\s.,!?;:'")\]]+$/u, "").toLowerCase()
+        if (
+          canonicalQuery &&
+          availableTargets.some((target) => target.name.toLowerCase() === canonicalQuery)
+        ) {
+          closeMentionMenu()
+          return
+        }
+      }
+
+      if (trimmedQuery && mentionEndPattern.test(query)) {
+        const normalizedQuery = trimmedQuery.toLowerCase()
+        const hasMatchingTarget = availableTargets.some((target) =>
+          target.name.toLowerCase().startsWith(normalizedQuery)
+        )
+
+        if (!hasMatchingTarget) {
+          closeMentionMenu()
+          return
+        }
+      }
+
       setIsMentionMenuOpen(true)
       setMentionStart(atIndex)
       setMentionQuery(query)
       setMentionHighlightIndex(0)
       updateMentionMenuPosition(textarea ?? null, atIndex, [])
     },
-    [closeMentionMenu, updateMentionMenuPosition]
+    [availableTargets, closeMentionMenu, updateMentionMenuPosition]
   )
 
   const handleValueChange = useCallback(
