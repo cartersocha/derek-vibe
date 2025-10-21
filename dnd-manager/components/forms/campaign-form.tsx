@@ -496,7 +496,7 @@ export function CampaignForm({
   return (
     <form
       action={action}
-      className="space-y-6 rounded border border-[#00ffff]/20 bg-[#0f0f23] p-6 shadow-[0_0_25px_rgba(0,255,255,0.08)]"
+      className="space-y-4 sm:space-y-6 rounded border border-[#00ffff]/20 bg-[#0f0f23] p-4 sm:p-6 shadow-[0_0_25px_rgba(0,255,255,0.08)]"
     >
       <input type="hidden" name="organization_field_present" value="true" />
       <input type="hidden" name="session_field_present" value="true" />
@@ -516,7 +516,7 @@ export function CampaignForm({
           required
           maxLength={200}
           defaultValue={defaultValues?.name ?? ""}
-          className="w-full rounded border border-[#00ffff]/30 bg-[#050517] px-4 py-3 text-[#e2e8f0] outline-none transition focus:border-[#ff00ff] focus:ring-2 focus:ring-[#ff00ff]/40"
+          className="w-full rounded border border-[#00ffff]/30 bg-[#050517] px-3 sm:px-4 py-3 text-[#e2e8f0] outline-none transition focus:border-[#ff00ff] focus:ring-2 focus:ring-[#ff00ff]/40 text-sm sm:text-base min-h-[44px]"
           placeholder="The Endpoint Exists"
         />
       </div>
@@ -537,14 +537,14 @@ export function CampaignForm({
           onMentionInsert={handleMentionInsert}
           onMentionCreate={handleMentionInsert}
           linkCampaignId={campaignId}
-          className="w-full rounded border border-[#00ffff]/30 bg-[#050517] px-4 py-3 text-[#e2e8f0] outline-none transition focus:border-[#ff00ff] focus:ring-2 focus:ring-[#ff00ff]/40"
+          className="w-full rounded border border-[#00ffff]/30 bg-[#050517] px-3 sm:px-4 py-3 text-[#e2e8f0] outline-none transition focus:border-[#ff00ff] focus:ring-2 focus:ring-[#ff00ff]/40 text-sm sm:text-base min-h-[100px]"
           placeholder="Describe the tone, goals, and hook for this campaign."
         />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-3">
-          <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+        <div className="space-y-2 sm:space-y-3">
+          <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
             Created Date
           </span>
           <input
@@ -552,12 +552,12 @@ export function CampaignForm({
             id="created_at"
             name="created_at"
             defaultValue={defaultCreatedAtValue}
-            className="w-full rounded border border-[#00ffff]/30 bg-[#050517] px-4 py-3 text-[#e2e8f0] outline-none transition focus:border-[#ff00ff] focus:ring-2 focus:ring-[#ff00ff]/40"
+            className="w-full rounded border border-[#00ffff]/30 bg-[#050517] px-3 sm:px-4 py-3 text-[#e2e8f0] outline-none transition focus:border-[#ff00ff] focus:ring-2 focus:ring-[#ff00ff]/40 text-sm sm:text-base min-h-[44px]"
           />
         </div>
 
-        <section className="space-y-3">
-          <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+        <section className="space-y-2 sm:space-y-3">
+          <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
             Groups
           </span>
           <OrganizationMultiSelect
@@ -571,8 +571,8 @@ export function CampaignForm({
           />
         </section>
 
-        <section className="space-y-3">
-          <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+        <section className="space-y-2 sm:space-y-3">
+          <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
             Sessions
           </span>
           <SessionMultiSelect
@@ -587,8 +587,8 @@ export function CampaignForm({
           />
         </section>
 
-        <section className="space-y-3">
-          <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+        <section className="space-y-2 sm:space-y-3">
+          <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
             Characters
           </span>
           <CharacterMultiSelect
@@ -603,16 +603,16 @@ export function CampaignForm({
         </section>
       </div>
 
-      <div className="flex flex-col gap-4 sm:flex-row">
+      <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row">
         <button
           type="submit"
-          className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-[#ff00ff] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50"
+          className="flex-1 px-4 py-3 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-[#ff00ff] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50 min-h-[44px] flex items-center justify-center"
         >
           {submitLabel}
         </button>
         <Link
           href={cancelHref}
-          className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
+          className="flex-1 px-4 py-3 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center min-h-[44px] flex items-center justify-center"
         >
           Cancel
         </Link>
