@@ -1,19 +1,40 @@
 import { createClient } from "@/lib/supabase/server";
 import { OrganizationsIndex, type OrganizationRecord } from "@/components/ui/organizations-index";
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from "@/lib/mention-utils";
 
 export default async function OrganizationsPage() {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("organizations")
-    .select("id, name, description, logo_url, created_at")
-    .order("name", { ascending: true });
+  const [organizationsResult, charactersResult, sessionsResult, campaignsResult] = await Promise.all([
+    supabase
+      .from("organizations")
+      .select("id, name, description, logo_url, created_at")
+      .order("name", { ascending: true }),
+    supabase.from("characters").select("id, name").order("name", { ascending: true }),
+    supabase.from("sessions").select("id, name").order("name", { ascending: true }),
+    supabase.from("campaigns").select("id, name").order("name", { ascending: true }),
+  ]);
 
-  if (error) {
-    throw new Error(error.message);
+  if (organizationsResult.error) {
+    throw new Error(organizationsResult.error.message);
+  }
+  if (charactersResult.error) {
+    throw new Error(charactersResult.error.message);
+  }
+  if (sessionsResult.error) {
+    throw new Error(sessionsResult.error.message);
+  }
+  if (campaignsResult.error) {
+    throw new Error(campaignsResult.error.message);
   }
 
-  const organizations = (data ?? []) as OrganizationRecord[];
+  const organizations = (organizationsResult.data ?? []) as OrganizationRecord[];
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(organizationsResult.data, "organization", (organization) => `/organizations/${organization.id}`),
+    mapEntitiesToMentionTargets(charactersResult.data, "character", (character) => `/characters/${character.id}`),
+    mapEntitiesToMentionTargets(sessionsResult.data, "session", (session) => `/sessions/${session.id}`),
+    mapEntitiesToMentionTargets(campaignsResult.data, "campaign", (campaign) => `/campaigns/${campaign.id}`),
+  );
 
-  return <OrganizationsIndex organizations={organizations} />;
+  return <OrganizationsIndex organizations={organizations} mentionTargets={mentionTargets} />;
 }
