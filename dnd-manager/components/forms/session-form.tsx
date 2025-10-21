@@ -601,7 +601,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
         setOrganizationList((prev) => {
           if (prev.some((org) => org.id === target.id)) {
             return prev
-        }
+          }
         const next = [...prev, { id: target.id, name: target.name }]
         return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
       })
@@ -614,9 +614,18 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
           }
           return Array.from(new Set([...prev, target.id]))
         })
+      } else if (target.kind === 'campaign') {
+        setCampaignList((prev) => {
+          if (prev.some((campaign) => campaign.id === target.id)) {
+            return prev
+          }
+          const next = [...prev, { id: target.id, name: target.name }]
+          return sortCampaignsByName(next)
+        })
+        setCampaignId(target.id)
       }
     },
-    [sortCharactersByName]
+    [sortCampaignsByName, sortCharactersByName]
   )
 
   const handleCharacterCreated = useCallback(
