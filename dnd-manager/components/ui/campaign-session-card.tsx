@@ -12,12 +12,12 @@ type CampaignSessionCardProps = {
     name: string;
     notes: string | null;
     session_date: string | null;
-    created_at: string;
+    created_at: string | null;
     session_characters: SessionCharacterRelation[] | null;
     organizations: Array<{ id: string; name: string }>;
   };
   mentionTargets: MentionTarget[];
-  sessionNumber?: number;
+  sessionNumber?: number | null;
   campaignRelation?: { id: string; name: string } | null;
 };
 
