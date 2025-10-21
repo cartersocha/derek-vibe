@@ -625,7 +625,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
         setCampaignId(target.id)
       }
     },
-    [sortCampaignsByName, sortCharactersByName]
+    [sortCharactersByName]
   )
 
   const handleCharacterCreated = useCallback(

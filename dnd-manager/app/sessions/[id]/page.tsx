@@ -133,10 +133,16 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     }) ?? []
   }
 
-  const [{ data: mentionCharacters }, { data: mentionSessions }, { data: mentionOrganizations }] = await Promise.all([
+  const [
+    { data: mentionCharacters },
+    { data: mentionSessions },
+    { data: mentionOrganizations },
+    { data: mentionCampaigns },
+  ] = await Promise.all([
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('sessions').select('id, name').order('name'),
     supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('campaigns').select('id, name').order('name'),
   ])
 
   const mentionTargets = (() => {
@@ -182,6 +188,18 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         name: organization.name,
         href: `/organizations/${organization.id}`,
         kind: 'organization',
+      })
+    }
+
+    for (const campaign of mentionCampaigns ?? []) {
+      if (!campaign?.id || !campaign?.name) {
+        continue
+      }
+      addTarget({
+        id: campaign.id,
+        name: campaign.name,
+        href: `/campaigns/${campaign.id}`,
+        kind: 'campaign',
       })
     }
 
