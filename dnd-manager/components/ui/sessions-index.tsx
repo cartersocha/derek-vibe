@@ -52,6 +52,8 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
         session.campaign?.name ?? "",
         session.notes ?? "",
         session.players.map((player) => player.name).join(" "),
+        // Add organization names to search
+        session.organizations.map((org) => org.name).join(" "),
       ]
         .join(" ")
         .toLowerCase();
