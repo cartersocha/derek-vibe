@@ -83,7 +83,7 @@ export default async function CharactersPage() {
             id: campaign?.id || '',
             name: campaign?.name || ''
           }
-        })
+        }
       }) || []
 
     return {
