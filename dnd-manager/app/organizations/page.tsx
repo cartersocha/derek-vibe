@@ -34,7 +34,7 @@ export default async function OrganizationsPage() {
     throw new Error(campaignsResult.error.message);
   }
 
-  const organizations = (organizationsResult.data ?? []) as any[];
+  const organizations = (organizationsResult.data ?? []) as OrganizationRecord[];
   const mentionTargets = mergeMentionTargets(
     mapEntitiesToMentionTargets(organizationsResult.data, "organization", (organization) => `/organizations/${organization.id}`),
     mapEntitiesToMentionTargets(charactersResult.data, "character", (character) => `/characters/${character.id}`),

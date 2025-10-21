@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { formatDateStringForDisplay, type PlayerSummary } from "@/lib/utils";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 import { SessionParticipantPills } from "@/components/ui/session-participant-pills";
+import { IndexEmptyState, IndexHeader, IndexSearchEmptyState } from "@/components/ui/index-utility";
 
 type CampaignInfo = {
   id: string | null;
@@ -60,51 +61,26 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="retro-title text-3xl font-bold text-[#00ffff]">Sessions</h1>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-          <label className="sr-only" htmlFor="session-search">
-            Search sessions
-          </label>
-          <input
-            id="session-search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search"
-            type="search"
-            disabled={!hasSessions}
-            className="h-9 w-full rounded border border-[#00ffff] border-opacity-40 bg-[#0f0f23] px-3 font-mono text-xs uppercase tracking-wider text-[#00ffff] placeholder:text-[#00ffff]/60 focus:border-[#ff00ff] focus:outline-none focus:ring-1 focus:ring-[#ff00ff] disabled:border-opacity-20 disabled:text-[#00ffff]/40 sm:w-52"
-          />
-          <Link
-            href="/sessions/new"
-            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-xs sm:text-sm sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
-          >
-            + New Session
-          </Link>
-        </div>
-      </div>
+      <IndexHeader
+        title="Sessions"
+        searchId="session-search"
+        searchPlaceholder="Search"
+        searchValue={query}
+        onSearchChange={(event) => setQuery(event.target.value)}
+        searchDisabled={!hasSessions}
+        actionHref="/sessions/new"
+        actionLabel="+ New Session"
+      />
 
       {!hasSessions ? (
-        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-12 text-center">
-          <h3 className="text-lg font-medium text-[#00ffff] mb-2 uppercase tracking-wider">
-            No sessions yet
-          </h3>
-          <p className="text-gray-400 mb-6 font-mono">
-            Create your first session to get started
-          </p>
-          <Link
-            href="/sessions/new"
-            className="inline-block w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
-          >
-            Create Session
-          </Link>
-        </div>
+        <IndexEmptyState
+          title="No sessions yet"
+          description="Create your first session to get started."
+          actionHref="/sessions/new"
+          actionLabel="Create Session"
+        />
       ) : filteredSessions.length === 0 ? (
-        <div className="rounded border border-dashed border-[#00ffff]/40 bg-[#0f0f23]/60 p-8 text-center">
-          <p className="font-mono text-sm text-[#00ffff]/70">
-            No sessions matched your search.
-          </p>
-        </div>
+        <IndexSearchEmptyState message="No sessions matched your search." />
       ) : (
         <div className="space-y-4">
           {filteredSessions.map((session) => {
@@ -145,7 +121,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                       </Link>
                     )}
                     {session.notes && (
-                      <div className="pointer-events-auto text-gray-400 line-clamp-2 font-mono text-sm whitespace-pre-line break-words">
+                      <div className="pointer-events-auto line-clamp-2 font-mono text-sm whitespace-pre-line break-words text-[#cbd5f5]">
                         {renderNotesWithMentions(session.notes, mentionTargets)}
                       </div>
                     )}
@@ -153,12 +129,12 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                       <SessionParticipantPills
                         sessionId={session.id}
                         players={players}
-                        className={`pointer-events-auto ${groups.length > 0 ? 'mt-3' : 'mt-3'}`}
+                        className={`pointer-events-auto ${groups.length > 0 ? "mt-3" : "mt-4"}`}
                         showOrganizations={false}
                       />
                     )}
                     {groups.length > 0 && (
-                      <div className={`flex flex-wrap gap-2 pointer-events-auto ${players.length > 0 ? 'mt-2' : 'mt-3'}`}>
+                      <div className={`pointer-events-auto flex flex-wrap gap-2 ${players.length > 0 ? "mt-2" : "mt-3"}`}>
                         {groups.map((organization) => (
                           <Link
                             key={organization.id}
