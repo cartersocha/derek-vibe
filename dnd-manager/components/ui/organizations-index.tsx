@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
+import { cn } from "@/lib/utils";
 
 export type OrganizationRecord = {
   id: string;
@@ -11,6 +12,16 @@ export type OrganizationRecord = {
   description: string | null;
   logo_url: string | null;
   created_at: string;
+  organization_characters?: {
+    role: string;
+    character: {
+      id: string;
+      name: string;
+      player_type: string;
+      status: string;
+      image_url: string | null;
+    };
+  }[];
 };
 
 type OrganizationsIndexProps = {
@@ -125,6 +136,26 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                   </p>
                 )}
               </div>
+              
+              {/* Character Pills */}
+              {organization.organization_characters && organization.organization_characters.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {organization.organization_characters.map(({ character, role }) => (
+                    <Link
+                      key={`${organization.id}-char-${character.id}`}
+                      href={`/characters/${character.id}`}
+                      className={cn(
+                        'inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2',
+                        character.player_type === 'player'
+                          ? 'border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
+                          : 'border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]'
+                      )}
+                    >
+                      {character.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </Link>
           ))}
         </div>

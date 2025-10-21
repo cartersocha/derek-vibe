@@ -5,8 +5,18 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { Character } from "@/types/database";
 
+type CharacterWithOrganizations = Character & {
+  organization_characters?: {
+    role: string;
+    organization: {
+      id: string;
+      name: string;
+    };
+  }[];
+};
+
 export type CharacterSearchProps = {
-  characters: Character[];
+  characters: CharacterWithOrganizations[];
 };
 
 export function CharacterSearch({ characters }: CharacterSearchProps) {
@@ -163,6 +173,21 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                   </div>
                 );
               })()}
+              
+              {/* Organization Pills */}
+              {character.organization_characters && character.organization_characters.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {character.organization_characters.map(({ organization }) => (
+                    <Link
+                      key={`${character.id}-org-${organization.id}`}
+                      href={`/organizations/${organization.id}`}
+                      className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+                    >
+                      {organization.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
               </Link>
             );
           })}

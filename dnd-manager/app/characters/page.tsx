@@ -6,7 +6,13 @@ export default async function CharactersPage() {
 
   const { data: characters } = await supabase
     .from('characters')
-    .select('*')
+    .select(`
+      *,
+      organization_characters (
+        role,
+        organization:organizations (id, name)
+      )
+    `)
     .order('name', { ascending: true })
 
   return <CharacterSearch characters={characters ?? []} />

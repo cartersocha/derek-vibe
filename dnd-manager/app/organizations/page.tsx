@@ -8,7 +8,13 @@ export default async function OrganizationsPage() {
   const [organizationsResult, charactersResult, sessionsResult, campaignsResult] = await Promise.all([
     supabase
       .from("organizations")
-      .select("id, name, description, logo_url, created_at")
+      .select(`
+        id, name, description, logo_url, created_at,
+        organization_characters (
+          role,
+          character:characters (id, name, player_type, status, image_url)
+        )
+      `)
       .order("name", { ascending: true }),
     supabase.from("characters").select("id, name").order("name", { ascending: true }),
     supabase.from("sessions").select("id, name").order("name", { ascending: true }),
@@ -28,7 +34,7 @@ export default async function OrganizationsPage() {
     throw new Error(campaignsResult.error.message);
   }
 
-  const organizations = (organizationsResult.data ?? []) as OrganizationRecord[];
+  const organizations = (organizationsResult.data ?? []) as any[];
   const mentionTargets = mergeMentionTargets(
     mapEntitiesToMentionTargets(organizationsResult.data, "organization", (organization) => `/organizations/${organization.id}`),
     mapEntitiesToMentionTargets(charactersResult.data, "character", (character) => `/characters/${character.id}`),
