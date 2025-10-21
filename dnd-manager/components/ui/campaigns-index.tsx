@@ -2,14 +2,19 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { formatTimestampForDisplay } from "@/lib/utils";
+import { cn, formatTimestampForDisplay } from "@/lib/utils";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
+import { IndexEmptyState, IndexHeader, IndexSearchEmptyState } from "@/components/ui/index-utility";
 
 type CampaignRecord = {
   id: string;
   name: string;
   description: string | null;
   created_at: string;
+  organizations: { id: string; name: string }[];
+  sessions: { id: string; name: string }[];
+  characters: { id: string; name: string; player_type: string | null }[];
+  sessionCount?: number;
 };
 
 type CampaignsIndexProps = {
@@ -36,47 +41,28 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="retro-title text-3xl font-bold text-[#00ffff]">Campaigns</h1>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-          <label className="sr-only" htmlFor="campaign-search">
-            Search campaigns
-          </label>
-          <input
-            id="campaign-search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search"
-            type="search"
-            disabled={!hasCampaigns}
-            className="h-9 w-full rounded border border-[#00ffff] border-opacity-40 bg-[#0f0f23] px-3 font-mono text-xs uppercase tracking-wider text-[#00ffff] placeholder:text-[#00ffff]/60 focus:border-[#ff00ff] focus:outline-none focus:ring-1 focus:ring-[#ff00ff] disabled:border-opacity-20 disabled:text-[#00ffff]/40 sm:w-52"
-          />
-          <Link
-            href="/campaigns/new"
-            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-xs sm:text-sm sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
-          >
-            + New Campaign
-          </Link>
-        </div>
-      </div>
+      <IndexHeader
+        title="Campaigns"
+        searchId="campaign-search"
+        searchPlaceholder="Search"
+        searchValue={query}
+        onSearchChange={(event) => setQuery(event.target.value)}
+        searchDisabled={!hasCampaigns}
+        actionHref="/campaigns/new"
+        actionLabel="+ New Campaign"
+      />
 
       {!hasCampaigns ? (
-        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-12 text-center">
-          <h3 className="text-lg font-medium text-[#00ffff] mb-2 uppercase tracking-wider">No campaigns yet</h3>
-          <p className="text-gray-400 mb-6 font-mono">Create your first campaign to get started</p>
-          <Link
-            href="/campaigns/new"
-            className="inline-block w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
-          >
-            Create Campaign
-          </Link>
-        </div>
+        <IndexEmptyState
+          title="No campaigns yet"
+          description="Create your first campaign to get started."
+          actionHref="/campaigns/new"
+          actionLabel="Create Campaign"
+        />
       ) : filteredCampaigns.length === 0 ? (
-        <div className="rounded border border-dashed border-[#00ffff]/40 bg-[#0f0f23]/60 p-8 text-center">
-          <p className="font-mono text-sm text-[#00ffff]/70">No campaigns matched your search.</p>
-        </div>
+        <IndexSearchEmptyState message="No campaigns matched your search." />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {filteredCampaigns.map((campaign) => (
             <article
               key={campaign.id}
@@ -89,16 +75,82 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
               >
                 <span aria-hidden="true" />
               </Link>
-              <div className="relative z-10 flex h-full flex-col gap-3 pointer-events-none">
-                <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
-                  {campaign.name}
-                </h3>
-                {campaign.description && (
-                  <div className="text-gray-400 line-clamp-3 font-mono text-sm whitespace-pre-wrap break-words pointer-events-auto">
-                    {renderNotesWithMentions(campaign.description, mentionTargets)}
-                  </div>
-                )}
-                <div className="mt-auto text-xs text-orange-500 font-mono uppercase tracking-wider">
+              <div className="relative z-10 flex h-full flex-col pointer-events-none">
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
+                    {campaign.name}
+                  </h3>
+                  {campaign.description && (
+                    <div className="pointer-events-auto line-clamp-3 font-mono text-sm whitespace-pre-wrap break-words text-[#cbd5f5]">
+                      {renderNotesWithMentions(campaign.description, mentionTargets)}
+                    </div>
+                  )}
+                  {campaign.sessions.length > 0 && (
+                    <div className="pointer-events-auto">
+                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                        Sessions
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {campaign.sessions.map((session) => (
+                          <Link
+                            key={`${campaign.id}-session-${session.id}`}
+                            href={`/sessions/${session.id}`}
+                            className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] transition hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                          >
+                            {session.name}
+                          </Link>
+                        ))}
+                        {((campaign.sessionCount ?? campaign.sessions.length) - campaign.sessions.length) > 0 && (
+                          <span className="inline-flex items-center rounded-full border border-dashed border-[#ff6b35]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35]">
+                            +{(campaign.sessionCount ?? campaign.sessions.length) - campaign.sessions.length} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {campaign.organizations.length > 0 && (
+                    <div className="pointer-events-auto">
+                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                        Groups
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {campaign.organizations.map((organization) => (
+                          <Link
+                            key={`${campaign.id}-org-${organization.id}`}
+                            href={`/organizations/${organization.id}`}
+                            className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+                          >
+                            {organization.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {campaign.characters.length > 0 && (
+                    <div className="pointer-events-auto">
+                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                        Characters
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {campaign.characters.map((character) => (
+                          <Link
+                            key={`${campaign.id}-char-${character.id}`}
+                            href={`/characters/${character.id}`}
+                            className={cn(
+                              "inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2",
+                              character.player_type === "player"
+                                ? "border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]"
+                                : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]"
+                            )}
+                          >
+                            {character.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-auto pt-4 font-mono text-xs uppercase tracking-wider text-orange-400">
                   Created {formatTimestampForDisplay(campaign.created_at) ?? "Unknown"}
                 </div>
               </div>
