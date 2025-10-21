@@ -103,6 +103,7 @@ export default function MentionableTextarea({
   const [isCreatingMentionCharacter, setIsCreatingMentionCharacter] = useState(false)
   const [mentionCreationError, setMentionCreationError] = useState<string | null>(null)
   const mentionListId = useId()
+  const lastCompletedMentionRef = useRef<{ start: number; end: number } | null>(null)
 
   const trimmedMentionQuery = mentionQuery.trim()
   const normalizedMentionQuery = trimmedMentionQuery.toLowerCase()
@@ -402,6 +403,20 @@ export default function MentionableTextarea({
       const preceding = draft.slice(0, safeCaret)
       const atIndex = preceding.lastIndexOf("@")
 
+      const completedMention = lastCompletedMentionRef.current
+      if (completedMention) {
+        if (atIndex === -1) {
+          lastCompletedMentionRef.current = null
+        } else if (atIndex < completedMention.start || atIndex > completedMention.end) {
+          lastCompletedMentionRef.current = null
+        } else if (safeCaret <= completedMention.start) {
+          lastCompletedMentionRef.current = null
+        } else if (safeCaret >= completedMention.end && atIndex === completedMention.start) {
+          closeMentionMenu()
+          return
+        }
+      }
+
       if (atIndex === -1) {
         closeMentionMenu()
         return
@@ -413,6 +428,7 @@ export default function MentionableTextarea({
       }
 
       const query = preceding.slice(atIndex + 1)
+      const trimmedQuery = query.trim()
 
       // Allow spaces in mention queries for multi-word names
       // Only close menu on newlines or tabs
@@ -421,13 +437,37 @@ export default function MentionableTextarea({
         return
       }
 
+      const lastChar = query.slice(-1)
+      if (trimmedQuery && lastChar && lastChar !== " " && mentionEndPattern.test(lastChar)) {
+        const canonicalQuery = trimmedQuery.replace(/[\s.,!?;:'")\]]+$/u, "").toLowerCase()
+        if (
+          canonicalQuery &&
+          availableTargets.some((target) => target.name.toLowerCase() === canonicalQuery)
+        ) {
+          closeMentionMenu()
+          return
+        }
+      }
+
+      if (trimmedQuery && lastChar && lastChar !== " " && mentionEndPattern.test(lastChar)) {
+        const normalizedQuery = trimmedQuery.toLowerCase()
+        const hasMatchingTarget = availableTargets.some((target) =>
+          target.name.toLowerCase().startsWith(normalizedQuery)
+        )
+
+        if (!hasMatchingTarget) {
+          closeMentionMenu()
+          return
+        }
+      }
+
       setIsMentionMenuOpen(true)
       setMentionStart(atIndex)
       setMentionQuery(query)
       setMentionHighlightIndex(0)
       updateMentionMenuPosition(textarea ?? null, atIndex, [])
     },
-    [closeMentionMenu, updateMentionMenuPosition]
+    [availableTargets, closeMentionMenu, updateMentionMenuPosition]
   )
 
   const handleValueChange = useCallback(
@@ -462,6 +502,11 @@ export default function MentionableTextarea({
       const needsSpace = after.length === 0 ? true : !mentionEndPattern.test(after.charAt(0))
       const insertion = needsSpace ? `${mentionText} ` : mentionText
       const nextValue = `${before}${insertion}${after}`
+
+      lastCompletedMentionRef.current = {
+        start: safeStart,
+        end: safeStart + mentionText.length,
+      }
 
       setValue(nextValue)
       onValueChange?.(nextValue)

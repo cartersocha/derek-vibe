@@ -92,7 +92,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
   })
   const [campaignId, setCampaignId] = useState(() => initialData?.campaign_id || defaultCampaignId || '')
   const manuallySelectedOrgsRef = useRef<Set<string>>(new Set())
-  const [manualOrgTrigger, setManualOrgTrigger] = useState(0)
+  const syncedCharactersRef = useRef<Set<string>>(new Set())
   const [campaignDropdownKey, setCampaignDropdownKey] = useState(0)
   const [isCampaignCreatorOpen, setIsCampaignCreatorOpen] = useState(false)
   const [newCampaignName, setNewCampaignName] = useState('')
@@ -230,6 +230,11 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
       })
       
       manuallySelectedOrgsRef.current = manuallySelected
+      
+      // Mark existing characters as already synced to prevent re-syncing their orgs
+      initialCharIds.forEach((charId) => {
+        syncedCharactersRef.current.add(charId)
+      })
     }
   }, [initialData?.organizationIds, initialData?.characterIds, characters])
 
@@ -567,9 +572,8 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
           return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
         })
 
-        // Mark as manually selected and trigger sync
+        // Mark as manually selected
         manuallySelectedOrgsRef.current.add(target.id)
-        setManualOrgTrigger((prev) => prev + 1)
       }
     },
     [sortCharactersByName]
@@ -616,8 +620,6 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
 
     // Mark newly created organizations as manually selected
     manuallySelectedOrgsRef.current.add(option.value)
-    // Trigger sync effect to pick up the new manually selected org
-    setManualOrgTrigger((prev) => prev + 1)
 
     setMentionableTargets((previous) => {
       if (previous.some((entry) => entry.id === option.value)) {
@@ -674,52 +676,51 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     })
   }, [mentionableTargets, notesDraft, sortCharactersByName])
 
-  // Automatically sync organizations from selected characters
+  // One-time auto-sync organizations only when characters are newly added
   useEffect(() => {
-    // Collect all organization IDs from the selected characters
-    const organizationIdsFromCharacters = new Set<string>()
+    const newlyAddedCharacters = selectedCharacterIds.filter(
+      charId => !syncedCharactersRef.current.has(charId)
+    )
     
-    selectedCharacterIds.forEach((characterId) => {
+    if (newlyAddedCharacters.length === 0) return
+    
+    // Get organizations from newly added characters only
+    const newOrganizationIds = new Set<string>()
+    newlyAddedCharacters.forEach((characterId) => {
       const character = characterList.find((c) => c.id === characterId)
       if (character?.organizations) {
         character.organizations.forEach((org) => {
-          organizationIdsFromCharacters.add(org.id)
+          newOrganizationIds.add(org.id)
         })
       }
     })
-
-    // Sync selectedGroups to include organizations from characters
-    // and preserve manually selected organizations
-    setSelectedGroups((prev) => {
-      const prevSet = new Set(prev)
-      const manuallySelected = manuallySelectedOrgsRef.current
-      
-      // Combine character organizations with manually selected ones
-      const newSet = new Set([
-        ...organizationIdsFromCharacters,
-        ...manuallySelected
-      ])
-      
-      // Check if there are any changes
-      if (prevSet.size !== newSet.size) {
-        return Array.from(newSet)
-      }
-      
-      for (const orgId of newSet) {
-        if (!prevSet.has(orgId)) {
-          return Array.from(newSet)
-        }
-      }
-      
-      for (const orgId of prevSet) {
-        if (!newSet.has(orgId)) {
-          return Array.from(newSet)
-        }
-      }
-      
-      return prev
+    
+    // Mark these characters as synced
+    newlyAddedCharacters.forEach(charId => {
+      syncedCharactersRef.current.add(charId)
     })
-  }, [selectedCharacterIds, characterList, manualOrgTrigger])
+    
+    // Add new organizations to selected groups (only if they don't already exist)
+    if (newOrganizationIds.size > 0) {
+      setSelectedGroups(prev => {
+        const combined = new Set([...prev, ...newOrganizationIds])
+        return Array.from(combined)
+      })
+    }
+  }, [selectedCharacterIds, characterList])
+
+  // Clean up synced characters when they are removed
+  useEffect(() => {
+    const currentSet = new Set(selectedCharacterIds)
+    const syncedSet = syncedCharactersRef.current
+    
+    // Remove any characters that are no longer selected
+    for (const charId of syncedSet) {
+      if (!currentSet.has(charId)) {
+        syncedSet.delete(charId)
+      }
+    }
+  }, [selectedCharacterIds])
 
   // Create a wrapped handler for organization selection changes
   const handleOrganizationSelectionChange = useCallback((newSelectedIds: string[]) => {
@@ -756,11 +757,6 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
         refChanged = true
       }
     })
-
-    // Trigger sync if we changed manually selected orgs
-    if (refChanged) {
-      setManualOrgTrigger((prev) => prev + 1)
-    }
 
     setSelectedGroups(newSelectedIds)
   }, [selectedCharacterIds, characterList, selectedGroups])
