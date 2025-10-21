@@ -6,7 +6,7 @@ import { extractPlayerSummaries, dateStringToLocalDate, type SessionCharacterRel
 export default async function SessionsPage() {
   const supabase = await createClient()
 
-  const [sessionsResult, charactersResult, organizationsResult, campaignsResult] = await Promise.all([
+  const [sessionsResult, charactersResult, organizationsResult, campaignsResult, organizationMemberCountsResult] = await Promise.all([
     supabase
       .from('sessions')
       .select(`
@@ -34,12 +34,20 @@ export default async function SessionsPage() {
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('organizations').select('id, name').order('name'),
     supabase.from('campaigns').select('id, name').order('name'),
+    supabase.from('organization_characters').select('organization_id'),
   ])
 
   const sessions = sessionsResult.data
   const mentionCharacters = charactersResult.data
   const organizations = organizationsResult.data
   const campaigns = campaignsResult.data
+
+  // Process organization member counts
+  const organizationMemberCounts = new Map<string, number>()
+  organizationMemberCountsResult.data?.forEach(row => {
+    const orgId = row.organization_id
+    organizationMemberCounts.set(orgId, (organizationMemberCounts.get(orgId) || 0) + 1)
+  })
 
   const sessionNumberMap = new Map<string, number>()
 
@@ -106,6 +114,16 @@ export default async function SessionsPage() {
             return { id: org.id, name: org.name }
           })
           .filter((value: { id: string; name: string } | null): value is { id: string; name: string } => Boolean(value))
+          .sort((a, b) => {
+            const aCount = organizationMemberCounts.get(a.id) || 0
+            const bCount = organizationMemberCounts.get(b.id) || 0
+            
+            // Sort by member count (descending), then by name (ascending) as tiebreaker
+            if (aCount !== bCount) {
+              return bCount - aCount
+            }
+            return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+          })
       : []
 
     return {

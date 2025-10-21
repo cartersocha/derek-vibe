@@ -5,21 +5,33 @@ export default async function CharactersPage() {
   const supabase = await createClient()
 
   // First, get the basic characters data
-  const { data: characters, error: charactersError } = await supabase
-    .from('characters')
-    .select(`
-      *,
-      organization_characters (
-        role,
-        organization:organizations (id, name)
-      )
-    `)
-    .order('name', { ascending: true })
+  const [charactersResult, organizationMemberCountsResult] = await Promise.all([
+    supabase
+      .from('characters')
+      .select(`
+        *,
+        organization_characters (
+          role,
+          organization:organizations (id, name)
+        )
+      `)
+      .order('name', { ascending: true }),
+    supabase.from('organization_characters').select('organization_id')
+  ])
+
+  const { data: characters, error: charactersError } = charactersResult
 
   if (charactersError) {
     console.error('Error fetching characters:', charactersError)
     throw new Error(charactersError.message)
   }
+
+  // Process organization member counts
+  const organizationMemberCounts = new Map<string, number>()
+  organizationMemberCountsResult.data?.forEach(row => {
+    const orgId = row.organization_id
+    organizationMemberCounts.set(orgId, (organizationMemberCounts.get(orgId) || 0) + 1)
+  })
 
   // If no characters, return empty array
   if (!characters || characters.length === 0) {
@@ -37,6 +49,8 @@ export default async function CharactersPage() {
       session:sessions (
         id,
         name,
+        session_date,
+        created_at,
         campaign:campaigns (id, name)
       )
     `)
@@ -53,6 +67,17 @@ export default async function CharactersPage() {
 
   // Process the data to add session and campaign relationships
   const enrichedCharacters = characters.map(character => {
+    // Sort organizations by member count
+    const sortedOrganizations = character.organization_characters?.sort((a, b) => {
+      const aCount = organizationMemberCounts.get(a.organization.id) || 0
+      const bCount = organizationMemberCounts.get(b.organization.id) || 0
+      
+      // Sort by member count (descending), then by name (ascending) as tiebreaker
+      if (aCount !== bCount) {
+        return bCount - aCount
+      }
+      return a.organization.name.localeCompare(b.organization.name, undefined, { sensitivity: 'base' })
+    }) || []
     const characterSessions = sessionRelations
       ?.filter(rel => rel.character_id === character.id)
       ?.map(rel => {
@@ -64,6 +89,8 @@ export default async function CharactersPage() {
           session: {
             id: session?.id || '',
             name: session?.name || '',
+            session_date: session?.session_date || null,
+            created_at: session?.created_at || null,
             campaign: campaign ? {
               id: campaign.id || '',
               name: campaign.name || ''
@@ -88,6 +115,7 @@ export default async function CharactersPage() {
 
     return {
       ...character,
+      organization_characters: sortedOrganizations,
       session_characters: characterSessions,
       campaign_characters: characterCampaigns
     }

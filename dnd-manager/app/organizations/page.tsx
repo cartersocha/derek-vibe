@@ -18,6 +18,8 @@ export default async function OrganizationsPage() {
           session:sessions (
             id,
             name,
+            session_date,
+            created_at,
             campaign:campaigns (id, name)
           )
         ),
@@ -93,6 +95,8 @@ export default async function OrganizationsPage() {
               session: {
                 id: String(rawSession.id),
                 name: String(rawSession.name),
+                session_date: rawSession.session_date ? String(rawSession.session_date) : null,
+                created_at: String(rawSession.created_at),
                 campaign: rawCampaign?.id && rawCampaign?.name
                   ? {
                       id: String(rawCampaign.id),

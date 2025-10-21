@@ -38,6 +38,19 @@ export type CharacterSearchProps = {
 
 export function CharacterSearch({ characters }: CharacterSearchProps) {
   const [query, setQuery] = useState("");
+  const [expandedCharacters, setExpandedCharacters] = useState<Set<string>>(new Set());
+
+  const toggleCharacterSessions = (characterId: string) => {
+    setExpandedCharacters(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(characterId)) {
+        newSet.delete(characterId);
+      } else {
+        newSet.add(characterId);
+      }
+      return newSet;
+    });
+  };
 
   const filtered = useMemo(() => {
     const trimmed = query.trim();
@@ -97,7 +110,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
       ) : filtered.length === 0 ? (
         <IndexSearchEmptyState message="No characters matched your search." />
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {filtered.map((character) => {
             const isPlayerCharacter = character.player_type === "player";
             const headingClasses = isPlayerCharacter
@@ -205,6 +218,50 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                       ))}
                     </div>
                   ) : null}
+
+                  {character.session_characters && character.session_characters.length > 0 && (
+                    <div className="pointer-events-auto">
+                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                        Sessions
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {(expandedCharacters.has(character.id) 
+                          ? character.session_characters 
+                          : character.session_characters.slice(0, 3)
+                        ).sort((a, b) => {
+                          // Sort by session date (most recent first)
+                          // Prefer session_date over created_at
+                          const aDate = new Date(a.session.session_date || a.session.created_at || 0).getTime()
+                          const bDate = new Date(b.session.session_date || b.session.created_at || 0).getTime()
+                          return bDate - aDate
+                        }).map((sessionRelation) => (
+                          <Link
+                            key={`${character.id}-session-${sessionRelation.session.id}`}
+                            href={`/sessions/${sessionRelation.session.id}`}
+                            className="inline-flex items-center rounded-full border border-[#00ff88]/70 bg-[#0a1a0f] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] transition hover:border-[#00cc6a] hover:text-[#00cc6a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88]"
+                          >
+                            {sessionRelation.session.name}
+                          </Link>
+                        ))}
+                        {!expandedCharacters.has(character.id) && character.session_characters.length > 3 && (
+                          <button
+                            onClick={() => toggleCharacterSessions(character.id)}
+                            className="inline-flex items-center rounded-full border border-dashed border-[#00ff88]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] hover:border-[#00cc6a] hover:text-[#00cc6a] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88]"
+                          >
+                            +{character.session_characters.length - 3} more
+                          </button>
+                        )}
+                        {expandedCharacters.has(character.id) && character.session_characters.length > 3 && (
+                          <button
+                            onClick={() => toggleCharacterSessions(character.id)}
+                            className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                          >
+                            Show less
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </article>
             );
