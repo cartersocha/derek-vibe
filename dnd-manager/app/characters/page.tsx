@@ -55,22 +55,36 @@ export default async function CharactersPage() {
   const enrichedCharacters = characters.map(character => {
     const characterSessions = sessionRelations
       ?.filter(rel => rel.character_id === character.id)
-      ?.map(rel => ({
-        session: {
-          id: rel.session?.id || '',
-          name: rel.session?.name || '',
-          campaign: rel.session?.campaign || null
+      ?.map(rel => {
+        // Handle the nested structure from Supabase
+        const session = Array.isArray(rel.session) ? rel.session[0] : rel.session
+        const campaign = session?.campaign ? (Array.isArray(session.campaign) ? session.campaign[0] : session.campaign) : null
+        
+        return {
+          session: {
+            id: session?.id || '',
+            name: session?.name || '',
+            campaign: campaign ? {
+              id: campaign.id || '',
+              name: campaign.name || ''
+            } : null
+          }
         }
-      })) || []
+      }) || []
 
     const characterCampaigns = campaignRelations
       ?.filter(rel => rel.character_id === character.id)
-      ?.map(rel => ({
-        campaign: {
-          id: rel.campaign?.id || '',
-          name: rel.campaign?.name || ''
-        }
-      })) || []
+      ?.map(rel => {
+        // Handle the nested structure from Supabase
+        const campaign = Array.isArray(rel.campaign) ? rel.campaign[0] : rel.campaign
+        
+        return {
+          campaign: {
+            id: campaign?.id || '',
+            name: campaign?.name || ''
+          }
+        })
+      }) || []
 
     return {
       ...character,
