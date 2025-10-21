@@ -7,7 +7,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { collectMentionTargets } from "@/lib/mentions";
 import { assertUniqueValue } from "@/lib/supabase/ensure-unique";
 import { createClient } from "@/lib/supabase/server";
-import { getString, getStringOrNull, getFile, getIdList, getDateValue } from '@/lib/utils/form-data'
+import { getString, getStringOrNull, getFile } from '@/lib/utils/form-data'
 import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import {
   deleteImage,
@@ -15,7 +15,7 @@ import {
   uploadImage,
 } from "@/lib/supabase/storage";
 import { characterSchema } from "@/lib/validations/schemas";
-import { sanitizeNullableText, sanitizeText } from "@/lib/security/sanitize";
+import { sanitizeText } from "@/lib/security/sanitize";
 import { CharacterStatus, PlayerType } from "@/lib/characters/constants";
 import { toTitleCase } from "@/lib/utils";
 import {
@@ -27,7 +27,10 @@ import { extractOrganizationIds } from "@/lib/organizations/helpers";
 import type { CharacterOrganizationAffiliationInput } from "@/lib/validations/organization";
 
 // List characters with pagination
-export async function getCharactersList(supabase: SupabaseClient, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+export async function getCharactersList(
+  supabase: SupabaseClient,
+  { limit = 20, offset = 0 } = {}
+): Promise<Record<string, unknown>[]> {
   const { data, error } = await supabase
     .from('characters')
     .select('*')
@@ -570,4 +573,3 @@ async function ensureMentionedSessionsLinked(
     campaign_id: campaignLookup.get(sessionId) ?? null,
   }));
 }
-

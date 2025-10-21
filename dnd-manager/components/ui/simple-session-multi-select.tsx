@@ -79,7 +79,7 @@ export default function SimpleSessionMultiSelect({
         console.error("Failed to create session:", error)
       }
     })
-  }, [canCreateNew, isPending, normalizedSelections, onChange, onCreateOption, trimmedSearch])
+  }, [canCreateNew, defaultCampaignId, isPending, normalizedSelections, onChange, onCreateOption, trimmedSearch])
 
   useEffect(() => {
     if (!open) {
@@ -125,7 +125,7 @@ export default function SimpleSessionMultiSelect({
   }, [normalizedSelections, options])
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${className}`} id={id}>
       {/* Sentinel input to indicate this field was provided (even if empty) */}
       <input type="hidden" name={`${name}_field_provided`} value="true" />
       {normalizedSelections.map((selection) => (

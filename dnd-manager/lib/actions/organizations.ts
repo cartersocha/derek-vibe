@@ -8,12 +8,15 @@ import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
-import { getString, getStringOrNull, getFile, getIdList, getDateValue } from '@/lib/utils/form-data'
+import { getString, getFile, getIdList } from '@/lib/utils/form-data'
 import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import { organizationSchema, type CharacterOrganizationAffiliationInput } from '@/lib/validations/organization'
 
 // List organizations with pagination
-export async function getOrganizationsList(supabase: SupabaseClient, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+export async function getOrganizationsList(
+  supabase: SupabaseClient,
+  { limit = 20, offset = 0 } = {}
+): Promise<Record<string, unknown>[]> {
   const { data, error } = await supabase
     .from('organizations')
     .select('*')

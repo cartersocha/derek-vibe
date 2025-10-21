@@ -92,11 +92,6 @@ export function CampaignForm({
     });
   }, [mentionTargets]);
 
-  const linkOrganizationIdsForMentions = useMemo(
-    () => (organizationIds.length > 0 ? organizationIds : undefined),
-    [organizationIds]
-  );
-
   useEffect(() => {
     const next = dedupe(defaultOrganizationIds);
     setOrganizationIds((current) => (listsMatch(current, next) ? current : next));

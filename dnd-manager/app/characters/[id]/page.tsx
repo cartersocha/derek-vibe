@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { deleteCharacter, updateCharacterSessions } from '@/lib/actions/characters'
+import { deleteCharacter } from '@/lib/actions/characters'
 import { DeleteCharacterButton } from '@/components/ui/delete-character-button'
 import SessionManager from '@/components/ui/session-manager'
 import {
@@ -111,10 +111,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
   )
 
-  const organizationSummary = organizationAffiliations.length > 0
-    ? organizationAffiliations.map((affiliation) => affiliation.name).join(', ')
-    : 'None'
-
   // Get sessions this character was in
   const { data: sessionCharacters } = await supabase
     .from('session_characters')
@@ -124,46 +120,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
   const sessionIds = sessionCharacters?.map(sc => sc.session_id) || []
   const linkedSessionIds = new Set(sessionIds)
   
-
-  // First, let's check if there are any sessions at all
-  const { data: simpleSessions, error: simpleError } = await supabase
-    .from('sessions')
-    .select(`
-      id,
-      name,
-      session_date,
-      notes,
-      created_at,
-      campaign_id,
-      campaign:campaigns(id, name),
-      session_characters:session_characters(
-        character:characters(
-          id,
-          name,
-          class,
-          race,
-          level,
-          player_type,
-          organization_memberships:organization_characters(
-            organizations(id, name)
-          )
-        )
-      ),
-      session_organizations:organization_sessions(
-        organization:organizations(id, name)
-      )
-    `)
-    .order('session_date', { ascending: false, nullsFirst: false })
-    .order('created_at', { ascending: false })
-    
-
-  // Try a simpler query first to see if we can get basic session data
-  const { data: basicSessions, error: basicError } = await supabase
-    .from('sessions')
-    .select('id, name, session_date, notes, created_at, campaign_id')
-    .order('session_date', { ascending: false, nullsFirst: false })
-    .order('created_at', { ascending: false })
-    
 
   const { data: allSessionsData, error: sessionsError } = await supabase
     .from('sessions')
@@ -195,13 +151,12 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     .order('session_date', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
     .returns<SessionRow[]>()
-    
-  
-  // Use complex query first, fallback to basic sessions if it fails
-  const sessionsToUse = allSessionsData || basicSessions || []
-  
-  
-  const allSessions: SessionSummary[] = sessionsToUse.map((session) => {
+
+  if (sessionsError) {
+    throw new Error(sessionsError.message)
+  }
+
+  const allSessions: SessionSummary[] = (allSessionsData ?? []).map((session) => {
     // Handle campaign data - only available in full SessionRow, not in basic sessions
     const campaign = 'campaign' in session ? (
       Array.isArray(session.campaign)
@@ -335,8 +290,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
   ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 
   const deleteCharacterWithId = deleteCharacter.bind(null, id)
-  const updateCharacterSessionsWithId = updateCharacterSessions.bind(null, id)
-
   const dropdownOptions = allSessions.map((session) => ({
     id: session.id,
     label: session.name,

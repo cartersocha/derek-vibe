@@ -777,13 +777,11 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
 
     // Update manually selected organizations
     const manuallySelected = manuallySelectedOrgsRef.current
-    let refChanged = false
     
     // Find newly added organizations (not from characters)
     newSet.forEach((orgId) => {
       if (!prevSet.has(orgId) && !orgsFromCharacters.has(orgId)) {
         manuallySelected.add(orgId)
-        refChanged = true
       }
     })
     
@@ -791,7 +789,6 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     prevSet.forEach((orgId) => {
       if (!newSet.has(orgId) && manuallySelected.has(orgId)) {
         manuallySelected.delete(orgId)
-        refChanged = true
       }
     })
 

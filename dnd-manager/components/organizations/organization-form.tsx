@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { EntityOption } from "@/components/ui/entity-multi-select";
@@ -30,7 +30,6 @@ interface OrganizationFormProps {
   defaultSessionIds?: string[];
   defaultCharacterIds?: string[];
   mentionTargets?: MentionTarget[];
-  organizationId?: string;
 }
 
 export function OrganizationForm({
@@ -48,14 +47,11 @@ export function OrganizationForm({
   defaultSessionIds,
   defaultCharacterIds,
   mentionTargets = [],
-  organizationId,
 }: OrganizationFormProps) {
   const [campaignIds, setCampaignIds] = useState<string[]>(() => dedupeList(defaultCampaignIds));
   const [sessionIds, setSessionIds] = useState<string[]>(() => dedupeList(defaultSessionIds));
   const [characterIds, setCharacterIds] = useState<string[]>(() => dedupeList(defaultCharacterIds));
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(mentionTargets);
-  const linkOrganizationIds = useMemo(() => (organizationId ? [organizationId] : undefined), [organizationId]);
-
   // Update mentionable targets when props change
   useEffect(() => {
     setMentionableTargets((previous) => {

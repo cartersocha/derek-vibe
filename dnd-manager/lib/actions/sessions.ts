@@ -8,19 +8,21 @@ import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
 import { sessionSchema } from '@/lib/validations/schemas'
-import { getString, getStringOrNull, getFile, getIdList, getDateValue } from '@/lib/utils/form-data'
+import { getString, getStringOrNull, getFile } from '@/lib/utils/form-data'
 import { STORAGE_BUCKETS } from '@/lib/utils/storage'
-import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
+import { sanitizeText } from '@/lib/security/sanitize'
 import { toTitleCase } from '@/lib/utils'
 import {
   resolveOrganizationIds,
   setSessionOrganizations,
-  syncSessionOrganizationsFromCharacters,
 } from '@/lib/actions/organizations'
 import { extractOrganizationIds } from '@/lib/organizations/helpers'
 
 // List sessions with pagination
-export async function getSessionsList(supabase: SupabaseClient, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+export async function getSessionsList(
+  supabase: SupabaseClient,
+  { limit = 20, offset = 0 } = {}
+): Promise<Record<string, unknown>[]> {
   const { data, error } = await supabase
     .from('sessions')
     .select('*')

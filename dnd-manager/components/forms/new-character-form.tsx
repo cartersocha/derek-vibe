@@ -216,7 +216,7 @@ export function NewCharacterForm({
     dedupeAndNormalize(locationSuggestions).forEach(pushOption)
 
     return options.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
-  }, [dedupeAndNormalize, locationSuggestions])
+  }, [dedupeAndNormalize, locationSuggestions, toTitleCase])
 
   const levelLabel = playerType === "player" ? "Level" : "Challenge Rating"
 
