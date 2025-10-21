@@ -23,6 +23,22 @@ export type OrganizationRecord = {
       image_url: string | null;
     };
   }[];
+  organization_sessions?: {
+    session: {
+      id: string;
+      name: string;
+      campaign: {
+        id: string;
+        name: string;
+      } | null;
+    };
+  }[];
+  organization_campaigns?: {
+    campaign: {
+      id: string;
+      name: string;
+    };
+  }[];
 };
 
 type OrganizationsIndexProps = {
@@ -44,7 +60,16 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
       const haystack = [
         organization.name,
         organization.description ?? "",
+        // Add related characters to search
+        organization.organization_characters?.map((char) => char.character.name).join(" ") ?? "",
+        // Add related sessions to search
+        organization.organization_sessions?.map((session) => session.session.name).join(" ") ?? "",
+        // Add related campaigns to search (from sessions)
+        organization.organization_sessions?.map((session) => session.session.campaign?.name).filter(Boolean).join(" ") ?? "",
+        // Add direct campaign relationships
+        organization.organization_campaigns?.map((campaign) => campaign.campaign.name).join(" ") ?? "",
       ]
+        .filter(Boolean)
         .join(" ")
         .toLowerCase();
       return haystack.includes(normalizedQuery);
