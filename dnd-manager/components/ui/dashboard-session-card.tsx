@@ -24,7 +24,7 @@ type DashboardSessionCardProps = {
     class: string | null;
     race: string | null;
     level: string | null;
-    player_type: string;
+    player_type: "npc" | "player" | null;
     organizations: Array<{ id: string; name: string }>;
   }>;
   organizations: Array<{ id: string; name: string }>;

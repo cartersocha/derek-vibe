@@ -18,6 +18,8 @@ type CharacterWithOrganizations = Character & {
     session: {
       id: string;
       name: string;
+      session_date: string | null;
+      created_at: string | null;
       campaign: {
         id: string;
         name: string;

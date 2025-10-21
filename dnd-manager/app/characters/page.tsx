@@ -68,7 +68,7 @@ export default async function CharactersPage() {
   // Process the data to add session and campaign relationships
   const enrichedCharacters = characters.map(character => {
     // Sort organizations by member count
-    const sortedOrganizations = character.organization_characters?.sort((a, b) => {
+    const sortedOrganizations = character.organization_characters?.sort((a: any, b: any) => {
       const aCount = organizationMemberCounts.get(a.organization.id) || 0
       const bCount = organizationMemberCounts.get(b.organization.id) || 0
       

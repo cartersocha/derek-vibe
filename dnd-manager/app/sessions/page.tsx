@@ -114,7 +114,7 @@ export default async function SessionsPage() {
             return { id: org.id, name: org.name }
           })
           .filter((value: { id: string; name: string } | null): value is { id: string; name: string } => Boolean(value))
-          .sort((a, b) => {
+          .sort((a: any, b: any) => {
             const aCount = organizationMemberCounts.get(a.id) || 0
             const bCount = organizationMemberCounts.get(b.id) || 0
             

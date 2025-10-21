@@ -165,7 +165,7 @@ export default async function DashboardPage() {
                     created_at: session.created_at,
                     campaign: campaignRelation,
                     session_characters: rawLinks,
-                    session_organizations: session.session_organizations || []
+                    session_organizations: []
                   }}
                   sessionNumber={sessionNumber}
                   players={players}

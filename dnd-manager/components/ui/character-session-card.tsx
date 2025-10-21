@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils';
-import { SessionParticipantPills } from '@/components/ui/session-participant-pills';
-import { extractPlayerSummaries, formatDateStringForDisplay, type SessionCharacterRelation } from '@/lib/utils';
+import { formatDateStringForDisplay } from '@/lib/utils';
 
 type CharacterSessionCardProps = {
   session: {
@@ -12,18 +11,18 @@ type CharacterSessionCardProps = {
     name: string;
     notes: string | null;
     session_date: string | null;
-    created_at: string;
-    session_characters: SessionCharacterRelation[] | null;
+    created_at: string | null;
+    campaign_id: string | null;
+    campaign: { id: string; name: string } | null;
     players: Array<{
       id: string;
       name: string;
       organizations: Array<{ id: string; name: string }>;
     }>;
     organizations: Array<{ id: string; name: string }>;
-    campaign: { id: string; name: string } | null;
   };
   mentionTargets: MentionTarget[];
-  sessionNumber?: number;
+  sessionNumber?: number | null;
 };
 
 export function CharacterSessionCard({ session, mentionTargets, sessionNumber }: CharacterSessionCardProps) {
@@ -83,12 +82,21 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
             </div>
           )}
           {players.length > 0 && (
-            <SessionParticipantPills
-              sessionId={session.id}
-              players={players}
-              className={`pointer-events-auto ${groups.length > 0 ? 'mt-3' : 'mt-3'}`}
-              showOrganizations={false}
-            />
+            <div className={`pointer-events-auto ${groups.length > 0 ? 'mt-3' : 'mt-3'}`}>
+              <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                Participants
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {players.map((player) => (
+                  <span
+                    key={player.id}
+                    className="inline-flex items-center rounded-full border border-[#00ff88]/70 bg-[#0a1a0f] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88]"
+                  >
+                    {player.name}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
           {groups.length > 0 && (
             <div className={`pointer-events-auto ${players.length > 0 ? 'mt-2' : 'mt-3'}`}>
