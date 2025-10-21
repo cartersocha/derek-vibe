@@ -435,6 +435,7 @@ export default function MentionableTextarea({
 
       const query = preceding.slice(atIndex + 1)
       const trimmedQuery = query.trim()
+      const normalizedQuery = trimmedQuery.toLowerCase()
 
       // Allow spaces in mention queries for multi-word names
       // Only close menu on newlines or tabs
@@ -456,12 +457,27 @@ export default function MentionableTextarea({
       }
 
       if (trimmedQuery && lastChar && lastChar !== " " && mentionEndPattern.test(lastChar)) {
-        const normalizedQuery = trimmedQuery.toLowerCase()
         const hasMatchingTarget = availableTargets.some((target) =>
           target.name.toLowerCase().startsWith(normalizedQuery)
         )
 
         if (!hasMatchingTarget) {
+          closeMentionMenu()
+          return
+        }
+      }
+
+      const nextCharacter = draft.charAt(safeCaret)
+      if (trimmedQuery) {
+        const exactMatch = availableTargets.find(
+          (target) => target.name.toLowerCase() === normalizedQuery
+        )
+        const hasBoundaryAfter = !nextCharacter || mentionEndPattern.test(nextCharacter)
+        if (exactMatch && hasBoundaryAfter) {
+          lastCompletedMentionRef.current = {
+            start: atIndex,
+            end: atIndex + 1 + exactMatch.name.length,
+          }
           closeMentionMenu()
           return
         }

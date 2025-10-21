@@ -61,6 +61,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     { data: organizationCampaignRows, error: organizationCampaignError },
     { data: mentionCharacters },
     { data: mentionOrganizations },
+    { data: mentionSessions },
     { data: mentionCampaigns },
   ] = await Promise.all([
     supabase
@@ -87,6 +88,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
       .eq('campaign_id', id),
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('sessions').select('id, name').order('name'),
     supabase.from('campaigns').select('id, name').order('name'),
   ])
 
@@ -212,7 +214,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   const mentionTargets: MentionTarget[] = mergeMentionTargets(
     mapEntitiesToMentionTargets(mentionCharacters ?? [], 'character', (entry) => `/characters/${entry.id}`),
     mapEntitiesToMentionTargets(mentionOrganizations ?? [], 'organization', (entry) => `/organizations/${entry.id}`),
-    mapEntitiesToMentionTargets(rawSessions, 'session', (entry) => `/sessions/${entry.id}`),
+    mapEntitiesToMentionTargets(mentionSessions ?? rawSessions, 'session', (entry) => `/sessions/${entry.id}`),
     mapEntitiesToMentionTargets(mentionCampaigns ?? [], 'campaign', (entry) => `/campaigns/${entry.id}`)
   )
 

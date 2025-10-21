@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { EntityOption } from "@/components/ui/entity-multi-select";
@@ -10,7 +10,7 @@ import SimpleSessionMultiSelect from "@/components/ui/simple-session-multi-selec
 import SimpleCampaignMultiSelect from "@/components/ui/simple-campaign-multi-select";
 import MentionableTextarea from "@/components/ui/mentionable-textarea";
 import type { MentionTarget } from "@/lib/mention-utils";
-import { useConvertedOptions, dedupeList, listsMatch } from "@/lib/utils/form-optimization";
+import { useConvertedOptions, dedupeList } from "@/lib/utils/form-optimization";
 
 interface OrganizationFormProps {
   action: (formData: FormData) => Promise<void>;
@@ -52,6 +52,7 @@ export function OrganizationForm({
   const [sessionIds, setSessionIds] = useState<string[]>(() => dedupeList(defaultSessionIds));
   const [characterIds, setCharacterIds] = useState<string[]>(() => dedupeList(defaultCharacterIds));
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(mentionTargets);
+  const defaultsAppliedSignatureRef = useRef<string | null>(null);
   // Update mentionable targets when props change
   useEffect(() => {
     setMentionableTargets((previous) => {
@@ -76,6 +77,23 @@ export function OrganizationForm({
   const [campaignOptionList, setCampaignOptionList] = useState(() => campaignOptionsConverted);
   const [sessionOptionList, setSessionOptionList] = useState(() => sessionOptionsConverted);
   const [characterOptionList, setCharacterOptionList] = useState(() => characterOptionsConverted);
+
+  const normalizedDefaultSelections = useMemo(() => {
+    const dedupedCampaigns = dedupeList(defaultCampaignIds);
+    const dedupedSessions = dedupeList(defaultSessionIds);
+    const dedupedCharacters = dedupeList(defaultCharacterIds);
+    const signature = JSON.stringify({
+      campaigns: dedupedCampaigns,
+      sessions: dedupedSessions,
+      characters: dedupedCharacters,
+    });
+    return {
+      campaigns: dedupedCampaigns,
+      sessions: dedupedSessions,
+      characters: dedupedCharacters,
+      signature,
+    };
+  }, [defaultCampaignIds, defaultSessionIds, defaultCharacterIds]);
 
   useEffect(() => {
     setCampaignOptionList((previous) => {
@@ -213,19 +231,18 @@ export function OrganizationForm({
   };
 
   useEffect(() => {
-    const next = dedupeList(defaultCampaignIds);
-    setCampaignIds((current) => (listsMatch(current, next) ? current : next));
-  }, [defaultCampaignIds]);
+    if (!normalizedDefaultSelections.signature) {
+      return;
+    }
+    if (defaultsAppliedSignatureRef.current === normalizedDefaultSelections.signature) {
+      return;
+    }
 
-  useEffect(() => {
-    const next = dedupeList(defaultSessionIds);
-    setSessionIds((current) => (listsMatch(current, next) ? current : next));
-  }, [defaultSessionIds]);
-
-  useEffect(() => {
-    const next = dedupeList(defaultCharacterIds);
-    setCharacterIds((current) => (listsMatch(current, next) ? current : next));
-  }, [defaultCharacterIds]);
+    defaultsAppliedSignatureRef.current = normalizedDefaultSelections.signature;
+    setCampaignIds(normalizedDefaultSelections.campaigns);
+    setSessionIds(normalizedDefaultSelections.sessions);
+    setCharacterIds(normalizedDefaultSelections.characters);
+  }, [normalizedDefaultSelections]);
 
   return (
     <form

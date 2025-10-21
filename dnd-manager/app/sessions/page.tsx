@@ -6,7 +6,7 @@ import { extractPlayerSummaries, dateStringToLocalDate, type SessionCharacterRel
 export default async function SessionsPage() {
   const supabase = await createClient()
 
-  const [sessionsResult, charactersResult, organizationsResult] = await Promise.all([
+  const [sessionsResult, charactersResult, organizationsResult, campaignsResult] = await Promise.all([
     supabase
       .from('sessions')
       .select(`
@@ -33,11 +33,13 @@ export default async function SessionsPage() {
       .order('created_at', { ascending: false }),
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('campaigns').select('id, name').order('name'),
   ])
 
   const sessions = sessionsResult.data
   const mentionCharacters = charactersResult.data
   const organizations = organizationsResult.data
+  const campaigns = campaignsResult.data
 
   const sessionNumberMap = new Map<string, number>()
 
@@ -158,6 +160,18 @@ export default async function SessionsPage() {
         name: organization.name,
         href: `/organizations/${organization.id}`,
         kind: 'organization',
+      })
+    }
+
+    for (const campaign of campaigns ?? []) {
+      if (!campaign?.id || !campaign?.name) {
+        continue
+      }
+      addTarget({
+        id: campaign.id,
+        name: campaign.name,
+        href: `/campaigns/${campaign.id}`,
+        kind: 'campaign',
       })
     }
 

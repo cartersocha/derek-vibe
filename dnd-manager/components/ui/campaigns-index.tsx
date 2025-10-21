@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatTimestampForDisplay } from "@/lib/utils";
+import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 
 type CampaignRecord = {
   id: string;
@@ -13,9 +14,10 @@ type CampaignRecord = {
 
 type CampaignsIndexProps = {
   campaigns: CampaignRecord[];
+  mentionTargets: MentionTarget[];
 };
 
-export function CampaignsIndex({ campaigns }: CampaignsIndexProps) {
+export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProps) {
   const [query, setQuery] = useState("");
 
   const hasCampaigns = campaigns.length > 0;
@@ -76,21 +78,31 @@ export function CampaignsIndex({ campaigns }: CampaignsIndexProps) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCampaigns.map((campaign) => (
-            <Link
+            <article
               key={campaign.id}
-              href={`/campaigns/${campaign.id}`}
-              className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50 transition-all duration-200 group"
+              className="relative overflow-hidden rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e] bg-opacity-50 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50 group"
             >
-              <h3 className="text-xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider group-hover:text-[#ff00ff] transition-colors">
-                {campaign.name}
-              </h3>
-              {campaign.description && (
-                <p className="text-gray-400 line-clamp-3 font-mono text-sm">{campaign.description}</p>
-              )}
-              <div className="mt-4 text-xs text-orange-500 font-mono uppercase tracking-wider">
-                Created {formatTimestampForDisplay(campaign.created_at) ?? "Unknown"}
+              <Link
+                href={`/campaigns/${campaign.id}`}
+                className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                aria-label={`View campaign ${campaign.name}`}
+              >
+                <span aria-hidden="true" />
+              </Link>
+              <div className="relative z-10 flex h-full flex-col gap-3 pointer-events-none">
+                <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
+                  {campaign.name}
+                </h3>
+                {campaign.description && (
+                  <div className="text-gray-400 line-clamp-3 font-mono text-sm whitespace-pre-wrap break-words pointer-events-auto">
+                    {renderNotesWithMentions(campaign.description, mentionTargets)}
+                  </div>
+                )}
+                <div className="mt-auto text-xs text-orange-500 font-mono uppercase tracking-wider">
+                  Created {formatTimestampForDisplay(campaign.created_at) ?? "Unknown"}
+                </div>
               </div>
-            </Link>
+            </article>
           ))}
         </div>
       )}

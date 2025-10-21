@@ -10,7 +10,6 @@ import MentionableTextarea from "@/components/ui/mentionable-textarea";
 import type { MentionTarget } from "@/lib/mention-utils";
 
 const dedupe = (values?: string[]) => Array.from(new Set((values ?? []).filter(Boolean)));
-const listsMatch = (a: string[], b: string[]) => a.length === b.length && a.every((value, index) => value === b[index]);
 
 type OptionInput = {
   id: string;
@@ -74,7 +73,20 @@ export function CampaignForm({
   // Track manually selected characters and organizations (not auto-added from sessions)
   const manuallySelectedCharsRef = useRef<Set<string>>(new Set());
   const manuallySelectedOrgsRef = useRef<Set<string>>(new Set());
+  const defaultsAppliedSignatureRef = useRef<string | null>(null);
   const [manualSelectionTrigger, setManualSelectionTrigger] = useState(0);
+
+  const defaultSelections = useMemo(() => {
+    const orgs = dedupe(defaultOrganizationIds);
+    const sessionsSelection = dedupe(defaultSessionIds);
+    const chars = dedupe(defaultCharacterIds);
+    const signature = JSON.stringify({
+      orgs,
+      sessions: sessionsSelection,
+      chars,
+    });
+    return { orgs, sessions: sessionsSelection, chars, signature };
+  }, [defaultCharacterIds, defaultOrganizationIds, defaultSessionIds]);
 
   useEffect(() => {
     setMentionableTargets((previous) => {
@@ -93,21 +105,6 @@ export function CampaignForm({
   }, [mentionTargets]);
 
   useEffect(() => {
-    const next = dedupe(defaultOrganizationIds);
-    setOrganizationIds((current) => (listsMatch(current, next) ? current : next));
-  }, [defaultOrganizationIds]);
-
-  useEffect(() => {
-    const next = dedupe(defaultSessionIds);
-    setSessionIds((current) => (listsMatch(current, next) ? current : next));
-  }, [defaultSessionIds]);
-
-  useEffect(() => {
-    const next = dedupe(defaultCharacterIds);
-    setCharacterIds((current) => (listsMatch(current, next) ? current : next));
-  }, [defaultCharacterIds]);
-
-  useEffect(() => {
     setOrganizationList(sortOptionInputs([...organizations]));
   }, [organizations, sortOptionInputs]);
 
@@ -121,12 +118,23 @@ export function CampaignForm({
 
   // Initialize manually selected characters and organizations from initial state
   useEffect(() => {
-    // Calculate which items come from sessions
+    if (!defaultSelections.signature) {
+      return;
+    }
+    if (defaultsAppliedSignatureRef.current === defaultSelections.signature) {
+      return;
+    }
+
+    defaultsAppliedSignatureRef.current = defaultSelections.signature;
+
+    setOrganizationIds(defaultSelections.orgs);
+    setSessionIds(defaultSelections.sessions);
+    setCharacterIds(defaultSelections.chars);
+
     const charsFromSessions = new Set<string>();
     const orgsFromSessions = new Set<string>();
 
-    const initialSessionIds = dedupe(defaultSessionIds);
-    initialSessionIds.forEach((sessionId) => {
+    defaultSelections.sessions.forEach((sessionId) => {
       const session = sessions.find((s) => s.id === sessionId);
       if (session) {
         session.characterIds?.forEach((cid) => charsFromSessions.add(cid));
@@ -134,16 +142,15 @@ export function CampaignForm({
       }
     });
 
-    // Mark initial selections that don't come from sessions as manually selected
     const manualChars = new Set<string>();
-    dedupe(defaultCharacterIds).forEach((charId) => {
+    defaultSelections.chars.forEach((charId) => {
       if (!charsFromSessions.has(charId)) {
         manualChars.add(charId);
       }
     });
 
     const manualOrgs = new Set<string>();
-    dedupe(defaultOrganizationIds).forEach((orgId) => {
+    defaultSelections.orgs.forEach((orgId) => {
       if (!orgsFromSessions.has(orgId)) {
         manualOrgs.add(orgId);
       }
@@ -151,7 +158,8 @@ export function CampaignForm({
 
     manuallySelectedCharsRef.current = manualChars;
     manuallySelectedOrgsRef.current = manualOrgs;
-  }, [defaultCharacterIds, defaultOrganizationIds, defaultSessionIds, sessions]);
+    setManualSelectionTrigger((prev) => prev + 1);
+  }, [defaultSelections, sessions]);
 
   // Auto-sync characters and organizations from selected sessions
   useEffect(() => {
