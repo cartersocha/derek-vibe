@@ -25,7 +25,9 @@ interface SessionSummary {
   id: string;
   name: string;
   session_date: string | null;
+  created_at: string;
   campaign: { id: string; name: string } | null;
+  session_number?: number;
 }
 
 type CharacterRole = "npc" | "player";
@@ -79,7 +81,7 @@ export default async function OrganizationDetailPage({
     supabase
       .from("organization_sessions")
       .select(
-        "session:sessions (id, name, session_date, campaign:campaigns (id, name))",
+        "session:sessions (id, name, session_date, created_at, campaign:campaigns (id, name))",
       )
       .eq("organization_id", organization.id)
       .order("created_at", { ascending: false }),
@@ -130,6 +132,7 @@ export default async function OrganizationDetailPage({
           id: row.session.id,
           name: row.session.name,
           session_date: row.session.session_date,
+          created_at: row.session.created_at,
           campaign: normalizedCampaign,
         } satisfies SessionSummary,
       ];
@@ -139,6 +142,21 @@ export default async function OrganizationDetailPage({
       const bDate = b.session_date ?? "";
       return bDate.localeCompare(aDate);
     });
+
+  // Calculate session numbers within each campaign
+  const campaignSessionCounts = new Map<string, number>();
+  const sessionsWithNumbers: SessionSummary[] = sessions.map((session) => {
+    let sessionNumber: number | undefined;
+    if (session.campaign) {
+      const count = campaignSessionCounts.get(session.campaign.id) || 0;
+      campaignSessionCounts.set(session.campaign.id, count + 1);
+      sessionNumber = count + 1;
+    }
+    return {
+      ...session,
+      session_number: sessionNumber,
+    };
+  });
 
   type CharacterRow = {
     role: CharacterRole | null;
@@ -271,11 +289,11 @@ export default async function OrganizationDetailPage({
 
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h2>
-          {sessions.length === 0 ? (
+          {sessionsWithNumbers.length === 0 ? (
             <p className="text-gray-500 font-mono italic">No sessions are linked to this group yet.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {sessions.map((session) => (
+              {sessionsWithNumbers.map((session) => (
                 <article
                   key={session.id}
                   className="group relative overflow-hidden rounded border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/40 p-3 shadow-2xl transition-all duration-200 hover:border-[#ff00ff] hover:bg-[#0f0f23] hover:shadow-[#ff00ff]/40"
@@ -287,7 +305,7 @@ export default async function OrganizationDetailPage({
                   >
                     <span aria-hidden="true" />
                   </Link>
-                  <div className="relative z-10 pointer-events-none">
+                  <div className="relative z-10 flex flex-col h-full pointer-events-none">
                     <div className="flex items-start justify-between gap-3">
                       <span className="font-medium text-[#00ffff] font-mono text-base transition-colors group-hover:text-[#ff00ff]">
                         {session.name}
@@ -296,14 +314,23 @@ export default async function OrganizationDetailPage({
                         {formatDateStringForDisplay(session.session_date) ?? "Date TBD"}
                       </span>
                     </div>
-                    {session.campaign?.name ? (
-                      <Link
-                        href={`/campaigns/${session.campaign.id}`}
-                        className="pointer-events-auto mt-3 inline-flex items-center rounded border border-[#ff6b35]/40 bg-[#211027] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
-                      >
-                        {session.campaign.name}
-                      </Link>
-                    ) : null}
+                    <div className="mt-auto pt-1 flex items-center justify-between gap-2">
+                      {session.campaign?.name ? (
+                        <Link
+                          href={`/campaigns/${session.campaign.id}`}
+                          className="pointer-events-auto inline-flex items-center rounded border border-[#ff6b35]/40 bg-[#211027] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                        >
+                          {session.campaign.name}
+                        </Link>
+                      ) : (
+                        <div />
+                      )}
+                      {session.session_number && (
+                        <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff00ff]">
+                          Session {session.session_number}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </article>
               ))}
