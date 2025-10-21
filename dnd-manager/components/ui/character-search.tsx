@@ -111,13 +111,18 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
             }
 
             if (character.level !== null && character.level !== undefined && character.level !== "") {
-              const levelString =
-                typeof character.level === "number" ? character.level.toString() : String(character.level);
+              const levelValue = typeof character.level === "number" || typeof character.level === "string"
+                ? character.level
+                : null;
+              const levelString = levelValue !== null ? String(levelValue) : null;
+
+              if (levelString) {
               details.push(
                 character.player_type === "player"
                   ? { label: "Level", value: levelString }
                   : { label: "Challenge", value: `CR ${levelString}` }
               );
+              }
             }
 
             if (character.last_known_location) {
