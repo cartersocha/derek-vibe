@@ -103,6 +103,7 @@ export default function MentionableTextarea({
   const [isCreatingMentionCharacter, setIsCreatingMentionCharacter] = useState(false)
   const [mentionCreationError, setMentionCreationError] = useState<string | null>(null)
   const mentionListId = useId()
+  const lastCompletedMentionRef = useRef<{ start: number; end: number } | null>(null)
 
   const trimmedMentionQuery = mentionQuery.trim()
   const normalizedMentionQuery = trimmedMentionQuery.toLowerCase()
@@ -402,6 +403,20 @@ export default function MentionableTextarea({
       const preceding = draft.slice(0, safeCaret)
       const atIndex = preceding.lastIndexOf("@")
 
+      const completedMention = lastCompletedMentionRef.current
+      if (completedMention) {
+        if (atIndex === -1) {
+          lastCompletedMentionRef.current = null
+        } else if (atIndex < completedMention.start || atIndex > completedMention.end) {
+          lastCompletedMentionRef.current = null
+        } else if (safeCaret <= completedMention.start) {
+          lastCompletedMentionRef.current = null
+        } else if (safeCaret >= completedMention.end && atIndex === completedMention.start) {
+          closeMentionMenu()
+          return
+        }
+      }
+
       if (atIndex === -1) {
         closeMentionMenu()
         return
@@ -423,7 +438,7 @@ export default function MentionableTextarea({
       }
 
       const lastChar = query.slice(-1)
-      if (trimmedQuery && lastChar && mentionEndPattern.test(lastChar)) {
+      if (trimmedQuery && lastChar && lastChar !== " " && mentionEndPattern.test(lastChar)) {
         const canonicalQuery = trimmedQuery.replace(/[\s.,!?;:'")\]]+$/u, "").toLowerCase()
         if (
           canonicalQuery &&
@@ -434,7 +449,7 @@ export default function MentionableTextarea({
         }
       }
 
-      if (trimmedQuery && mentionEndPattern.test(query)) {
+      if (trimmedQuery && lastChar && lastChar !== " " && mentionEndPattern.test(lastChar)) {
         const normalizedQuery = trimmedQuery.toLowerCase()
         const hasMatchingTarget = availableTargets.some((target) =>
           target.name.toLowerCase().startsWith(normalizedQuery)
@@ -487,6 +502,11 @@ export default function MentionableTextarea({
       const needsSpace = after.length === 0 ? true : !mentionEndPattern.test(after.charAt(0))
       const insertion = needsSpace ? `${mentionText} ` : mentionText
       const nextValue = `${before}${insertion}${after}`
+
+      lastCompletedMentionRef.current = {
+        start: safeStart,
+        end: safeStart + mentionText.length,
+      }
 
       setValue(nextValue)
       onValueChange?.(nextValue)
