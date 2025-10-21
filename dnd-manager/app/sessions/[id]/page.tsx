@@ -307,6 +307,15 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
                 const badgeClasses = isPlayer
                   ? 'border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] group-hover:border-[#00ffff] group-hover:text-[#ff00ff]'
                   : 'border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] group-hover:border-[#ff6ad5] group-hover:text-[#ff9de6]'
+                const cardClasses = isPlayer
+                  ? 'border border-[#00ffff] border-opacity-20 bg-[#0f0f23]/70 hover:border-[#ff00ff] hover:bg-[#0f0f23] focus-visible:ring-[#00ffff]'
+                  : 'border border-[#ff00ff] border-opacity-30 bg-[#1a0220] hover:border-[#ff6ad5] hover:bg-[#1a0220] focus-visible:ring-[#ff6ad5]'
+                const nameClasses = isPlayer
+                  ? 'font-medium text-[#00ffff] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
+                  : 'font-medium text-[#ff6ad5] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff9de6] focus-visible:ring-[#ff6ad5]'
+                const organizationChipClasses = isPlayer
+                  ? 'inline-flex items-center rounded border border-[#00ffff]/30 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff] transition-colors hover:border-[#ff00ff] hover:text-[#ff00ff] focus-visible:ring-[#ff00ff]'
+                  : 'inline-flex items-center rounded border border-[#ff6ad5]/40 bg-[#1a0220] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5] transition-colors hover:border-[#ff9de6] hover:text-[#ff9de6] focus-visible:ring-[#ff9de6]'
                 const levelLabel = character.level
                   ? isPlayer
                     ? `Level ${character.level}`
@@ -316,12 +325,12 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
                 return (
                   <div
                     key={character.id}
-                    className="group p-3 border border-[#00ffff] border-opacity-20 rounded hover:border-[#ff00ff] hover:bg-[#0f0f23] transition-all duration-200"
+                    className={`group p-3 rounded transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 ${cardClasses}`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <Link
                         href={`/characters/${character.id}`}
-                        className="font-medium text-[#00ffff] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff00ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ffff]"
+                        className={`focus-visible:outline-none focus-visible:ring-2 ${nameClasses}`}
                       >
                         {character.name}
                       </Link>
@@ -342,7 +351,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
                           <Link
                             key={`${character.id}-${organization.id}`}
                             href={`/organizations/${organization.id}`}
-                            className="inline-flex items-center rounded border border-[#00ffff]/30 bg-[#0f0f23] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#00ffff] transition-colors hover:border-[#ff00ff] hover:text-[#ff00ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff]"
+                            className={`focus-visible:outline-none focus-visible:ring-2 ${organizationChipClasses}`}
                           >
                             {organization.name}
                           </Link>
