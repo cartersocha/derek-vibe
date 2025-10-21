@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { formatTimestampForDisplay } from "@/lib/utils";
+import { cn, formatTimestampForDisplay } from "@/lib/utils";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 import { IndexEmptyState, IndexHeader, IndexSearchEmptyState } from "@/components/ui/index-utility";
 
@@ -11,6 +11,10 @@ type CampaignRecord = {
   name: string;
   description: string | null;
   created_at: string;
+  organizations: { id: string; name: string }[];
+  sessions: { id: string; name: string }[];
+  characters: { id: string; name: string; player_type: string | null }[];
+  sessionCount?: number;
 };
 
 type CampaignsIndexProps = {
@@ -58,7 +62,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
       ) : filteredCampaigns.length === 0 ? (
         <IndexSearchEmptyState message="No campaigns matched your search." />
       ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6">
           {filteredCampaigns.map((campaign) => (
             <article
               key={campaign.id}
@@ -71,16 +75,82 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
               >
                 <span aria-hidden="true" />
               </Link>
-              <div className="relative z-10 flex h-full flex-col gap-3 pointer-events-none">
-                <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
-                  {campaign.name}
-                </h3>
-                {campaign.description && (
-                  <div className="pointer-events-auto line-clamp-3 font-mono text-sm whitespace-pre-wrap break-words text-[#cbd5f5]">
-                    {renderNotesWithMentions(campaign.description, mentionTargets)}
-                  </div>
-                )}
-                <div className="mt-auto font-mono text-xs uppercase tracking-wider text-orange-400">
+              <div className="relative z-10 flex h-full flex-col pointer-events-none">
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
+                    {campaign.name}
+                  </h3>
+                  {campaign.description && (
+                    <div className="pointer-events-auto line-clamp-3 font-mono text-sm whitespace-pre-wrap break-words text-[#cbd5f5]">
+                      {renderNotesWithMentions(campaign.description, mentionTargets)}
+                    </div>
+                  )}
+                  {campaign.sessions.length > 0 && (
+                    <div className="pointer-events-auto">
+                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                        Sessions
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {campaign.sessions.map((session) => (
+                          <Link
+                            key={`${campaign.id}-session-${session.id}`}
+                            href={`/sessions/${session.id}`}
+                            className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] transition hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                          >
+                            {session.name}
+                          </Link>
+                        ))}
+                        {((campaign.sessionCount ?? campaign.sessions.length) - campaign.sessions.length) > 0 && (
+                          <span className="inline-flex items-center rounded-full border border-dashed border-[#ff6b35]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35]">
+                            +{(campaign.sessionCount ?? campaign.sessions.length) - campaign.sessions.length} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {campaign.organizations.length > 0 && (
+                    <div className="pointer-events-auto">
+                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                        Groups
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {campaign.organizations.map((organization) => (
+                          <Link
+                            key={`${campaign.id}-org-${organization.id}`}
+                            href={`/organizations/${organization.id}`}
+                            className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+                          >
+                            {organization.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {campaign.characters.length > 0 && (
+                    <div className="pointer-events-auto">
+                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                        Characters
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {campaign.characters.map((character) => (
+                          <Link
+                            key={`${campaign.id}-char-${character.id}`}
+                            href={`/characters/${character.id}`}
+                            className={cn(
+                              "inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2",
+                              character.player_type === "player"
+                                ? "border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]"
+                                : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]"
+                            )}
+                          >
+                            {character.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-auto pt-4 font-mono text-xs uppercase tracking-wider text-orange-400">
                   Created {formatTimestampForDisplay(campaign.created_at) ?? "Unknown"}
                 </div>
               </div>
