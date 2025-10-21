@@ -125,6 +125,7 @@ export function OrganizationForm({
         {
           value: id,
           label: name,
+          hint: null,
         },
       ];
     });
@@ -147,6 +148,7 @@ export function OrganizationForm({
         {
           value: id,
           label: name,
+          hint: null,
         },
       ];
     });
@@ -169,6 +171,7 @@ export function OrganizationForm({
         {
           value: id,
           label: name,
+          hint: null,
         },
       ];
     });
