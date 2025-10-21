@@ -357,18 +357,8 @@ export async function resolveOrganizationIds(
     return unique
   }
 
-  const { data, error } = await supabase
-    .from('organizations')
-    .select('id')
-    .order('created_at', { ascending: true })
-    .limit(1)
-
-  if (error) {
-    throw new Error(error.message)
-  }
-
-  const fallback = data?.[0]?.id
-  return fallback ? [fallback] : []
+  // Return empty array instead of falling back to oldest organization
+  return []
 }
 
 export async function setCampaignOrganizations(

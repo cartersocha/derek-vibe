@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { updateCampaign } from '@/lib/actions/campaigns'
 import { CampaignForm } from '@/components/forms/campaign-form'
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-utils'
 
 export default async function CampaignEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -48,9 +49,10 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
     return message.includes('campaign_characters')
   }
 
-  const [{ data: organizations }, { data: characters }] = await Promise.all([
+  const [{ data: organizations }, { data: characters }, { data: campaigns }] = await Promise.all([
     supabase.from('organizations').select('id, name').order('name'),
     supabase.from('characters').select('id, name, player_type, status').order('name'),
+    supabase.from('campaigns').select('id, name').order('name'),
   ])
 
   const defaultOrganizationIds = (organizationLinksResult.data ?? [])
@@ -122,6 +124,13 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
       .join(' • '),
   }))
 
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(characters, 'character', (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(organizations, 'organization', (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(sessionRows, 'session', (entry) => `/sessions/${entry.id}`),
+    mapEntitiesToMentionTargets(campaigns, 'campaign', (entry) => `/campaigns/${entry.id}`)
+  )
+
   const updateCampaignWithId = updateCampaign.bind(null, id)
 
   return (
@@ -150,6 +159,7 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
         defaultSessionIds={defaultSessionIds}
         defaultCharacterIds={defaultCharacterIds}
         campaignId={id}
+        mentionTargets={mentionTargets}
       />
     </div>
   )

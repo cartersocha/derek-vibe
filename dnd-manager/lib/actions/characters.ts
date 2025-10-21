@@ -205,17 +205,14 @@ export async function createCharacterInline(
     throw new Error(error.message);
   }
 
-  const desiredOrganizationIds = Array.isArray(organizationIds)
+  // Only assign organizations if explicitly provided
+  const desiredOrganizationIds = Array.isArray(organizationIds) && organizationIds.length > 0
     ? organizationIds
     : [];
 
-  const resolvedOrganizationIds = await resolveOrganizationIds(
-    supabase,
-    desiredOrganizationIds
-  );
-
-  if (resolvedOrganizationIds.length > 0) {
-    const affiliations = resolvedOrganizationIds.map((organizationId) => ({
+  // Don't call resolveOrganizationIds for fallback - just use what's explicitly provided
+  if (desiredOrganizationIds.length > 0) {
+    const affiliations = desiredOrganizationIds.map((organizationId) => ({
       organizationId,
       role: "npc" as CharacterOrganizationAffiliationInput["role"],
     }));

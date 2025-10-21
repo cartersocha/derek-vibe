@@ -112,6 +112,7 @@ export default async function EditOrganizationPage({
         defaultSessionIds={defaultSessionIds}
         defaultCharacterIds={defaultCharacterIds}
         mentionTargets={mentionTargets}
+        organizationId={id}
         showLogoRemove
         submitLabel="Save Changes"
       />

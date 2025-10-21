@@ -108,6 +108,11 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
   const nameStorageKey = `${draftStorageKey}${NAME_SUFFIX}`
   const headerImageStorageKey = `${draftStorageKey}${HEADER_IMAGE_SUFFIX}`
   const isNavigatingRef = useRef(false)
+
+  const sortCharactersByName = useCallback(
+    (list: Character[]) => [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
+    []
+  )
   const cancelDraftUpdate = useCallback((key: string) => {
     if (typeof window === 'undefined') {
       return
@@ -154,21 +159,47 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     return [...base, ...mapped]
   }, [campaignList])
 
-  const organizationSelectOptions = useMemo(
-    () =>
-      organizationList
-        .filter((organization): organization is { id: string; name: string } => Boolean(organization?.name))
-        .map((organization) => ({ value: organization.id, label: organization.name ?? 'Untitled Group' }))
-        .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' })),
-    [organizationList]
-  )
+  const organizationSelectOptions = useMemo(() => {
+    return organizationList.map((organization) => ({
+      value: organization.id,
+      label: organization.name || 'Untitled Group',
+    }))
+  }, [organizationList])
 
   useEffect(() => {
-    setCharacterList(characters)
-  }, [characters])
+    setCharacterList((previous) => {
+      const merged = new Map<string, Character>()
+      previous.forEach((entry) => {
+        if (entry?.id) {
+          merged.set(entry.id, entry)
+        }
+      })
+      characters.forEach((entry) => {
+        if (entry?.id) {
+          merged.set(entry.id, entry)
+        }
+      })
+      return sortCharactersByName(Array.from(merged.values()))
+    })
+  }, [characters, sortCharactersByName])
 
   useEffect(() => {
-    setOrganizationList([...organizations])
+    setOrganizationList((previous) => {
+      const merged = new Map<string, { id: string; name: string }>()
+      previous.forEach((entry) => {
+        if (entry?.id) {
+          merged.set(entry.id, entry)
+        }
+      })
+      organizations.forEach((entry) => {
+        if (entry?.id) {
+          merged.set(entry.id, entry)
+        }
+      })
+      return Array.from(merged.values()).sort((a, b) =>
+        (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' })
+      )
+    })
   }, [organizations])
 
   useEffect(() => {
@@ -200,10 +231,9 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     
     // For new sessions (no initialData.organizationIds), start with organizations from characters
     if (initialData?.organizationIds === undefined) {
-      // This is a new session - let the auto-sync effect handle organization selection
-      // based on selected characters
-      setSelectedGroups([])
-      manuallySelectedOrgsRef.current = new Set()
+      // This is a new session - preserve any manually selected organizations
+      const currentManuallySelected = Array.from(manuallySelectedOrgsRef.current)
+      setSelectedGroups(currentManuallySelected)
     } else {
       // This is editing an existing session - preserve the existing organizationIds
       setSelectedGroups(initialOrgIds)
@@ -518,11 +548,6 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     window.localStorage.removeItem(headerImageStorageKey)
   }, [cancelDraftUpdate, charactersStorageKey, draftStorageKey, headerImageStorageKey, nameStorageKey])
 
-  const sortCharactersByName = useCallback(
-    (list: Character[]) => [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
-    []
-  )
-
   const characterOptions: CharacterOption[] = useMemo(() => {
     const sorted = sortCharactersByName(characterList)
     return sorted
@@ -552,7 +577,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
           if (prev.includes(target.id)) {
             return prev
           }
-          return [...prev, target.id]
+          return Array.from(new Set([...prev, target.id]))
         })
 
         setCharacterList((prev) => {
@@ -567,13 +592,19 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
         setOrganizationList((prev) => {
           if (prev.some((org) => org.id === target.id)) {
             return prev
-          }
-          const next = [...prev, { id: target.id, name: target.name }]
-          return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
-        })
+        }
+        const next = [...prev, { id: target.id, name: target.name }]
+        return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+      })
 
         // Mark as manually selected
         manuallySelectedOrgsRef.current.add(target.id)
+        setSelectedGroups((prev) => {
+          if (prev.includes(target.id)) {
+            return prev
+          }
+          return Array.from(new Set([...prev, target.id]))
+        })
       }
     },
     [sortCharactersByName]
@@ -620,6 +651,12 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
 
     // Mark newly created organizations as manually selected
     manuallySelectedOrgsRef.current.add(option.value)
+    setSelectedGroups((prev) => {
+      if (prev.includes(option.value)) {
+        return prev
+      }
+      return Array.from(new Set([...prev, option.value]))
+    })
 
     setMentionableTargets((previous) => {
       if (previous.some((entry) => entry.id === option.value)) {
@@ -945,6 +982,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
           mentionTargets={mentionableTargets}
           onValueChange={handleNotesValueChange}
           onMentionInsert={handleMentionInsert}
+          onMentionCreate={handleMentionInsert}
           className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
           placeholder="What happened in this session..."
           spellCheck
