@@ -171,11 +171,16 @@ export default async function CampaignsPage() {
       id: entry.id,
       name: entry.name,
     }))
+    const allSessionsFormatted = allSessions.map((entry) => ({
+      id: entry.id,
+      name: entry.name,
+    }))
     return {
       ...campaign,
       organizations,
       characters,
       sessions: sessionPreview,
+      allSessions: allSessionsFormatted,
       sessionCount: allSessions.length,
     }
   })

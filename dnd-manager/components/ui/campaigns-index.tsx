@@ -13,6 +13,7 @@ type CampaignRecord = {
   created_at: string;
   organizations: { id: string; name: string }[];
   sessions: { id: string; name: string }[];
+  allSessions: { id: string; name: string }[];
   characters: { id: string; name: string; player_type: string | null }[];
   sessionCount?: number;
 };
@@ -24,9 +25,22 @@ type CampaignsIndexProps = {
 
 export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProps) {
   const [query, setQuery] = useState("");
+  const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
 
   const hasCampaigns = campaigns.length > 0;
   const normalizedQuery = query.trim().toLowerCase();
+
+  const toggleCampaignSessions = (campaignId: string) => {
+    setExpandedCampaigns(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(campaignId)) {
+        newSet.delete(campaignId);
+      } else {
+        newSet.add(campaignId);
+      }
+      return newSet;
+    });
+  };
 
   const filteredCampaigns = useMemo(() => {
     if (!normalizedQuery) {
@@ -102,7 +116,10 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         Sessions
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        {campaign.sessions.map((session) => (
+                        {(expandedCampaigns.has(campaign.id) 
+                          ? campaign.allSessions 
+                          : campaign.sessions
+                        ).map((session) => (
                           <Link
                             key={`${campaign.id}-session-${session.id}`}
                             href={`/sessions/${session.id}`}
@@ -111,10 +128,21 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                             {session.name}
                           </Link>
                         ))}
-                        {((campaign.sessionCount ?? campaign.sessions.length) - campaign.sessions.length) > 0 && (
-                          <span className="inline-flex items-center rounded-full border border-dashed border-[#00ff88]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88]">
-                            +{(campaign.sessionCount ?? campaign.sessions.length) - campaign.sessions.length} more
-                          </span>
+                        {!expandedCampaigns.has(campaign.id) && (campaign.sessionCount ?? campaign.sessions.length) > 3 && (
+                          <button
+                            onClick={() => toggleCampaignSessions(campaign.id)}
+                            className="inline-flex items-center rounded-full border border-dashed border-[#00ff88]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] hover:border-[#00cc6a] hover:text-[#00cc6a] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88]"
+                          >
+                            +{(campaign.sessionCount ?? campaign.sessions.length) - 3} more
+                          </button>
+                        )}
+                        {expandedCampaigns.has(campaign.id) && (campaign.sessionCount ?? campaign.sessions.length) > 3 && (
+                          <button
+                            onClick={() => toggleCampaignSessions(campaign.id)}
+                            className="inline-flex items-center rounded-full border border-[#00ff88]/70 bg-[#0a1a0f] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] hover:border-[#00cc6a] hover:text-[#00cc6a] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88]"
+                          >
+                            Show less
+                          </button>
                         )}
                       </div>
                     </div>
