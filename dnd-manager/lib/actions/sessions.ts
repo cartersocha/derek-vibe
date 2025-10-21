@@ -8,19 +8,21 @@ import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
 import { sessionSchema } from '@/lib/validations/schemas'
-import { getString, getStringOrNull, getFile, getIdList, getDateValue } from '@/lib/utils/form-data'
+import { getString, getStringOrNull, getFile } from '@/lib/utils/form-data'
 import { STORAGE_BUCKETS } from '@/lib/utils/storage'
-import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
+import { sanitizeText } from '@/lib/security/sanitize'
 import { toTitleCase } from '@/lib/utils'
 import {
   resolveOrganizationIds,
   setSessionOrganizations,
-  syncSessionOrganizationsFromCharacters,
 } from '@/lib/actions/organizations'
 import { extractOrganizationIds } from '@/lib/organizations/helpers'
 
 // List sessions with pagination
-export async function getSessionsList(supabase: SupabaseClient, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+export async function getSessionsList(
+  supabase: SupabaseClient,
+  { limit = 20, offset = 0 } = {}
+): Promise<Record<string, unknown>[]> {
   const { data, error } = await supabase
     .from('sessions')
     .select('*')
@@ -32,7 +34,19 @@ export async function getSessionsList(supabase: SupabaseClient, { limit = 20, of
 
 const SESSION_BUCKET = STORAGE_BUCKETS.SESSIONS
 
-export async function createSessionInline(name: string, campaignId?: string | null): Promise<{ id: string; name: string }> {
+type CreateSessionInlineOptions = {
+  campaignId?: string | null
+  organizationIds?: string[]
+}
+
+const getTodayDateString = (): string => {
+  return new Date().toISOString().slice(0, 10)
+}
+
+export async function createSessionInline(
+  name: string,
+  options?: CreateSessionInlineOptions
+): Promise<{ id: string; name: string }> {
   const supabase = await createClient()
   const sanitized = sanitizeText(name).trim()
 
@@ -41,6 +55,8 @@ export async function createSessionInline(name: string, campaignId?: string | nu
   }
 
   const normalizedName = toTitleCase(sanitized)
+  const campaignId = options?.campaignId ?? null
+  const desiredOrganizationIds = Array.isArray(options?.organizationIds) ? options.organizationIds : []
   await assertUniqueValue(supabase, {
     table: 'sessions',
     column: 'name',
@@ -50,16 +66,34 @@ export async function createSessionInline(name: string, campaignId?: string | nu
 
   const sessionId = randomUUID()
 
+  const sessionDate = getTodayDateString()
+
   const { error } = await supabase
     .from('sessions')
     .insert({
       id: sessionId,
       name: normalizedName,
       campaign_id: campaignId ?? null,
+      session_date: sessionDate,
     })
 
   if (error) {
     throw new Error(error.message)
+  }
+
+  if (desiredOrganizationIds.length > 0) {
+    const resolvedOrganizationIds = await resolveOrganizationIds(supabase, desiredOrganizationIds)
+    if (resolvedOrganizationIds.length > 0) {
+      const touchedOrganizationIds = await setSessionOrganizations(supabase, sessionId, resolvedOrganizationIds)
+      if (touchedOrganizationIds.length > 0) {
+        revalidatePath('/organizations')
+        Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
+          if (organizationId) {
+            revalidatePath(`/organizations/${organizationId}`)
+          }
+        })
+      }
+    }
   }
 
   revalidatePath('/sessions')
@@ -93,10 +127,13 @@ export async function createSession(formData: FormData): Promise<void> {
     errorMessage: 'Session name already exists. Choose a different name.',
   })
 
+  const submittedSessionDate = getStringOrNull(formData, 'session_date')
+  const sessionDate = submittedSessionDate ?? getTodayDateString()
+
   const baseData = {
     name: sessionName,
     campaign_id: getStringOrNull(formData, 'campaign_id'),
-    session_date: getStringOrNull(formData, 'session_date'),
+    session_date: sessionDate,
     notes: getStringOrNull(formData, 'notes'),
     header_image_url: null as string | null,
   }

@@ -2,11 +2,12 @@ import { createCampaign } from '@/lib/actions/campaigns'
 import { createClient } from '@/lib/supabase/server'
 import { CampaignForm } from '@/components/forms/campaign-form'
 import { getTodayDateInputValue } from '@/lib/utils'
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-utils'
 
 export default async function NewCampaignPage() {
   const supabase = await createClient()
 
-  const [{ data: organizations }, { data: sessions }, { data: characters }] = await Promise.all([
+  const [{ data: organizations }, { data: sessions }, { data: characters }, { data: campaigns }] = await Promise.all([
     supabase.from('organizations').select('id, name').order('name'),
     supabase
       .from('sessions')
@@ -22,6 +23,7 @@ export default async function NewCampaignPage() {
       .from('characters')
       .select('id, name, player_type, status')
       .order('name'),
+    supabase.from('campaigns').select('id, name').order('name'),
   ])
 
   const organizationOptions = (organizations ?? []).map((organization) => ({
@@ -37,7 +39,8 @@ export default async function NewCampaignPage() {
     organization_sessions?: Array<{ organization_id: string }> | null
   }
 
-  const sessionOptions = (sessions as SessionRow[] | null ?? []).map((session) => {
+  const sessionRows = (sessions as SessionRow[] | null) ?? []
+  const sessionOptions = sessionRows.map((session) => {
     const relatedCampaign = session.campaign
     const campaignName = Array.isArray(relatedCampaign)
       ? relatedCampaign[0]?.name
@@ -71,6 +74,13 @@ export default async function NewCampaignPage() {
       .join(' • '),
   }))
 
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(characters, 'character', (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(organizations, 'organization', (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(sessionRows, 'session', (entry) => `/sessions/${entry.id}`),
+    mapEntitiesToMentionTargets(campaigns, 'campaign', (entry) => `/campaigns/${entry.id}`)
+  )
+
   const today = getTodayDateInputValue()
 
   return (
@@ -83,10 +93,11 @@ export default async function NewCampaignPage() {
         action={createCampaign}
         cancelHref="/campaigns"
         submitLabel="Create Campaign"
-  defaultValues={{ createdAt: today }}
+        defaultValues={{ createdAt: today }}
         organizations={organizationOptions}
         sessions={sessionOptions}
         characters={characterOptions}
+        mentionTargets={mentionTargets}
       />
     </div>
   )

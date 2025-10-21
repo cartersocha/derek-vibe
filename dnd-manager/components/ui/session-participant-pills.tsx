@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { useMemo, type ReactNode } from 'react'
+import { useMemo } from 'react'
 import { cn, type PlayerSummary } from '@/lib/utils'
 
 const playerWeight = (value: PlayerSummary['player_type']) => (value === 'player' ? 0 : value === 'npc' ? 1 : 2)
@@ -12,17 +12,18 @@ type SessionParticipantPillsProps = {
 }
 
 export function SessionParticipantPills({ sessionId, players: rawPlayers, className, showOrganizations = true }: SessionParticipantPillsProps) {
-  if (!rawPlayers || rawPlayers.length === 0) {
-    return null
-  }
-
-  const sortedPlayers = [...rawPlayers].sort((a, b) => {
-    const diff = playerWeight(a.player_type) - playerWeight(b.player_type)
-    if (diff !== 0) {
-      return diff
+  const sortedPlayers = useMemo(() => {
+    if (!rawPlayers?.length) {
+      return [] as PlayerSummary[]
     }
-    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-  })
+    return [...rawPlayers].sort((a, b) => {
+      const diff = playerWeight(a.player_type) - playerWeight(b.player_type)
+      if (diff !== 0) {
+        return diff
+      }
+      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    })
+  }, [rawPlayers])
 
   const uniqueOrganizations = useMemo(() => {
     if (!showOrganizations) {
@@ -40,6 +41,10 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
     }
     return result.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
   }, [sortedPlayers, showOrganizations])
+
+  if (sortedPlayers.length === 0) {
+    return null
+  }
 
   const playerPills = sortedPlayers.map((player) => {
     return (

@@ -30,7 +30,7 @@ export default function SessionManager({
   menuWidthClass,
 }: SessionManagerProps) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
   const handleSessionUpdate = async (selectedIds: string[]) => {
     startTransition(async () => {

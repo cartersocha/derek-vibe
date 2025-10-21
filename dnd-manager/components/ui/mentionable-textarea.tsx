@@ -27,6 +27,9 @@ type MentionableTextareaProps = Omit<AutoResizeTextareaProps, "defaultValue" | "
   mentionTargets: MentionTarget[]
   onValueChange?: (value: string) => void
   onMentionInsert?: (target: MentionTarget) => void
+  onMentionCreate?: (target: MentionTarget) => void
+  linkOrganizationIds?: string[]
+  linkCampaignId?: string
 }
 
 type MentionOption = MentionTarget
@@ -83,6 +86,9 @@ export default function MentionableTextarea({
   mentionTargets,
   onValueChange,
   onMentionInsert,
+  onMentionCreate,
+  linkOrganizationIds,
+  linkCampaignId,
   className,
   ...rest
 }: MentionableTextareaProps) {
@@ -548,7 +554,7 @@ export default function MentionableTextarea({
     setMentionCreationError(null)
 
     try {
-      const result = await createCharacterInline(trimmedMentionQuery)
+      const result = await createCharacterInline(trimmedMentionQuery, linkOrganizationIds)
       const newTarget: MentionOption = {
         id: result.id,
         name: result.name,
@@ -564,6 +570,7 @@ export default function MentionableTextarea({
         return [...previous, newTarget]
       })
 
+      onMentionCreate?.(newTarget)
       insertMention(newTarget)
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to create character"
@@ -571,7 +578,7 @@ export default function MentionableTextarea({
     } finally {
       setIsCreatingMentionCharacter(false)
     }
-  }, [hasExactCharacterMatch, insertMention, isCreatingMentionCharacter, trimmedMentionQuery])
+  }, [hasExactCharacterMatch, insertMention, isCreatingMentionCharacter, linkOrganizationIds, onMentionCreate, trimmedMentionQuery])
 
   const handleCreateOrganization = useCallback(async () => {
     if (isCreatingMentionCharacter) {
@@ -602,6 +609,7 @@ export default function MentionableTextarea({
         return [...previous, newTarget]
       })
 
+      onMentionCreate?.(newTarget)
       insertMention(newTarget)
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to create organization"
@@ -609,7 +617,7 @@ export default function MentionableTextarea({
     } finally {
       setIsCreatingMentionCharacter(false)
     }
-  }, [hasExactOrganizationMatch, insertMention, isCreatingMentionCharacter, trimmedMentionQuery])
+  }, [hasExactOrganizationMatch, insertMention, isCreatingMentionCharacter, onMentionCreate, trimmedMentionQuery])
 
   const handleCreateSession = useCallback(async () => {
     if (isCreatingMentionCharacter) {
@@ -624,7 +632,10 @@ export default function MentionableTextarea({
     setMentionCreationError(null)
 
     try {
-      const result = await createSessionInline(trimmedMentionQuery)
+      const result = await createSessionInline(trimmedMentionQuery, {
+        campaignId: linkCampaignId,
+        organizationIds: linkOrganizationIds,
+      })
       const newTarget: MentionOption = {
         id: result.id,
         name: result.name,
@@ -640,6 +651,7 @@ export default function MentionableTextarea({
         return [...previous, newTarget]
       })
 
+      onMentionCreate?.(newTarget)
       insertMention(newTarget)
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to create session"
@@ -647,7 +659,7 @@ export default function MentionableTextarea({
     } finally {
       setIsCreatingMentionCharacter(false)
     }
-  }, [hasExactSessionMatch, insertMention, isCreatingMentionCharacter, trimmedMentionQuery])
+  }, [hasExactSessionMatch, insertMention, isCreatingMentionCharacter, linkCampaignId, linkOrganizationIds, onMentionCreate, trimmedMentionQuery])
 
   const handleCreateCampaign = useCallback(async () => {
     if (isCreatingMentionCharacter) {
@@ -662,7 +674,7 @@ export default function MentionableTextarea({
     setMentionCreationError(null)
 
     try {
-      const result = await createCampaignInline(trimmedMentionQuery)
+      const result = await createCampaignInline(trimmedMentionQuery, undefined, linkOrganizationIds)
       const newTarget: MentionOption = {
         id: result.id,
         name: result.name,
@@ -678,6 +690,7 @@ export default function MentionableTextarea({
         return [...previous, newTarget]
       })
 
+      onMentionCreate?.(newTarget)
       insertMention(newTarget)
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to create campaign"
@@ -685,7 +698,7 @@ export default function MentionableTextarea({
     } finally {
       setIsCreatingMentionCharacter(false)
     }
-  }, [hasExactCampaignMatch, insertMention, isCreatingMentionCharacter, trimmedMentionQuery])
+  }, [hasExactCampaignMatch, insertMention, isCreatingMentionCharacter, linkOrganizationIds, onMentionCreate, trimmedMentionQuery])
 
 
   const handleTextareaKeyDown = useCallback(

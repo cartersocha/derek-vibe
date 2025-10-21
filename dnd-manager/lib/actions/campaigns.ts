@@ -8,13 +8,15 @@ import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { campaignSchema } from '@/lib/validations/schemas'
 import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
-import { getString, getStringOrNull, getFile, getIdList, getDateValue } from '@/lib/utils/form-data'
-import { STORAGE_BUCKETS } from '@/lib/utils/storage'
+import { getIdList, getDateValue } from '@/lib/utils/form-data'
 import { resolveOrganizationIds, setCampaignOrganizations } from '@/lib/actions/organizations'
 import { extractOrganizationIds } from '@/lib/organizations/helpers'
 
 // List campaigns with pagination
-export async function getCampaignsList(supabase: SupabaseClient, { limit = 20, offset = 0 } = {}): Promise<any[]> {
+export async function getCampaignsList(
+  supabase: SupabaseClient,
+  { limit = 20, offset = 0 } = {}
+): Promise<Record<string, unknown>[]> {
   const { data, error } = await supabase
     .from('campaigns')
     .select('*')

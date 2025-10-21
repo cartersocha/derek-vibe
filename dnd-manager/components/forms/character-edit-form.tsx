@@ -127,7 +127,7 @@ export default function CharacterEditForm({
     dedupeAndNormalize(locationSuggestions).forEach(addOption)
 
     return options.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
-  }, [dedupeAndNormalize, locationSuggestions])
+  }, [dedupeAndNormalize, locationSuggestions, toTitleCase])
 
   const raceOptions = useMemo(() => {
     const combined = [

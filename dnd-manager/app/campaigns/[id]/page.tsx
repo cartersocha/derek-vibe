@@ -61,6 +61,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     { data: organizationCampaignRows, error: organizationCampaignError },
     { data: mentionCharacters },
     { data: mentionOrganizations },
+    { data: mentionCampaigns },
   ] = await Promise.all([
     supabase
       .from('campaign_characters')
@@ -86,6 +87,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
       .eq('campaign_id', id),
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('campaigns').select('id, name').order('name'),
   ])
 
   const isMissingCampaignCharactersTable = (error: { message?: string | null; code?: string | null } | null | undefined) => {
@@ -210,7 +212,8 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   const mentionTargets: MentionTarget[] = mergeMentionTargets(
     mapEntitiesToMentionTargets(mentionCharacters ?? [], 'character', (entry) => `/characters/${entry.id}`),
     mapEntitiesToMentionTargets(mentionOrganizations ?? [], 'organization', (entry) => `/organizations/${entry.id}`),
-    mapEntitiesToMentionTargets(rawSessions, 'session', (entry) => `/sessions/${entry.id}`)
+    mapEntitiesToMentionTargets(rawSessions, 'session', (entry) => `/sessions/${entry.id}`),
+    mapEntitiesToMentionTargets(mentionCampaigns ?? [], 'campaign', (entry) => `/campaigns/${entry.id}`)
   )
 
   const deleteCampaignWithId = deleteCampaign.bind(null, id)
@@ -240,7 +243,9 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <h1 className="retro-title text-4xl font-bold text-[#00ffff] mb-4 text-center">{campaign.name}</h1>
           {campaign.description && (
             <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-6">
-              <p className="text-gray-300 whitespace-pre-wrap font-mono">{campaign.description}</p>
+              <div className="text-gray-300 whitespace-pre-wrap font-mono">
+                {renderNotesWithMentions(campaign.description, mentionTargets)}
+              </div>
             </div>
           )}
         </div>

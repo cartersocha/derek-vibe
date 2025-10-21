@@ -182,7 +182,7 @@ export default function SessionMultiSelect({
 
     setCreationError(null)
     startTransition(() => {
-      void createSessionInline(trimmedSearch, campaignId ?? undefined)
+      void createSessionInline(trimmedSearch, { campaignId: campaignId ?? undefined })
         .then((result) => {
           const createdOption: SessionOption = { value: result.id, label: result.name }
 

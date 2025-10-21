@@ -118,7 +118,7 @@ export default function CampaignMultiSelect({
   }, [normalizedSelections, onChange])
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${className}`} id={id}>
       {/* Sentinel input to indicate this field was provided (even if empty) */}
       <input type="hidden" name={`${name}_field_provided`} value="true" />
       {normalizedSelections.map((selection) => (

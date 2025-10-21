@@ -19,6 +19,7 @@ type SimpleSessionMultiSelectProps = {
   className?: string
   emptyMessage?: string
   onCreateOption?: (option: SessionOption) => void
+  defaultCampaignId?: string
 }
 
 export default function SimpleSessionMultiSelect({
@@ -31,6 +32,7 @@ export default function SimpleSessionMultiSelect({
   className = "",
   emptyMessage = "No sessions available",
   onCreateOption,
+  defaultCampaignId,
 }: SimpleSessionMultiSelectProps) {
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -63,7 +65,9 @@ export default function SimpleSessionMultiSelect({
 
     startTransition(async () => {
       try {
-        const result = await createSessionInline(trimmedSearch)
+        const result = await createSessionInline(trimmedSearch, {
+          campaignId: defaultCampaignId ?? null,
+        })
         const createdOption: SessionOption = {
           value: result.id,
           label: result.name,
@@ -75,7 +79,7 @@ export default function SimpleSessionMultiSelect({
         console.error("Failed to create session:", error)
       }
     })
-  }, [canCreateNew, isPending, normalizedSelections, onChange, onCreateOption, trimmedSearch])
+  }, [canCreateNew, defaultCampaignId, isPending, normalizedSelections, onChange, onCreateOption, trimmedSearch])
 
   useEffect(() => {
     if (!open) {
@@ -121,7 +125,7 @@ export default function SimpleSessionMultiSelect({
   }, [normalizedSelections, options])
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${className}`} id={id}>
       {/* Sentinel input to indicate this field was provided (even if empty) */}
       <input type="hidden" name={`${name}_field_provided`} value="true" />
       {normalizedSelections.map((selection) => (

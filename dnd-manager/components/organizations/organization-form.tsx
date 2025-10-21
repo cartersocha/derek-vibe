@@ -1,19 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { EntityOption } from "@/components/ui/entity-multi-select";
-import { EntityMultiSelect } from "@/components/ui/entity-multi-select";
 import SimpleCharacterMultiSelect from "@/components/ui/simple-character-multi-select";
 import SimpleSessionMultiSelect from "@/components/ui/simple-session-multi-select";
 import SimpleCampaignMultiSelect from "@/components/ui/simple-campaign-multi-select";
 import MentionableTextarea from "@/components/ui/mentionable-textarea";
-import { createCharacterInline } from "@/lib/actions/characters";
-import { createSessionInline } from "@/lib/actions/sessions";
-import { createCampaignInline } from "@/lib/actions/campaigns";
-import { createOrganizationInline } from "@/lib/actions/organizations";
 import type { MentionTarget } from "@/lib/mention-utils";
 import { useConvertedOptions, dedupeList, listsMatch } from "@/lib/utils/form-optimization";
 
@@ -57,7 +52,6 @@ export function OrganizationForm({
   const [sessionIds, setSessionIds] = useState<string[]>(() => dedupeList(defaultSessionIds));
   const [characterIds, setCharacterIds] = useState<string[]>(() => dedupeList(defaultCharacterIds));
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(mentionTargets);
-
   // Update mentionable targets when props change
   useEffect(() => {
     setMentionableTargets((previous) => {
@@ -79,33 +73,121 @@ export function OrganizationForm({
     characterOptions
   );
 
+  const [campaignOptionList, setCampaignOptionList] = useState(() => campaignOptionsConverted);
+  const [sessionOptionList, setSessionOptionList] = useState(() => sessionOptionsConverted);
+  const [characterOptionList, setCharacterOptionList] = useState(() => characterOptionsConverted);
+
+  useEffect(() => {
+    setCampaignOptionList((previous) => {
+      const merged = new Map(previous.map((option) => [option.value, option]));
+      campaignOptionsConverted.forEach((option) => {
+        merged.set(option.value, option);
+      });
+      return Array.from(merged.values());
+    });
+  }, [campaignOptionsConverted]);
+
+  useEffect(() => {
+    setSessionOptionList((previous) => {
+      const merged = new Map(previous.map((option) => [option.value, option]));
+      sessionOptionsConverted.forEach((option) => {
+        merged.set(option.value, option);
+      });
+      return Array.from(merged.values());
+    });
+  }, [sessionOptionsConverted]);
+
+  useEffect(() => {
+    setCharacterOptionList((previous) => {
+      const merged = new Map(previous.map((option) => [option.value, option]));
+      characterOptionsConverted.forEach((option) => {
+        merged.set(option.value, option);
+      });
+      return Array.from(merged.values());
+    });
+  }, [characterOptionsConverted]);
+
   // Inline creation handlers
-  const handleCharacterCreated = async (option: { value: string; label: string }) => {
+  const addCharacterLink = useCallback((id: string, name: string) => {
     setCharacterIds((prev) => {
-      if (prev.includes(option.value)) {
+      if (prev.includes(id)) {
         return prev;
       }
-      return [...prev, option.value];
+      return [...prev, id];
     });
-  };
 
-  const handleSessionCreated = async (option: { value: string; label: string }) => {
+    setCharacterOptionList((previous) => {
+      if (previous.some((entry) => entry.value === id)) {
+        return previous;
+      }
+      return [
+        ...previous,
+        {
+          value: id,
+          label: name,
+          hint: null,
+        },
+      ];
+    });
+  }, []);
+
+  const addSessionLink = useCallback((id: string, name: string) => {
     setSessionIds((prev) => {
-      if (prev.includes(option.value)) {
+      if (prev.includes(id)) {
         return prev;
       }
-      return [...prev, option.value];
+      return [...prev, id];
     });
-  };
 
-  const handleCampaignCreated = async (option: { value: string; label: string }) => {
+    setSessionOptionList((previous) => {
+      if (previous.some((entry) => entry.value === id)) {
+        return previous;
+      }
+      return [
+        ...previous,
+        {
+          value: id,
+          label: name,
+          hint: null,
+        },
+      ];
+    });
+  }, []);
+
+  const addCampaignLink = useCallback((id: string, name: string) => {
     setCampaignIds((prev) => {
-      if (prev.includes(option.value)) {
+      if (prev.includes(id)) {
         return prev;
       }
-      return [...prev, option.value];
+      return [...prev, id];
     });
-  };
+
+    setCampaignOptionList((previous) => {
+      if (previous.some((entry) => entry.value === id)) {
+        return previous;
+      }
+      return [
+        ...previous,
+        {
+          value: id,
+          label: name,
+          hint: null,
+        },
+      ];
+    });
+  }, []);
+
+  const handleCharacterCreated = useCallback((option: { value: string; label: string }) => {
+    addCharacterLink(option.value, option.label);
+  }, [addCharacterLink]);
+
+  const handleSessionCreated = useCallback((option: { value: string; label: string }) => {
+    addSessionLink(option.value, option.label);
+  }, [addSessionLink]);
+
+  const handleCampaignCreated = useCallback((option: { value: string; label: string }) => {
+    addCampaignLink(option.value, option.label);
+  }, [addCampaignLink]);
 
   const handleMentionInsert = (target: MentionTarget) => {
     setMentionableTargets((previous) => {
@@ -117,28 +199,13 @@ export function OrganizationForm({
 
     if (target.kind === 'character') {
       // Add character to the list if not already present
-      setCharacterIds((prev) => {
-        if (prev.includes(target.id)) {
-          return prev;
-        }
-        return [...prev, target.id];
-      });
+      addCharacterLink(target.id, target.name);
     } else if (target.kind === 'campaign') {
       // Add campaign to the list if not already present
-      setCampaignIds((prev) => {
-        if (prev.includes(target.id)) {
-          return prev;
-        }
-        return [...prev, target.id];
-      });
+      addCampaignLink(target.id, target.name);
     } else if (target.kind === 'session') {
       // Add session to the list if not already present
-      setSessionIds((prev) => {
-        if (prev.includes(target.id)) {
-          return prev;
-        }
-        return [...prev, target.id];
-      });
+      addSessionLink(target.id, target.name);
     } else if (target.kind === 'organization') {
       // For organizations, we don't auto-assign to avoid circular references
       // Just add to mentionable targets for future @ mentions
@@ -198,6 +265,7 @@ export function OrganizationForm({
           initialValue={defaultValues?.description ?? ""}
           mentionTargets={mentionableTargets}
           onMentionInsert={handleMentionInsert}
+          onMentionCreate={handleMentionInsert}
           className="w-full rounded border border-[#00ffff]/30 bg-[#050517] px-4 py-3 text-[#e2e8f0] outline-none transition focus:border-[#ff00ff] focus:ring-2 focus:ring-[#ff00ff]/40"
           placeholder="Share the mission, history, or vibe of this group."
         />
@@ -257,7 +325,7 @@ export function OrganizationForm({
               <SimpleCampaignMultiSelect
                 id="organization-campaigns"
                 name="campaign_ids"
-                options={campaignOptionsConverted}
+                options={campaignOptionList}
                 value={campaignIds}
                 onChange={setCampaignIds}
                 placeholder="Select campaigns"
@@ -277,7 +345,7 @@ export function OrganizationForm({
               <SimpleSessionMultiSelect
                 id="organization-sessions"
                 name="session_ids"
-                options={sessionOptionsConverted}
+                options={sessionOptionList}
                 value={sessionIds}
                 onChange={setSessionIds}
                 placeholder="Select sessions"
@@ -297,7 +365,7 @@ export function OrganizationForm({
               <SimpleCharacterMultiSelect
                 id="organization-characters"
                 name="character_ids"
-                options={characterOptionsConverted}
+                options={characterOptionList}
                 value={characterIds}
                 onChange={setCharacterIds}
                 placeholder="Select characters"
