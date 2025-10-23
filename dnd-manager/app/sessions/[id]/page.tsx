@@ -217,42 +217,43 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   )
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <Link href="/sessions" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
-          ← Back to Sessions
-        </Link>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <Link
-            href={`/sessions/${id}/edit`}
-            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
-          >
-            Edit Session
+    <div className="space-y-6">
+      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Link href="/sessions" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
+            ← Back to Sessions
           </Link>
-          <form action={deleteSessionWithId}>
-            <DeleteSessionButton />
-          </form>
-        </div>
-      </div>
-
-      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8 space-y-8">
-        {/* Header Image */}
-        {session.header_image_url && (
-          <div className="relative w-full h-48 sm:h-64 rounded border-2 border-[#00ffff] border-opacity-30 overflow-hidden bg-[#0f0f23]">
-            <Image
-              src={session.header_image_url}
-              alt={session.name}
-              fill
-              className="object-cover"
-              unoptimized
-            />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              href={`/sessions/${id}/edit`}
+              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
+            >
+              Edit Session
+            </Link>
+            <form action={deleteSessionWithId}>
+              <DeleteSessionButton />
+            </form>
           </div>
-        )}
+        </div>
+        
+        <div className="-mt-4">
+          {/* Header Image */}
+          {session.header_image_url && (
+            <div className="relative w-full h-48 sm:h-64 rounded border-2 border-[#00ffff] border-opacity-30 overflow-hidden bg-[#0f0f23]">
+              <Image
+                src={session.header_image_url}
+                alt={session.name}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          )}
 
-        {/* Session Name and Info */}
-        <div>
-          <h1 className="text-4xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
-            {session.name}
+          {/* Session Name and Info */}
+          <div>
+            <h1 className="retro-title text-3xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+              {session.name}
             {campaignSessionNumber !== undefined && (
               <span className="ml-3 text-base font-mono uppercase tracking-widest text-[#ff00ff]">
                 Session #{campaignSessionNumber}
@@ -278,7 +279,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
         {/* Session Notes */}
         {session.notes && (
-          <div>
+          <div className="mb-8">
             <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Session Notes</h3>
             <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-6">
               <div className="text-gray-300 whitespace-pre-wrap font-mono text-base sm:text-lg leading-relaxed break-words">
@@ -289,7 +290,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         )}
 
         {sessionGroups.length > 0 && (
-          <div>
+          <div className="mb-8">
             <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Groups</h3>
             <div className="flex flex-wrap gap-2">
               {sessionGroups.map((group) => (
@@ -318,9 +319,9 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             })
 
             return (
-              <div>
+              <div className="mb-8">
                 <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Characters</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                   {sortedCharacters.map((character) => (
                     <SessionCharacterCard
                       key={character.id}
@@ -332,6 +333,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             )
           })()
         )}
+        </div>
       </div>
     </div>
   )

@@ -84,12 +84,12 @@ export default function CharacterMultiSelect({
       return placeholder
     }
 
-    if (selectedEntries.length <= 2) {
+    if (selectedEntries.length <= 4) {
       return selectedEntries.map((entry) => entry.label).join(", ")
     }
 
-    const [first, second] = selectedEntries
-    return `${first.label}, ${second.label} +${selectedEntries.length - 2}`
+    const [first, second, third, fourth] = selectedEntries
+    return `${first.label}, ${second.label}, ${third.label}, ${fourth.label} +${selectedEntries.length - 4}`
   }, [placeholder, selectedEntries])
 
   const filteredOptions = useMemo(() => {

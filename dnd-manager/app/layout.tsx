@@ -4,6 +4,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import AutoCapitalizeProvider from "@/components/providers/auto-capitalize-provider";
+import { SidebarProvider } from "@/components/providers/sidebar-provider";
+import ConditionalTopbar from "@/components/layout/conditional-topbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,8 +35,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -48,7 +51,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${pressStart.variable} antialiased`}
       >
         <AutoCapitalizeProvider>
-          {children}
+          <SidebarProvider>
+            <ConditionalTopbar />
+            {children}
+          </SidebarProvider>
         </AutoCapitalizeProvider>
         <Analytics />
         <SpeedInsights />

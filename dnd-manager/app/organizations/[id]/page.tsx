@@ -189,35 +189,35 @@ export default async function OrganizationDetailPage({
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <Link
-          href="/organizations"
-          className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider text-sm sm:text-base"
-        >
-          ← Back to Groups
-        </Link>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+    <div className="space-y-6">
+      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl pt-4 px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8 space-y-6 sm:space-y-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Link
-            href={`/organizations/${organization.id}/edit`}
-            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-3 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center min-h-[44px] flex items-center justify-center"
+            href="/organizations"
+            className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider text-sm sm:text-base"
           >
-            Edit Group
+            ← Back to Groups
           </Link>
-          <form action={handleDelete}>
-            <DeleteOrganizationButton />
-          </form>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              href={`/organizations/${organization.id}/edit`}
+              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-3 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center min-h-[44px] flex items-center justify-center"
+            >
+              Edit Group
+            </Link>
+            <form action={handleDelete}>
+              <DeleteOrganizationButton />
+            </form>
+          </div>
         </div>
-      </div>
-
-      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
-        <header>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-widest text-[#e8faff] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)] break-words">
+        
+        <header className="-mt-4">
+          <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold uppercase tracking-widest text-[#e8faff] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)] break-words">
             {organization.name}
           </h1>
         </header>
 
-        <div className="space-y-6 md:space-y-0 md:flex md:flex-row-reverse md:items-stretch md:gap-8">
+        <div className="space-y-6 md:space-y-0 md:flex md:flex-row-reverse md:items-stretch md:gap-8 -mt-2">
           {organization.logo_url && (
             <aside className="md:flex md:flex-col md:w-80 md:max-w-sm md:self-stretch w-full max-w-sm mx-auto md:mx-0 rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-lg shadow-[#00ffff]/20 font-mono text-sm text-gray-200">
               <div className="p-4 flex h-full flex-col">
@@ -258,31 +258,42 @@ export default async function OrganizationDetailPage({
           {campaigns.length === 0 ? (
             <p className="text-gray-500 font-mono italic text-sm sm:text-base">No campaigns are linked to this group yet.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="flex flex-wrap gap-2">
               {campaigns.map((campaign) => (
-                <article
+                <Link
                   key={campaign.id}
-                  className="group relative overflow-hidden rounded border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/40 p-3 sm:p-4 shadow-2xl transition-all duration-200 hover:border-[#ff00ff] hover:bg-[#0f0f23] hover:shadow-[#ff00ff]/40 min-h-[60px]"
+                  href={`/campaigns/${campaign.id}`}
+                  className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] transition hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
                 >
-                  <Link
-                    href={`/campaigns/${campaign.id}`}
-                    className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
-                    aria-label={`View campaign ${campaign.name}`}
-                  >
-                    <span aria-hidden="true" />
-                  </Link>
-                  <div className="relative z-10 pointer-events-none">
-                    <div className="flex items-start justify-between gap-2 sm:gap-3">
-                      <span className="font-medium text-[#00ffff] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff00ff] break-words flex-1">
-                        {campaign.name}
-                      </span>
-                      <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5] border border-[#ff00ff]/40 bg-[#211027] flex-shrink-0">
-                        {formatTimestampForDisplay(campaign.created_at) ?? 'Unknown'}
-                      </span>
-                    </div>
-                  </div>
-                </article>
+                  <span className="font-semibold">{campaign.name}</span>
+                </Link>
               ))}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-lg sm:text-xl font-bold text-[#00ffff] uppercase tracking-wider">Characters</h2>
+          {characters.length === 0 ? (
+            <p className="text-gray-500 font-mono italic text-sm sm:text-base">No characters are affiliated with this group yet.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {characters.map((character) => {
+                const isPlayer = character.player_type === "player";
+                const pillClasses = isPlayer
+                  ? "border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]"
+                  : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]";
+
+                return (
+                  <Link
+                    key={character.id}
+                    href={`/characters/${character.id}`}
+                    className={`inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] transition-colors focus:outline-none focus-visible:ring-2 ${pillClasses}`}
+                  >
+                    {character.name}
+                  </Link>
+                );
+              })}
             </div>
           )}
         </section>
@@ -334,57 +345,6 @@ export default async function OrganizationDetailPage({
                   </div>
                 </article>
               ))}
-            </div>
-          )}
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-lg sm:text-xl font-bold text-[#00ffff] uppercase tracking-wider">Characters</h2>
-          {characters.length === 0 ? (
-            <p className="text-gray-500 font-mono italic text-sm sm:text-base">No characters are affiliated with this group yet.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-              {characters.map((character) => {
-                const isPlayer = character.player_type === "player";
-                const badgeClasses = isPlayer
-                  ? "border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] group-hover:border-[#00ffff] group-hover:text-[#ff00ff]"
-                  : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] group-hover:border-[#ff6ad5] group-hover:text-[#ff9de6]";
-                const cardClasses = isPlayer
-                  ? "border border-[#00ffff] border-opacity-20 bg-[#0f0f23]/70 hover:border-[#ff00ff] hover:bg-[#0f0f23] focus-visible:ring-[#00ffff]"
-                  : "border border-[#ff00ff] border-opacity-30 bg-[#1a0220] hover:border-[#ff6ad5] hover:bg-[#1a0220] focus-visible:ring-[#ff6ad5]";
-                const nameClasses = isPlayer
-                  ? "font-medium text-[#00ffff] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff00ff]"
-                  : "font-medium text-[#ff6ad5] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff9de6]";
-                const linkRingClass = isPlayer ? "focus-visible:ring-[#00ffff]" : "focus-visible:ring-[#ff6ad5]";
-
-                return (
-                  <article
-                    key={character.id}
-                    className={`group relative overflow-hidden rounded p-3 sm:p-4 shadow-2xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 ${cardClasses} min-h-[80px]`}
-                  >
-                    <Link
-                      href={`/characters/${character.id}`}
-                      className={`absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 ${linkRingClass} focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]`}
-                      aria-label={`View character ${character.name}`}
-                    >
-                      <span aria-hidden="true" />
-                    </Link>
-                    <div className="relative z-10 pointer-events-none">
-                      <div className="flex items-start justify-between gap-2 sm:gap-3">
-                        <span className={`${nameClasses} break-words flex-1`}>
-                          {character.name}
-                        </span>
-                        <span className={`rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest transition-colors flex-shrink-0 ${badgeClasses}`}>
-                          {isPlayer ? "Player" : "NPC"}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-[10px] sm:text-[11px] text-gray-400 font-mono uppercase tracking-widest break-words">
-                        {character.player_type} · {character.status}
-                      </p>
-                    </div>
-                  </article>
-                );
-              })}
             </div>
           )}
         </section>

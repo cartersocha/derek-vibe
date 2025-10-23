@@ -126,11 +126,11 @@ export default function SimpleSessionMultiSelect({
       return ""
     }
     
-    if (selected.length <= 2) {
+    if (selected.length <= 4) {
       return selected.join(", ")
     }
     
-    return `${selected[0]}, ${selected[1]} +${selected.length - 2}`
+    return `${selected[0]}, ${selected[1]}, ${selected[2]}, ${selected[3]} +${selected.length - 4}`
   }, [normalizedSelections, options])
 
   return (
@@ -150,7 +150,7 @@ export default function SimpleSessionMultiSelect({
             : 'border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]'
         }`}
       >
-        <span>{selectedLabels || placeholder}</span>
+        <span className="truncate">{selectedLabels || placeholder}</span>
         <span className="text-xs text-[#ff00ff]">{open ? "▲" : "▼"}</span>
       </button>
 

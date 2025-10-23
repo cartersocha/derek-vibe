@@ -115,9 +115,36 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6 sm:space-y-8">
       <div>
         <h1 className="retro-title glitch-subtle text-2xl sm:text-3xl font-bold text-[#00ffff] break-words" data-text="DASHBOARD">Dashboard</h1>
+      </div>
+
+      {/* Statistics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <Link
+          href="/campaigns"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center"
+        >
+          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Campaigns</h3>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{campaignsCount || 0}</p>
+        </Link>
+
+        <Link
+          href="/sessions"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center"
+        >
+          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Sessions</h3>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{sessionsCount || 0}</p>
+        </Link>
+
+        <Link
+          href="/characters"
+          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center sm:col-span-2 lg:col-span-1"
+        >
+          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Characters</h3>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{charactersCount || 0}</p>
+        </Link>
       </div>
 
       {/* Recent Sessions */}
@@ -176,33 +203,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       )}
-
-      {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        <Link
-          href="/campaigns"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center"
-        >
-          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Campaigns</h3>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{campaignsCount || 0}</p>
-        </Link>
-
-        <Link
-          href="/sessions"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center"
-        >
-          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Sessions</h3>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{sessionsCount || 0}</p>
-        </Link>
-
-        <Link
-          href="/characters"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center sm:col-span-2 lg:col-span-1"
-        >
-          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Characters</h3>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{charactersCount || 0}</p>
-        </Link>
-      </div>
     </div>
   )
 }

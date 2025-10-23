@@ -222,25 +222,24 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   const deleteCampaignWithId = deleteCampaign.bind(null, id)
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <Link href="/campaigns" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
-          ← Back to Campaigns
-        </Link>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <Link
-            href={`/campaigns/${id}/edit`}
-            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
-          >
-            Edit Campaign
+    <div className="space-y-6">
+      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Link href="/campaigns" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
+            ← Back to Campaigns
           </Link>
-          <form action={deleteCampaignWithId}>
-            <DeleteCampaignButton />
-          </form>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              href={`/campaigns/${id}/edit`}
+              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
+            >
+              Edit Campaign
+            </Link>
+            <form action={deleteCampaignWithId}>
+              <DeleteCampaignButton />
+            </form>
+          </div>
         </div>
-      </div>
-
-      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8 space-y-8">
         {/* Campaign Name and Description */}
         <div>
           <h1 className="retro-title text-4xl font-bold text-[#00ffff] mb-4 text-center">{campaign.name}</h1>
@@ -254,7 +253,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         </div>
 
         {/* Campaign Stats */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Sessions</div>
             <div className="text-3xl font-bold text-[#00ffff]">{rawSessions.length}</div>
@@ -311,7 +310,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-3 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447]"
+                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-3 py-1.5 text-xs font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447]"
                   >
                     {organization.name}
                   </Link>
