@@ -140,7 +140,7 @@ export default function Topbar() {
 
         {/* Search Bar - Desktop Only */}
         <div className="hidden md:flex items-center justify-center flex-1">
-          <div className="relative w-full max-w-lg">
+          <div className="relative w-full max-w-xl">
             <input
               type="text"
               value={searchQuery}
