@@ -114,10 +114,19 @@ export default function SimpleCharacterMultiSelect({
   }, [normalizedSelections, onChange])
 
   const selectedLabels = useMemo(() => {
-    return normalizedSelections
+    const selected = normalizedSelections
       .map(id => options.find(opt => opt.value === id)?.label)
       .filter(Boolean)
-      .join(", ")
+    
+    if (selected.length === 0) {
+      return ""
+    }
+    
+    if (selected.length <= 2) {
+      return selected.join(", ")
+    }
+    
+    return `${selected[0]}, ${selected[1]} +${selected.length - 2}`
   }, [normalizedSelections, options])
 
   return (
