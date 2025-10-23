@@ -26,6 +26,7 @@ type NewCharacterFormProps = {
   redirectTo?: string | null
   mentionTargets: MentionTarget[]
   organizations: { id: string; name: string }[]
+  campaigns: { id: string; name: string }[]
   locationSuggestions?: string[]
   raceSuggestions?: string[]
   classSuggestions?: string[]
@@ -35,6 +36,7 @@ export function NewCharacterForm({
   redirectTo,
   mentionTargets,
   organizations,
+  campaigns,
   locationSuggestions = [],
   raceSuggestions = [],
   classSuggestions = [],
@@ -44,6 +46,7 @@ export function NewCharacterForm({
   const [characterClass, setCharacterClass] = useState("")
   const [lastKnownLocation, setLastKnownLocation] = useState("")
   const [status, setStatus] = useState<CharacterStatus>("alive")
+  const [campaignIds, setCampaignIds] = useState<string[]>([])
   const [organizationIds, setOrganizationIds] = useState<string[]>([])
   const organizationMentionTargets = useMemo(() => {
     return organizations
@@ -100,6 +103,13 @@ export function NewCharacterForm({
       label: organization.name || "Untitled Organization",
     }))
   }, [organizations])
+
+  const campaignOptions = useMemo(() => {
+    return campaigns.map((campaign) => ({
+      value: campaign.id,
+      label: campaign.name || "Untitled Campaign",
+    }))
+  }, [campaigns])
 
   const dedupeAndNormalize = useCallback((values: readonly string[] | string[] | undefined) => {
     const seen = new Set<string>()
@@ -291,6 +301,20 @@ export function NewCharacterForm({
             hideSearch
           />
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="campaign_ids" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+          Campaigns
+        </label>
+        <OrganizationMultiSelect
+          id="campaign_ids"
+          name="campaign_ids"
+          value={campaignIds}
+          onChange={setCampaignIds}
+          options={campaignOptions}
+          placeholder="Select campaigns"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

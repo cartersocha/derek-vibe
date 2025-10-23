@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { CharacterSearch } from '@/components/ui/character-search'
+import CharactersContent from '@/components/characters/characters-content'
 
 export default async function CharactersPage() {
   const supabase = await createClient()
@@ -10,6 +10,9 @@ export default async function CharactersPage() {
       .from('characters')
       .select(`
         *,
+        campaigns:character_campaigns(
+          campaign:campaigns(id, name)
+        ),
         organization_characters (
           role,
           organization:organizations (id, name)
@@ -121,5 +124,5 @@ export default async function CharactersPage() {
     }
   })
 
-  return <CharacterSearch characters={enrichedCharacters} />
+  return <CharactersContent characters={enrichedCharacters} />
 }

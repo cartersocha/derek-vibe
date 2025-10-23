@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { OrganizationsIndex, type OrganizationRecord } from "@/components/ui/organizations-index";
-import { mapEntitiesToMentionTargets, mergeMentionTargets } from "@/lib/mention-utils";
+import OrganizationsContent from "@/components/organizations/organizations-content";
+import { type OrganizationRecord } from "@/components/ui/organizations-index";
 
 export default async function OrganizationsPage() {
   const supabase = await createClient();
@@ -148,12 +148,12 @@ export default async function OrganizationsPage() {
       organization_campaigns: organizationCampaigns,
     };
   });
-  const mentionTargets = mergeMentionTargets(
-    mapEntitiesToMentionTargets(organizations, "organization", (organization) => `/organizations/${organization.id}`),
-    mapEntitiesToMentionTargets(charactersResult.data, "character", (character) => `/characters/${character.id}`),
-    mapEntitiesToMentionTargets(sessionsResult.data, "session", (session) => `/sessions/${session.id}`),
-    mapEntitiesToMentionTargets(campaignsResult.data, "campaign", (campaign) => `/campaigns/${campaign.id}`),
+  return (
+    <OrganizationsContent
+      organizations={organizations}
+      mentionCharacters={charactersResult.data ?? []}
+      mentionSessions={sessionsResult.data ?? []}
+      mentionCampaigns={campaignsResult.data ?? []}
+    />
   );
-
-  return <OrganizationsIndex organizations={organizations} mentionTargets={mentionTargets} />;
 }

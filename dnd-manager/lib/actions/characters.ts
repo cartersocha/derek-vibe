@@ -90,6 +90,7 @@ export async function createCharacter(formData: FormData): Promise<void> {
     player_type: (getString(formData, "player_type") || "npc") as PlayerType,
     last_known_location: getStringOrNull(formData, "last_known_location"),
     status: (getString(formData, "status") || "alive") as CharacterStatus,
+    // campaign_id will be handled separately for many-to-many relationship
   };
 
   const result = characterSchema.safeParse(data);
@@ -152,6 +153,33 @@ export async function createCharacter(formData: FormData): Promise<void> {
         revalidatePath(`/campaigns/${campaign_id}`);
       }
     });
+  }
+
+  // Handle campaign relationships
+  const campaignIds = formData.getAll("campaign_ids") as string[];
+  if (campaignIds.length > 0) {
+    const campaignRelations = campaignIds
+      .filter(id => id && id.trim() !== "")
+      .map(campaignId => ({
+        character_id: characterId,
+        campaign_id: campaignId
+      }));
+
+    if (campaignRelations.length > 0) {
+      const { error: campaignError } = await supabase
+        .from("character_campaigns")
+        .insert(campaignRelations);
+
+      if (campaignError) {
+        console.error("Error linking character to campaigns:", campaignError);
+        // Don't throw error as character was already created successfully
+      } else {
+        // Revalidate campaign pages
+        campaignRelations.forEach(({ campaign_id }) => {
+          revalidatePath(`/campaigns/${campaign_id}`);
+        });
+      }
+    }
   }
 
   const redirectToRaw = formData.get("redirect_to");

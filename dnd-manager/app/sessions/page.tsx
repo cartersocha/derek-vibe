@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { SessionsIndex } from '@/components/ui/sessions-index'
-import { type MentionTarget } from '@/lib/mention-utils'
-import { extractPlayerSummaries, dateStringToLocalDate, type SessionCharacterRelation } from '@/lib/utils'
+import SessionsContent from '@/components/sessions/sessions-content'
+import { dateStringToLocalDate, extractPlayerSummaries } from '@/lib/utils'
 
 export default async function SessionsPage() {
   const supabase = await createClient()
@@ -196,5 +195,13 @@ export default async function SessionsPage() {
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
   })()
 
-  return <SessionsIndex sessions={enrichedSessions} mentionTargets={mentionTargets} />
+  return (
+    <SessionsContent
+      sessions={sessions || []}
+      mentionCharacters={mentionCharacters || []}
+      organizations={organizations || []}
+      campaigns={campaigns || []}
+      organizationMemberCounts={organizationMemberCounts}
+    />
+  )
 }

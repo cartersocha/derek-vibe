@@ -181,6 +181,13 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
               details.push({ label: "Last Seen", value: character.last_known_location });
             }
 
+            if (character.campaigns && character.campaigns.length > 0) {
+              const campaignNames = character.campaigns
+                .map(campaignRelation => campaignRelation.campaign.name)
+                .join(", ");
+              details.push({ label: "Campaigns", value: campaignNames });
+            }
+
             const borderStyle = isPlayerCharacter
               ? "border-[#00ffff] hover:border-[#00ffff] hover:shadow-[#00ffff]/50 focus-visible:ring-[#00ffff]"
               : "border-[#ff00ff] hover:border-[#ff6ad5] hover:shadow-[#ff6ad5]/50 focus-visible:ring-[#ff6ad5]";

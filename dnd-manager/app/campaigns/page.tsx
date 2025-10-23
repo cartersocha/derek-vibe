@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { CampaignsIndex } from '@/components/ui/campaigns-index'
-import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-utils'
+import CampaignsContent from '@/components/campaigns/campaigns-content'
 
 export default async function CampaignsPage() {
   const supabase = await createClient()
@@ -200,11 +199,13 @@ export default async function CampaignsPage() {
     }
   })
 
-  const mentionTargets = mergeMentionTargets(
-    mapEntitiesToMentionTargets(charactersResult.data ?? [], 'character', (entry) => `/characters/${entry.id}`),
-    mapEntitiesToMentionTargets(sessionsResult.data ?? [], 'session', (entry) => `/sessions/${entry.id}`),
-    mapEntitiesToMentionTargets(organizationsResult.data ?? [], 'organization', (entry) => `/organizations/${entry.id}`),
-    mapEntitiesToMentionTargets(campaigns, 'campaign', (entry) => `/campaigns/${entry.id}`)
+  return (
+    <CampaignsContent
+      campaigns={enrichedCampaigns}
+      mentionCharacters={charactersResult.data ?? []}
+      mentionSessions={sessionsResult.data ?? []}
+      mentionOrganizations={organizationsResult.data ?? []}
+      organizationMemberCounts={organizationMemberCounts}
+    />
   )
-  return <CampaignsIndex campaigns={enrichedCampaigns} mentionTargets={mentionTargets} />
 }

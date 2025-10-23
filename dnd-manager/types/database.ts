@@ -35,6 +35,7 @@ export interface Character {
   created_at: string
   updated_at: string
   sessions?: Session[]
+  campaigns?: Campaign[]
 }
 
 export interface SessionCharacter {
