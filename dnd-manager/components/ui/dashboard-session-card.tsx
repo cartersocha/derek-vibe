@@ -124,7 +124,7 @@ export function DashboardSessionCard({ session, sessionNumber, players, organiza
             </div>
           )}
         </div>
-        <div className="relative z-10 pointer-events-none text-xs font-mono uppercase tracking-wider text-gray-500 sm:ml-4 sm:text-right">
+        <div className="relative z-10 pointer-events-none text-xs font-mono uppercase tracking-wider text-orange-400 sm:ml-4 sm:text-right">
           {sessionDateLabel ? (
             <div>{sessionDateLabel}</div>
           ) : (

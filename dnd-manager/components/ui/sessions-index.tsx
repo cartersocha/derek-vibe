@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { formatDateStringForDisplay, type PlayerSummary } from "@/lib/utils";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 import { SessionParticipantPills } from "@/components/ui/session-participant-pills";
-import { IndexEmptyState, IndexHeader, IndexSearchEmptyState } from "@/components/ui/index-utility";
+import { IndexEmptyState, IndexHeader } from "@/components/ui/index-utility";
 
 type CampaignInfo = {
   id: string | null;
@@ -36,7 +36,6 @@ type SessionsIndexProps = {
 };
 
 export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) {
-  const [query, setQuery] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const toggleSessionGroups = (sessionId: string) => {
@@ -52,39 +51,11 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
   };
 
   const hasSessions = sessions.length > 0;
-  const normalizedQuery = query.trim().toLowerCase();
-
-  const filteredSessions = useMemo(() => {
-    if (!normalizedQuery) {
-      return sessions;
-    }
-
-    return sessions.filter((session) => {
-      const haystack = [
-        session.name,
-        session.campaign?.name ?? "",
-        session.notes ?? "",
-        session.players.map((player) => player.name).join(" "),
-        // Add organization names to search
-        session.organizations.map((org) => org.name).join(" "),
-      ]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(normalizedQuery);
-    });
-  }, [normalizedQuery, sessions]);
 
   return (
     <div className="space-y-6">
       <IndexHeader
         title="Sessions"
-        searchId="session-search"
-        searchPlaceholder="Search"
-        searchValue={query}
-        onSearchChange={(event) => setQuery(event.target.value)}
-        searchDisabled={!hasSessions}
-        actionHref="/sessions/new"
-        actionLabel="+ New Session"
       />
 
       {!hasSessions ? (
@@ -94,11 +65,9 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
           actionHref="/sessions/new"
           actionLabel="Create Session"
         />
-      ) : filteredSessions.length === 0 ? (
-        <IndexSearchEmptyState message="No sessions matched your search." />
       ) : (
         <div className="space-y-4">
-          {filteredSessions.map((session) => {
+          {sessions.map((session) => {
             const players = session.players;
             const groups = session.organizations;
             const sessionDateLabel = formatDateStringForDisplay(session.session_date);

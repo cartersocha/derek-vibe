@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 import { cn } from "@/lib/utils";
-import { IndexEmptyState, IndexHeader, IndexSearchEmptyState } from "@/components/ui/index-utility";
+import { IndexEmptyState, IndexHeader } from "@/components/ui/index-utility";
 
 export type OrganizationRecord = {
   id: string;
@@ -49,7 +49,6 @@ type OrganizationsIndexProps = {
 };
 
 export function OrganizationsIndex({ organizations, mentionTargets }: OrganizationsIndexProps) {
-  const [query, setQuery] = useState("");
   const [expandedOrganizations, setExpandedOrganizations] = useState<Set<string>>(new Set());
 
   const toggleOrganizationSessions = (organizationId: string) => {
@@ -65,44 +64,11 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
   };
 
   const hasOrganizations = organizations.length > 0;
-  const normalizedQuery = query.trim().toLowerCase();
-
-  const filteredOrganizations = useMemo(() => {
-    if (!normalizedQuery) {
-      return organizations;
-    }
-
-    return organizations.filter((organization) => {
-      const haystack = [
-        organization.name,
-        organization.description ?? "",
-        // Add related characters to search
-        organization.organization_characters?.map((char) => char.character.name).join(" ") ?? "",
-        // Add related sessions to search
-        organization.organization_sessions?.map((session) => session.session.name).join(" ") ?? "",
-        // Add related campaigns to search (from sessions)
-        organization.organization_sessions?.map((session) => session.session.campaign?.name).filter(Boolean).join(" ") ?? "",
-        // Add direct campaign relationships
-        organization.organization_campaigns?.map((campaign) => campaign.campaign.name).join(" ") ?? "",
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(normalizedQuery);
-    });
-  }, [normalizedQuery, organizations]);
 
   return (
     <section className="space-y-8">
       <IndexHeader
         title="Groups"
-        searchId="organization-search"
-        searchPlaceholder="Search"
-        searchValue={query}
-        onSearchChange={(event) => setQuery(event.target.value)}
-        searchDisabled={!hasOrganizations}
-        actionHref="/organizations/new"
-        actionLabel="+ New Group"
       />
 
       {!hasOrganizations ? (
@@ -112,11 +78,9 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
           actionHref="/organizations/new"
           actionLabel="Create Group"
         />
-      ) : filteredOrganizations.length === 0 ? (
-        <IndexSearchEmptyState message="No groups matched your search." />
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredOrganizations.map((organization) => (
+          {organizations.map((organization) => (
             <article
               key={organization.id}
               className="group relative overflow-hidden rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e] bg-opacity-50 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50"

@@ -189,7 +189,7 @@ export default async function OrganizationDetailPage({
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <Link
           href="/organizations"

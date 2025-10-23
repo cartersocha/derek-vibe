@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { cn, formatTimestampForDisplay } from "@/lib/utils";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
-import { IndexEmptyState, IndexHeader, IndexSearchEmptyState } from "@/components/ui/index-utility";
+import { IndexEmptyState, IndexHeader } from "@/components/ui/index-utility";
 
 type CampaignRecord = {
   id: string;
@@ -24,12 +24,10 @@ type CampaignsIndexProps = {
 };
 
 export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProps) {
-  const [query, setQuery] = useState("");
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const hasCampaigns = campaigns.length > 0;
-  const normalizedQuery = query.trim().toLowerCase();
 
   const toggleCampaignSessions = (campaignId: string) => {
     setExpandedCampaigns(prev => {
@@ -55,39 +53,11 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
     });
   };
 
-  const filteredCampaigns = useMemo(() => {
-    if (!normalizedQuery) {
-      return campaigns;
-    }
-
-    return campaigns.filter((campaign) => {
-      const haystack = [
-        campaign.name,
-        campaign.description ?? "",
-        // Add related sessions to search
-        campaign.sessions.map((session) => session.name).join(" "),
-        // Add related characters to search
-        campaign.characters.map((character) => character.name).join(" "),
-        // Add related organizations to search
-        campaign.organizations.map((org) => org.name).join(" "),
-      ]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(normalizedQuery);
-    });
-  }, [campaigns, normalizedQuery]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <IndexHeader
         title="Campaigns"
-        searchId="campaign-search"
-        searchPlaceholder="Search"
-        searchValue={query}
-        onSearchChange={(event) => setQuery(event.target.value)}
-        searchDisabled={!hasCampaigns}
-        actionHref="/campaigns/new"
-        actionLabel="+ New Campaign"
       />
 
       {!hasCampaigns ? (
@@ -97,11 +67,9 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
           actionHref="/campaigns/new"
           actionLabel="Create Campaign"
         />
-      ) : filteredCampaigns.length === 0 ? (
-        <IndexSearchEmptyState message="No campaigns matched your search." />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:gap-6">
-          {filteredCampaigns.map((campaign) => (
+          {campaigns.map((campaign) => (
             <article
               key={campaign.id}
               className="relative overflow-hidden rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e] bg-opacity-50 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50 group"
