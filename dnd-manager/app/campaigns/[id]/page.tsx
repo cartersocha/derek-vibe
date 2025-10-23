@@ -253,7 +253,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         </div>
 
         {/* Campaign Stats */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Sessions</div>
             <div className="text-3xl font-bold text-[#00ffff]">{rawSessions.length}</div>

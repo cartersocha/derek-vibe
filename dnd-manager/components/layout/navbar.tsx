@@ -237,7 +237,7 @@ const hasAppliedAutoWidthRef = useRef(false);
             type="button"
             onClick={toggleSidebar}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="inline-flex items-center justify-center rounded p-2 text-[#00ffff] hover:text-[#ff00ff] transition-colors min-h-[40px] min-w-[40px]"
+            className="inline-flex items-center justify-center rounded p-2 text-[#00ffff] hover:text-[#ff00ff] transition-colors min-h-[44px] min-w-[44px] touch-target"
           >
             <svg
               className="h-6 w-6"
@@ -272,7 +272,7 @@ const hasAppliedAutoWidthRef = useRef(false);
                 className={cn(
                   "group relative flex items-center rounded transition-all duration-200 uppercase tracking-wider font-bold overflow-hidden",
                   shouldShowIconsOnly
-                    ? "justify-center w-14 h-10 p-2 text-base"
+                    ? "justify-center w-14 h-12 p-2 text-base touch-target"
                     : "px-4 py-2 text-xs",
                   isActive
                     ? "bg-[#ff00ff] text-black shadow-lg shadow-[#ff00ff]/50"

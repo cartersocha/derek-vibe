@@ -400,7 +400,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
         </div>
 
         {/* Campaigns and Affiliations Section - Dynamic Width */}
-        <div className="flex flex-col lg:flex-row gap-6 mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
           {/* Campaigns Section */}
           <section className="space-y-4 flex-shrink-0" style={{ 
             width: linkedSessions.length > 0 ? 

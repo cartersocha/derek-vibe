@@ -263,7 +263,7 @@ export default async function OrganizationDetailPage({
                 <Link
                   key={campaign.id}
                   href={`/campaigns/${campaign.id}`}
-                  className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-3 py-1.5 text-xs font-mono uppercase tracking-[0.25em] text-[#ff6b35] transition hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                  className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] transition hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
                 >
                   <span className="font-semibold">{campaign.name}</span>
                 </Link>
@@ -288,7 +288,7 @@ export default async function OrganizationDetailPage({
                   <Link
                     key={character.id}
                     href={`/characters/${character.id}`}
-                    className={`inline-flex items-center rounded px-3 py-1.5 text-xs font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2 ${pillClasses}`}
+                    className={`inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] transition-colors focus:outline-none focus-visible:ring-2 ${pillClasses}`}
                   >
                     {character.name}
                   </Link>

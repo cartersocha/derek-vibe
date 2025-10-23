@@ -304,7 +304,7 @@ export default function CharacterEditForm({
         maxSize={5}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label htmlFor="name" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
             Character Name *
@@ -336,7 +336,7 @@ export default function CharacterEditForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label htmlFor="class" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
             Class
@@ -368,7 +368,7 @@ export default function CharacterEditForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label htmlFor="status" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
             Status
@@ -397,7 +397,7 @@ export default function CharacterEditForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label htmlFor="last_known_location" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
             Last Known Location

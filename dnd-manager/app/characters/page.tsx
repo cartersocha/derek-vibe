@@ -137,7 +137,7 @@ export default function CharactersPage() {
       <div className="mb-6">
         <h1 className="retro-title text-3xl font-bold text-[#00ffff]">Characters</h1>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {characters.map((character) => (
           <article
             key={character.id}
@@ -154,7 +154,7 @@ export default function CharactersPage() {
             >
               <span aria-hidden="true" />
             </Link>
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
+            <div className="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:justify-between sm:items-start">
               <div className="relative z-10 flex-1 pointer-events-none">
                 <div className="mb-2">
                   <span className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">

@@ -104,11 +104,6 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                         Campaign: {session.campaign.name}
                       </Link>
                     )}
-                    {session.notes && (
-                      <div className="pointer-events-auto line-clamp-2 font-mono text-sm whitespace-pre-line break-words text-[#cbd5f5]">
-                        {renderNotesWithMentions(session.notes, mentionTargets)}
-                      </div>
-                    )}
                     {players.length > 0 && (
                       <SessionParticipantPills
                         sessionId={session.id}

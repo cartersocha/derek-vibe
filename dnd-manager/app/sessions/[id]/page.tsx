@@ -321,7 +321,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             return (
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Characters</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                   {sortedCharacters.map((character) => (
                     <SessionCharacterCard
                       key={character.id}
