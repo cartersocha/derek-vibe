@@ -190,34 +190,34 @@ export default async function OrganizationDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <Link
-          href="/organizations"
-          className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider text-sm sm:text-base"
-        >
-          ← Back to Groups
-        </Link>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl pt-4 px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8 space-y-6 sm:space-y-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Link
-            href={`/organizations/${organization.id}/edit`}
-            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-3 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center min-h-[44px] flex items-center justify-center"
+            href="/organizations"
+            className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider text-sm sm:text-base"
           >
-            Edit Group
+            ← Back to Groups
           </Link>
-          <form action={handleDelete}>
-            <DeleteOrganizationButton />
-          </form>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              href={`/organizations/${organization.id}/edit`}
+              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-3 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center min-h-[44px] flex items-center justify-center"
+            >
+              Edit Group
+            </Link>
+            <form action={handleDelete}>
+              <DeleteOrganizationButton />
+            </form>
+          </div>
         </div>
-      </div>
-
-      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
-        <header>
+        
+        <header className="-mt-4">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-widest text-[#e8faff] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)] break-words">
             {organization.name}
           </h1>
         </header>
 
-        <div className="space-y-6 md:space-y-0 md:flex md:flex-row-reverse md:items-stretch md:gap-8">
+        <div className="space-y-6 md:space-y-0 md:flex md:flex-row-reverse md:items-stretch md:gap-8 -mt-2">
           {organization.logo_url && (
             <aside className="md:flex md:flex-col md:w-80 md:max-w-sm md:self-stretch w-full max-w-sm mx-auto md:mx-0 rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-lg shadow-[#00ffff]/20 font-mono text-sm text-gray-200">
               <div className="p-4 flex h-full flex-col">

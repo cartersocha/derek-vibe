@@ -303,7 +303,8 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="space-y-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Link href="/characters" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
             ← Back to Characters
           </Link>
@@ -319,9 +320,8 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             </form>
           </div>
         </div>
-
-      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8 space-y-6">
-        <header>
+        
+        <header className="-mt-2">
           <h1 className="text-4xl md:text-5xl font-bold uppercase tracking-widest text-[#e8faff] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)]">
             {character.name}
           </h1>

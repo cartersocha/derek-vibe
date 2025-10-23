@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,13 @@ const NAV_LINKS = [
   { href: "/organizations", label: "Groups", symbol: "⚙" },
 ];
 
+const CREATE_OPTIONS = [
+  { href: "/campaigns/new", label: "New Campaign" },
+  { href: "/sessions/new", label: "New Session" },
+  { href: "/characters/new", label: "New Character" },
+  { href: "/organizations/new", label: "New Group" },
+];
+
 export default function Topbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -22,7 +29,9 @@ export default function Topbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
   const { isCollapsed, toggleSidebar } = useSidebar();
+  const createMenuRef = useRef<HTMLDivElement>(null);
 
   // Search functionality
   const performSearch = async (query: string) => {
@@ -84,6 +93,29 @@ export default function Topbar() {
     router.push(url);
     setSearchQuery("");
     setShowResults(false);
+  };
+
+  // Handle click outside to close create menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (createMenuRef.current && !createMenuRef.current.contains(event.target as Node)) {
+        setShowCreateMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleCreateClick = () => {
+    setShowCreateMenu(!showCreateMenu);
+  };
+
+  const handleCreateOptionClick = (href: string) => {
+    router.push(href);
+    setShowCreateMenu(false);
   };
 
   return (
@@ -194,31 +226,75 @@ export default function Topbar() {
           </div>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          type="button"
-          onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-          aria-expanded={isMobileMenuOpen}
-          aria-controls="mobile-nav"
-          className="md:hidden inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-40 p-1.5 text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff] transition-colors min-h-[36px] min-w-[36px]"
-        >
-          <span className="sr-only">Toggle navigation</span>
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            {isMobileMenuOpen ? (
-              <path d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path d="M4 6h16M4 12h16M4 18h16" />
+        {/* Create Button and Mobile Menu Button */}
+        <div className="flex items-center space-x-2">
+          {/* Create Button */}
+          <div className="relative" ref={createMenuRef}>
+            <button
+              type="button"
+              onClick={handleCreateClick}
+              aria-expanded={showCreateMenu}
+              aria-label="Create new item"
+              className="inline-flex items-center justify-center rounded border border-[#ff00ff] border-opacity-40 p-1.5 text-[#ff00ff] hover:border-[#ff00ff] hover:bg-[#ff00ff]/10 transition-colors min-h-[32px] min-w-[32px] bg-[#ff00ff]/5"
+            >
+              <span className="sr-only">Create new item</span>
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+
+            {/* Create Menu Dropdown */}
+            {showCreateMenu && (
+              <div className="absolute right-0 top-full mt-1 bg-[#1a1a3e] border border-[#ff00ff] border-opacity-30 rounded shadow-lg z-50 min-w-[160px] max-w-[200px]">
+                <div className="py-1">
+                  {CREATE_OPTIONS.map((option) => (
+                    <button
+                      key={option.href}
+                      onClick={() => handleCreateOptionClick(option.href)}
+                      className="w-full px-4 py-2 text-left hover:bg-[#2a2a4e] transition-colors text-sm whitespace-nowrap"
+                    >
+                      <span className="text-[#00ffff] font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
-          </svg>
-        </button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-nav"
+            className="md:hidden inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-40 p-1.5 text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff] transition-colors min-h-[36px] min-w-[36px]"
+          >
+            <span className="sr-only">Toggle navigation</span>
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {isMobileMenuOpen ? (
+                <path d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Mobile Navigation Menu */}
