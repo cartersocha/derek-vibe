@@ -1,338 +1,161 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { deleteSession } from '@/lib/actions/sessions'
-import { DeleteSessionButton } from '@/components/ui/delete-session-button'
-import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
-import { formatDateStringForDisplay } from '@/lib/utils'
-import { SessionCharacterCard } from '@/components/ui/session-character-card'
+import { notFound } from 'next/navigation'
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-utils'
+import { Suspense } from 'react'
+import SessionDetail from '@/components/sessions/session-detail'
 
-export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+async function SessionContent({ sessionId }: { sessionId: string }) {
   const supabase = await createClient()
 
-  const { data: session } = await supabase
-    .from('sessions')
-    .select(`
-      *,
-      campaign:campaigns(id, name)
-    `)
-    .eq('id', id)
-    .single()
-
-  if (!session) {
-    notFound()
-  }
-
-  const sessionNumberMap = new Map<string, number>()
-
-  if (session.campaign_id) {
-    const { data: sessionsForCampaign } = await supabase
+  const [sessionResult, sessionCharactersResult, organizationSessionsResult, charactersResult, campaignsResult, organizationsResult] = await Promise.all([
+    supabase
       .from('sessions')
-      .select('id, name, session_date')
-      .eq('campaign_id', session.campaign_id)
-      .order('session_date', { ascending: true, nullsFirst: true })
+      .select(`
+        id,
+        name,
+        campaign_id,
+        session_date,
+        created_at,
+        summary,
+        notes,
+        campaign:campaigns(id, name)
+      `)
+      .eq('id', sessionId)
+      .single(),
+    supabase
+      .from('session_characters')
+      .select(`
+        character:characters(
+          id,
+          name,
+          player_type,
+          location,
+          status,
+          level
+        )
+      `)
+      .eq('session_id', sessionId),
+    supabase
+      .from('organization_sessions')
+      .select(`
+        organization:organizations(
+          id,
+          name,
+          description
+        )
+      `)
+      .eq('session_id', sessionId),
+    supabase.from('characters').select('id, name').order('name'),
+    supabase.from('campaigns').select('id, name').order('name'),
+    supabase.from('organizations').select('id, name').order('name'),
+  ])
 
-    if (sessionsForCampaign) {
-      let counter = 1
-      for (const campaignSession of sessionsForCampaign) {
-        if (campaignSession.session_date) {
-          sessionNumberMap.set(campaignSession.id, counter)
-          counter += 1
-        }
-      }
-    }
+  if (sessionResult.error) {
+    throw new Error(sessionResult.error.message)
   }
 
-  // Fetch characters for this session
-  const { data: sessionCharacters } = await supabase
-    .from('session_characters')
-    .select('character_id')
-    .eq('session_id', id)
+  const session = sessionResult.data
+  if (!session) {
+    notFound();
+  }
 
-  const characterIds = sessionCharacters?.map(sc => sc.character_id) || []
+  const isMissingSessionCharactersTable = (
+    error: { message?: string | null; code?: string | null } | null | undefined
+  ) => {
+    if (!error) {
+      return false
+    }
+    const code = error.code?.toUpperCase()
+    if (code === '42P01') {
+      return true
+    }
+    const message = error.message?.toLowerCase() ?? ''
+    return message.includes('session_characters')
+  }
 
-  const { data: sessionOrganizations } = await supabase
-    .from('organization_sessions')
-    .select('organization:organizations(id, name)')
-    .eq('session_id', id)
+  if (sessionCharactersResult?.error && !isMissingSessionCharactersTable(sessionCharactersResult.error)) {
+    throw new Error(sessionCharactersResult.error.message)
+  }
 
-  const sessionGroups = (sessionOrganizations ?? [])
-    .map((entry) => {
-      const organization = Array.isArray(entry.organization) ? entry.organization[0] : entry.organization
-      if (!organization?.id || !organization?.name) {
+  if (organizationSessionsResult?.error) {
+    throw new Error(organizationSessionsResult.error.message)
+  }
+
+  // Process characters
+  const characters = isMissingSessionCharactersTable(sessionCharactersResult?.error)
+    ? []
+    : sessionCharactersResult?.data
+        ?.map(row => {
+          const character = Array.isArray(row.character) ? row.character[0] : row.character
+          if (!character?.id || !character.name) {
+            return null
+          }
+          return {
+            id: character.id,
+            name: character.name,
+            player_type: character.player_type ?? null,
+            location: character.location ?? null,
+            status: character.status ?? null,
+            level: character.level ?? null,
+          }
+        })
+        .filter((character): character is NonNullable<typeof character> => character !== null)
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })) ?? []
+
+  // Process organizations
+  const organizations = organizationSessionsResult?.data
+    ?.map(row => {
+      const organization = Array.isArray(row.organization) ? row.organization[0] : row.organization
+      if (!organization?.id || !organization.name) {
         return null
       }
       return {
         id: organization.id,
         name: organization.name,
+        description: organization.description ?? null,
       }
     })
-    .filter((group): group is { id: string; name: string } => Boolean(group))
-    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-  
-  type SessionCharacterRow = {
-    id: string
-    name: string
-    level: string | null
-    player_type: 'npc' | 'player' | null
-    organization_memberships: Array<{
-      organizations:
-        | { id: string | null; name: string | null }
-        | Array<{ id: string | null; name: string | null }>
-    }> | null
-  }
+    .filter((organization): organization is NonNullable<typeof organization> => organization !== null)
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })) ?? []
 
-  let sessionChars: Array<{
-    id: string
-    name: string
-    level: string | null
-    player_type: 'npc' | 'player' | null
-    organizations: { id: string; name: string }[]
-  }> = []
-
-  if (characterIds.length > 0) {
-    const { data: charData } = await supabase
-      .from('characters')
-      .select(
-        `
-          id,
-          name,
-          level,
-          player_type,
-          organization_memberships:organization_characters(
-            organizations(id, name)
-          )
-        `
-      )
-      .in('id', characterIds)
-
-    sessionChars = (charData as SessionCharacterRow[] | null)?.map((character) => {
-      const organizations: { id: string; name: string }[] = Array.isArray(character.organization_memberships)
-        ? character.organization_memberships
-            .flatMap((membership) => {
-              const orgData = membership.organizations
-              const organization = Array.isArray(orgData) ? orgData[0] : orgData
-              if (!organization?.id || !organization?.name) {
-                return []
-              }
-              return [{
-                id: organization.id,
-                name: organization.name,
-              }]
-            })
-        : []
-
-      return {
-        id: character.id,
-        name: character.name,
-        level: character.level,
-        player_type: character.player_type,
-        organizations,
-      }
-    }) ?? []
-  }
-
-  const [
-    { data: mentionCharacters },
-    { data: mentionSessions },
-    { data: mentionOrganizations },
-    { data: mentionCampaigns },
-  ] = await Promise.all([
-    supabase.from('characters').select('id, name').order('name'),
-    supabase.from('sessions').select('id, name').order('name'),
-    supabase.from('organizations').select('id, name').order('name'),
-    supabase.from('campaigns').select('id, name').order('name'),
-  ])
-
-  const mentionTargets = (() => {
-    const map = new Map<string, MentionTarget>()
-
-    const addTarget = (target: MentionTarget) => {
-      if (!target.id || !target.name) {
-        return
-      }
-      map.set(`${target.kind}:${target.id}`, target)
-    }
-
-    for (const character of mentionCharacters ?? []) {
-      if (!character?.id || !character?.name) {
-        continue
-      }
-      addTarget({
-        id: character.id,
-        name: character.name,
-        href: `/characters/${character.id}`,
-        kind: 'character',
-      })
-    }
-
-    for (const sessionEntry of mentionSessions ?? []) {
-      if (!sessionEntry?.id || !sessionEntry?.name) {
-        continue
-      }
-      addTarget({
-        id: sessionEntry.id,
-        name: sessionEntry.name,
-        href: `/sessions/${sessionEntry.id}`,
-        kind: 'session',
-      })
-    }
-
-    for (const organization of mentionOrganizations ?? []) {
-      if (!organization?.id || !organization?.name) {
-        continue
-      }
-      addTarget({
-        id: organization.id,
-        name: organization.name,
-        href: `/organizations/${organization.id}`,
-        kind: 'organization',
-      })
-    }
-
-    for (const campaign of mentionCampaigns ?? []) {
-      if (!campaign?.id || !campaign?.name) {
-        continue
-      }
-      addTarget({
-        id: campaign.id,
-        name: campaign.name,
-        href: `/campaigns/${campaign.id}`,
-        kind: 'campaign',
-      })
-    }
-
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-  })()
-
-  const deleteSessionWithId = deleteSession.bind(null, id)
-
-  const campaignSessionNumber = sessionNumberMap.get(session.id)
-  const sessionDateLabel = formatDateStringForDisplay(
-    session.session_date,
-    'en-US',
-    { year: 'numeric', month: 'long', day: 'numeric' }
-  )
+  // Create mention targets
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(charactersResult.data ?? [], 'character', (character) => `/characters/${character.id}`),
+    mapEntitiesToMentionTargets(campaignsResult.data ?? [], 'campaign', (campaign) => `/campaigns/${campaign.id}`),
+    mapEntitiesToMentionTargets(organizationsResult.data ?? [], 'organization', (organization) => `/organizations/${organization.id}`),
+    mapEntitiesToMentionTargets([session], 'session', (entry) => `/sessions/${entry.id}`)
+  );
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <Link href="/sessions" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
-          ← Back to Sessions
-        </Link>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <Link
-            href={`/sessions/${id}/edit`}
-            className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
-          >
-            Edit Session
-          </Link>
-          <form action={deleteSessionWithId}>
-            <DeleteSessionButton />
-          </form>
-        </div>
+    <SessionDetail
+      session={session}
+      characters={characters}
+      organizations={organizations}
+      mentionTargets={mentionTargets}
+    />
+  );
+}
+
+// Loading skeleton component
+function SessionLoading() {
+  return (
+    <div className="space-y-6">
+      <div className="h-8 bg-gray-700 rounded animate-pulse"></div>
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="h-64 bg-gray-700 rounded animate-pulse"></div>
+        <div className="h-64 bg-gray-700 rounded animate-pulse"></div>
       </div>
-
-      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-8 space-y-8">
-        {/* Header Image */}
-        {session.header_image_url && (
-          <div className="relative w-full h-48 sm:h-64 rounded border-2 border-[#00ffff] border-opacity-30 overflow-hidden bg-[#0f0f23]">
-            <Image
-              src={session.header_image_url}
-              alt={session.name}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          </div>
-        )}
-
-        {/* Session Name and Info */}
-        <div>
-          <h1 className="text-4xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
-            {session.name}
-            {campaignSessionNumber !== undefined && (
-              <span className="ml-3 text-base font-mono uppercase tracking-widest text-[#ff00ff]">
-                Session #{campaignSessionNumber}
-              </span>
-            )}
-          </h1>
-          <div className="flex flex-wrap gap-4 text-sm">
-            {session.campaign && (
-              <Link 
-                href={`/campaigns/${session.campaign.id}`}
-                className="text-[#ff6b35] hover:text-[#ff8a5b] font-mono uppercase tracking-wider"
-              >
-                Campaign: {session.campaign.name}
-              </Link>
-            )}
-            {sessionDateLabel && (
-              <span className="text-gray-400 font-mono uppercase tracking-wider">
-                Date: {sessionDateLabel}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Session Notes */}
-        {session.notes && (
-          <div>
-            <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Session Notes</h3>
-            <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-6">
-              <div className="text-gray-300 whitespace-pre-wrap font-mono text-base sm:text-lg leading-relaxed break-words">
-                {renderNotesWithMentions(session.notes, mentionTargets)}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {sessionGroups.length > 0 && (
-          <div>
-            <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Groups</h3>
-            <div className="flex flex-wrap gap-2">
-              {sessionGroups.map((group) => (
-                <Link
-                  key={group.id}
-                  href={`/organizations/${group.id}`}
-                  className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-3 py-1.5 text-xs font-mono uppercase tracking-widest text-[#fcee0c] transition-colors hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
-                >
-                  {group.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Characters Present */}
-        {sessionChars.length > 0 && (
-          (() => {
-            const sortedCharacters = [...sessionChars].sort((a, b) => {
-              const weight = (value: typeof a.player_type) => (value === 'player' ? 0 : value === 'npc' ? 1 : 2)
-              const weightDiff = weight(a.player_type) - weight(b.player_type)
-              if (weightDiff !== 0) {
-                return weightDiff
-              }
-              return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-            })
-
-            return (
-              <div>
-                <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Characters</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {sortedCharacters.map((character) => (
-                    <SessionCharacterCard
-                      key={character.id}
-                      character={character}
-                    />
-                  ))}
-                </div>
-              </div>
-            )
-          })()
-        )}
-      </div>
+      <div className="h-96 bg-gray-700 rounded animate-pulse"></div>
     </div>
-  )
+  );
+}
+
+export default async function SessionDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  
+  return (
+    <Suspense fallback={<SessionLoading />}>
+      <SessionContent sessionId={id} />
+    </Suspense>
+  );
 }

@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { CampaignsIndex } from '@/components/ui/campaigns-index'
 import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-utils'
+import { Suspense } from 'react'
 
-export default async function CampaignsPage() {
+async function CampaignsList() {
   const supabase = await createClient()
 
   const [campaignsResult, charactersResult, sessionsResult, organizationsResult, organizationMemberCountsResult] = await Promise.all([
@@ -207,4 +208,28 @@ export default async function CampaignsPage() {
     mapEntitiesToMentionTargets(campaigns, 'campaign', (entry) => `/campaigns/${entry.id}`)
   )
   return <CampaignsIndex campaigns={enrichedCampaigns} mentionTargets={mentionTargets} />
+}
+
+// Loading skeleton component
+function CampaignsLoading() {
+  return (
+    <div className="space-y-6">
+      <div className="h-8 bg-gray-700 rounded animate-pulse"></div>
+      <div className="grid gap-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-32 bg-gray-700 rounded animate-pulse"></div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default async function CampaignsPage() {
+  return (
+    <div className="space-y-6">
+      <Suspense fallback={<CampaignsLoading />}>
+        <CampaignsList />
+      </Suspense>
+    </div>
+  );
 }

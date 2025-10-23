@@ -1,200 +1,165 @@
 import { createClient } from '@/lib/supabase/server'
 import { SessionsIndex } from '@/components/ui/sessions-index'
-import { type MentionTarget } from '@/lib/mention-utils'
-import { extractPlayerSummaries, dateStringToLocalDate, type SessionCharacterRelation } from '@/lib/utils'
+import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-utils'
+import { Suspense } from 'react'
 
-export default async function SessionsPage() {
+async function SessionsList() {
   const supabase = await createClient()
 
-  const [sessionsResult, charactersResult, organizationsResult, campaignsResult, organizationMemberCountsResult] = await Promise.all([
+  const [sessionsResult, charactersResult, campaignsResult, organizationsResult] = await Promise.all([
     supabase
       .from('sessions')
       .select(`
-        *,
-        campaign:campaigns(id, name),
-        session_characters:session_characters(
-          character:characters(
-            id,
-            name,
-            class,
-            race,
-            level,
-            player_type,
-            organization_memberships:organization_characters(
-              organizations(id, name)
-            )
-          )
-        ),
-        session_organizations:organization_sessions(
-          organization:organizations(id, name)
-        )
+        id,
+        name,
+        campaign_id,
+        session_date,
+        created_at,
+        campaign:campaigns(id, name)
       `)
       .order('session_date', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false }),
     supabase.from('characters').select('id, name').order('name'),
-    supabase.from('organizations').select('id, name').order('name'),
     supabase.from('campaigns').select('id, name').order('name'),
-    supabase.from('organization_characters').select('organization_id'),
+    supabase.from('organizations').select('id, name').order('name'),
   ])
 
-  const sessions = sessionsResult.data
-  const mentionCharacters = charactersResult.data
-  const organizations = organizationsResult.data
-  const campaigns = campaignsResult.data
+  const sessions = sessionsResult.data ?? []
+  const sessionIds = sessions.map((session) => session.id).filter((id): id is string => Boolean(id))
+  const sessionIdSet = new Set(sessionIds)
 
-  // Process organization member counts
-  const organizationMemberCounts = new Map<string, number>()
-  organizationMemberCountsResult.data?.forEach(row => {
-    const orgId = row.organization_id
-    organizationMemberCounts.set(orgId, (organizationMemberCounts.get(orgId) || 0) + 1)
-  })
+  const [sessionCharactersResult, organizationSessionsResult] = sessionIds.length
+    ? await Promise.all([
+        supabase
+          .from('session_characters')
+          .select(`
+            session_id,
+            character:characters(
+              id,
+              name,
+              player_type
+            )
+          `)
+          .in('session_id', sessionIds),
+        supabase
+          .from('organization_sessions')
+          .select(`
+            session_id,
+            organization:organizations(id, name)
+          `)
+          .in('session_id', sessionIds),
+      ])
+    : [null, null]
 
-  const sessionNumberMap = new Map<string, number>()
+  if (sessionCharactersResult?.error) {
+    throw new Error(sessionCharactersResult.error.message)
+  }
 
-  if (sessions) {
-    // Group sessions by campaign so we can assign per-campaign sequence numbers
-    type SessionWithCampaign = typeof sessions extends (infer S)[] ? S : never
-    const sessionsByCampaign = new Map<string, SessionWithCampaign[]>()
+  if (organizationSessionsResult?.error) {
+    throw new Error(organizationSessionsResult.error.message)
+  }
 
-    for (const session of sessions) {
-      if (!session.campaign_id) {
-        continue
-      }
-      const bucket = sessionsByCampaign.get(session.campaign_id) ?? []
-      bucket.push(session)
-      sessionsByCampaign.set(session.campaign_id, bucket)
+  type NamedEntity = { id: string; name: string }
+
+  const organizationsBySession = new Map<string, NamedEntity[]>()
+  const charactersBySession = new Map<string, (NamedEntity & { player_type: string | null })[]>()
+
+  const pushOrganization = (sessionId: string, organization: NamedEntity | null) => {
+    if (!organization?.id || !organization.name) {
+      return
     }
-
-    for (const [, campaignSessions] of sessionsByCampaign) {
-      campaignSessions.sort((a, b) => {
-        const aDate = dateStringToLocalDate(a.session_date)
-        const bDate = dateStringToLocalDate(b.session_date)
-        const aTime = aDate ? aDate.getTime() : Number.POSITIVE_INFINITY
-        const bTime = bDate ? bDate.getTime() : Number.POSITIVE_INFINITY
-        if (aTime === bTime) {
-          const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0
-          const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0
-          return aCreated - bCreated
-        }
-        return aTime - bTime
-      })
-
-      let counter = 1
-      for (const campaignSession of campaignSessions) {
-        if (!campaignSession.session_date) {
-          continue
-        }
-        sessionNumberMap.set(campaignSession.id, counter)
-        counter += 1
-      }
+    const bucket = organizationsBySession.get(sessionId) ?? []
+    if (!bucket.some((entry) => entry.id === organization.id)) {
+      bucket.push(organization)
+      organizationsBySession.set(sessionId, bucket)
     }
   }
 
-  const enrichedSessions = (sessions ?? []).map((session) => {
-    const rawLinks = Array.isArray(session.session_characters)
-      ? (session.session_characters as SessionCharacterRelation[])
-      : null
-    const players = extractPlayerSummaries(rawLinks)
-    const campaignRelation = Array.isArray(session.campaign)
-      ? session.campaign[0] ?? null
-      : session.campaign ?? null
+  const pushCharacter = (sessionId: string, character: (NamedEntity & { player_type: string | null }) | null) => {
+    if (!character?.id || !character.name) {
+      return
+    }
+    const bucket = charactersBySession.get(sessionId) ?? []
+    if (!bucket.some((entry) => entry.id === character.id)) {
+      bucket.push(character)
+      charactersBySession.set(sessionId, bucket)
+    }
+  }
 
-    const organizations = Array.isArray(session.session_organizations)
-      ? session.session_organizations
-          .map((entry: {
-            organization:
-              | { id: string | null; name: string | null }
-              | { id: string | null; name: string | null }[]
-              | null
-          }) => {
-            const org = Array.isArray(entry?.organization) ? entry?.organization?.[0] : entry?.organization
-            if (!org?.id || !org?.name) {
-              return null
-            }
-            return { id: org.id, name: org.name }
-          })
-          .filter((value: { id: string; name: string } | null): value is { id: string; name: string } => Boolean(value))
-          .sort((a: any, b: any) => {
-            const aCount = organizationMemberCounts.get(a.id) || 0
-            const bCount = organizationMemberCounts.get(b.id) || 0
-            
-            // Sort by member count (descending), then by name (ascending) as tiebreaker
-            if (aCount !== bCount) {
-              return bCount - aCount
-            }
-            return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-          })
-      : []
+  const organizationRows = organizationSessionsResult?.data ?? []
+  for (const row of organizationRows) {
+    const sessionId = row.session_id
+    if (!sessionId || !sessionIdSet.has(sessionId)) {
+      continue
+    }
+    const organization = Array.isArray(row.organization) ? row.organization[0] : row.organization
+    if (!organization?.id || !organization.name) {
+      continue
+    }
+    pushOrganization(sessionId, { id: organization.id, name: organization.name })
+  }
 
+  const characterRows = sessionCharactersResult?.data ?? []
+  for (const row of characterRows) {
+    const sessionId = row.session_id
+    if (!sessionId || !sessionIdSet.has(sessionId)) {
+      continue
+    }
+    const character = Array.isArray(row.character) ? row.character[0] : row.character
+    if (!character?.id || !character.name) {
+      continue
+    }
+    pushCharacter(sessionId, {
+      id: character.id,
+      name: character.name,
+      player_type: character.player_type ?? null,
+    })
+  }
+
+  const enrichedSessions = sessions.map((session) => {
+    const organizations = [...(organizationsBySession.get(session.id) ?? [])].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    )
+    const characters = [...(charactersBySession.get(session.id) ?? [])].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    )
+    
     return {
       ...session,
-      sessionNumber: sessionNumberMap.get(session.id) ?? null,
-      campaign: campaignRelation,
-      players,
       organizations,
+      characters,
     }
   })
 
-  const mentionTargets = (() => {
-    const map = new Map<string, MentionTarget>()
-
-    const addTarget = (target: MentionTarget) => {
-      if (!target.id || !target.name) {
-        return
-      }
-      map.set(`${target.kind}:${target.id}`, target)
-    }
-
-    for (const character of mentionCharacters ?? []) {
-      if (!character?.id || !character?.name) {
-        continue
-      }
-      addTarget({
-        id: character.id,
-        name: character.name,
-        href: `/characters/${character.id}`,
-        kind: 'character',
-      })
-    }
-
-    for (const sessionEntry of sessions ?? []) {
-      if (!sessionEntry?.id || !sessionEntry?.name) {
-        continue
-      }
-      addTarget({
-        id: sessionEntry.id,
-        name: sessionEntry.name,
-        href: `/sessions/${sessionEntry.id}`,
-        kind: 'session',
-      })
-    }
-
-    for (const organization of organizations ?? []) {
-      if (!organization?.id || !organization?.name) {
-        continue
-      }
-      addTarget({
-        id: organization.id,
-        name: organization.name,
-        href: `/organizations/${organization.id}`,
-        kind: 'organization',
-      })
-    }
-
-    for (const campaign of campaigns ?? []) {
-      if (!campaign?.id || !campaign?.name) {
-        continue
-      }
-      addTarget({
-        id: campaign.id,
-        name: campaign.name,
-        href: `/campaigns/${campaign.id}`,
-        kind: 'campaign',
-      })
-    }
-
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-  })()
-
+  const mentionTargets = mergeMentionTargets(
+    mapEntitiesToMentionTargets(charactersResult.data ?? [], 'character', (entry) => `/characters/${entry.id}`),
+    mapEntitiesToMentionTargets(campaignsResult.data ?? [], 'campaign', (entry) => `/campaigns/${entry.id}`),
+    mapEntitiesToMentionTargets(organizationsResult.data ?? [], 'organization', (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(sessions, 'session', (entry) => `/sessions/${entry.id}`)
+  )
   return <SessionsIndex sessions={enrichedSessions} mentionTargets={mentionTargets} />
+}
+
+// Loading skeleton component
+function SessionsLoading() {
+  return (
+    <div className="space-y-6">
+      <div className="h-8 bg-gray-700 rounded animate-pulse"></div>
+      <div className="grid gap-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-32 bg-gray-700 rounded animate-pulse"></div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default async function SessionsPage() {
+  return (
+    <div className="space-y-6">
+      <Suspense fallback={<SessionsLoading />}>
+        <SessionsList />
+      </Suspense>
+    </div>
+  );
 }
