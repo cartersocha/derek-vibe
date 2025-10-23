@@ -327,6 +327,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
           </h1>
         </header>
 
+
         <div className="md:flow-root space-y-6 md:space-y-0">
           {/* Infobox floats right just like the reference layout */}
           <aside className="md:float-right md:w-72 md:ml-8 md:mb-4 w-full max-w-xs rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-lg shadow-[#00ffff]/20 font-mono text-sm text-gray-200">
@@ -380,26 +381,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             </div>
           </aside>
 
-          <section className="mb-6 space-y-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Affiliations</h3>
-            </div>
-            {organizationAffiliations.length > 0 ? (
-              <div className="flex flex-wrap gap-3">
-                {organizationAffiliations.map((affiliation) => (
-                  <Link
-                    key={affiliation.id}
-                    href={`/organizations/${affiliation.id}`}
-                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-4 py-2 text-xs sm:text-sm uppercase tracking-widest text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
-                  >
-                    <span className="font-semibold">{affiliation.name}</span>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm font-mono uppercase tracking-wider text-gray-500">No organization affiliations yet.</p>
-            )}
-          </section>
 
           {/* Backstory text now wraps around the infobox */}
           <section className="text-gray-300 font-mono leading-relaxed space-y-4 text-base sm:text-lg">
@@ -417,6 +398,73 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
           <div className="clear-both" />
         </div>
+
+        {/* Campaigns and Affiliations Section - Dynamic Width */}
+        <div className="flex flex-col lg:flex-row gap-6 mb-6">
+          {/* Campaigns Section */}
+          <section className="space-y-4 flex-shrink-0" style={{ 
+            width: linkedSessions.length > 0 ? 
+              `${Math.max(200, Math.min(400, linkedSessions.length * 80))}px` : 
+              '200px'
+          }}>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Campaigns</h3>
+            </div>
+            {linkedSessions.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {(() => {
+                  const campaigns = linkedSessions
+                    .map(session => session.campaign)
+                    .filter((campaign): campaign is NonNullable<typeof campaign> => 
+                      Boolean(campaign && campaign.id && campaign.name)
+                    );
+                  
+                  const uniqueCampaigns = campaigns.reduce((acc, campaign) => {
+                    if (!acc.find(c => c.id === campaign.id)) {
+                      acc.push(campaign);
+                    }
+                    return acc;
+                  }, [] as typeof campaigns);
+                  
+                  return uniqueCampaigns;
+                })().map((campaign) => (
+                  <Link
+                    key={campaign.id}
+                    href={`/campaigns/${campaign.id}`}
+                    className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-3 py-1.5 text-xs font-mono uppercase tracking-[0.25em] text-[#ff6b35] transition hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                  >
+                    <span className="font-semibold">{campaign.name}</span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm font-mono uppercase tracking-wider text-gray-500">No campaign affiliations yet.</p>
+            )}
+          </section>
+
+          {/* Affiliations Section */}
+          <section className="space-y-4 flex-1">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Affiliations</h3>
+            </div>
+            {organizationAffiliations.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {organizationAffiliations.map((affiliation) => (
+                  <Link
+                    key={affiliation.id}
+                    href={`/organizations/${affiliation.id}`}
+                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-3 py-1.5 text-xs font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c]"
+                  >
+                    <span className="font-semibold">{affiliation.name}</span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm font-mono uppercase tracking-wider text-gray-500">No organization affiliations yet.</p>
+            )}
+          </section>
+        </div>
+
 
         {/* Sessions */}
         <section className="space-y-4">

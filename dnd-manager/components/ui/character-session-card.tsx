@@ -76,11 +76,6 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
               Campaign: {session.campaign.name}
             </Link>
           )}
-          {session.notes && (
-            <div className="pointer-events-auto text-gray-400 line-clamp-2 font-mono text-sm whitespace-pre-line break-words">
-              {renderNotesWithMentions(session.notes, mentionTargets)}
-            </div>
-          )}
           {players.length > 0 && (
             <div className={`pointer-events-auto ${groups.length > 0 ? 'mt-3' : 'mt-3'}`}>
               <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">

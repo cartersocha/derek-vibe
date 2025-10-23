@@ -64,7 +64,7 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
         key={`${sessionId}-${player.id}`}
         href={`/characters/${player.id}`}
         className={cn(
-          'inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2',
+          'inline-flex items-center rounded px-3 py-1.5 text-xs font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2',
           player.player_type === 'player'
             ? 'border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
             : 'border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]'

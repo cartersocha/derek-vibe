@@ -216,7 +216,8 @@ const hasAppliedAutoWidthRef = useRef(false);
     <div
       className={cn(
         "relative w-full md:fixed md:top-0 md:left-0 md:h-screen md:flex md:flex-col md:flex-shrink-0 md:bg-[#0a0a1f] md:z-40",
-        isCollapsed ? "md:transition-none" : "transition-[width] duration-300 ease-in-out"
+        "sm:fixed sm:top-0 sm:left-0 sm:h-screen sm:flex sm:flex-col sm:flex-shrink-0 sm:bg-[#0a0a1f] sm:z-40",
+        isCollapsed ? "md:transition-none sm:transition-none" : "transition-[width] duration-300 ease-in-out"
       )}
       style={sidebarStyles}
     >
@@ -224,7 +225,7 @@ const hasAppliedAutoWidthRef = useRef(false);
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden md:flex md:flex-1 md:flex-col md:overflow-hidden",
+          "hidden sm:flex sm:flex-1 sm:flex-col sm:overflow-hidden",
           shouldShowIconsOnly && "items-center"
         )}
         role="presentation"

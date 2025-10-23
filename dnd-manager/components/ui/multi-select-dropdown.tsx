@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, startTransition } from "react"
+import { useCallback, useEffect, useRef, useState, startTransition } from "react"
 import { useRouter } from "next/navigation"
 
 type Option = {
@@ -31,15 +31,31 @@ export default function MultiSelectDropdown({
 }: MultiSelectDropdownProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState("")
   const [selected, setSelected] = useState(() =>
     new Set(options.filter((option) => option.checked).map((option) => option.id))
   )
   const [loading, setLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     setSelected(new Set(options.filter((option) => option.checked).map((option) => option.id)))
   }, [options])
+
+  const filteredOptions = options.filter((option) => {
+    const term = search.trim().toLowerCase()
+    if (!term) return true
+    return option.label.toLowerCase().includes(term)
+  })
+
+  const closeMenu = useCallback(() => {
+    setOpen(false)
+    setSearch("")
+    requestAnimationFrame(() => {
+      buttonRef.current?.focus()
+    })
+  }, [])
 
   useEffect(() => {
     if (!open) {
@@ -49,17 +65,25 @@ export default function MultiSelectDropdown({
     const handleClickOutside = (event: MouseEvent) => {
       if (!containerRef.current) return
       if (!containerRef.current.contains(event.target as Node)) {
-        setOpen(false)
+        closeMenu()
+      }
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeMenu()
       }
     }
 
     document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("keydown", handleEscape)
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("keydown", handleEscape)
     }
-  }, [open])
+  }, [closeMenu, open])
 
-  const toggleOption = (id: string) => {
+  const toggleOption = useCallback((id: string) => {
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(id)) {
@@ -69,15 +93,24 @@ export default function MultiSelectDropdown({
       }
       return next
     })
-  }
+  }, [])
 
-  const handleSubmit = () => {
+  const toggleMenu = useCallback(() => {
+    if (open) {
+      closeMenu()
+      return
+    }
+    setSearch("")
+    setOpen(true)
+  }, [closeMenu, open])
+
+  const handleSubmit = useCallback(() => {
     setLoading(true)
     startTransition(() => {
       onSubmit(Array.from(selected))
         .then(() => {
           router.refresh()
-          setOpen(false)
+          closeMenu()
         })
         .catch((error) => {
           console.error("Failed to update selections", error)
@@ -86,7 +119,12 @@ export default function MultiSelectDropdown({
           setLoading(false)
         })
     })
-  }
+  }, [selected, onSubmit, router, closeMenu])
+
+  const clearSelections = useCallback(() => {
+    if (loading) return
+    setSelected(new Set())
+  }, [loading])
 
   const selectionSummary = (() => {
     const count = selected.size
@@ -100,66 +138,89 @@ export default function MultiSelectDropdown({
   return (
     <div className={`relative ${className ?? ''}`} ref={containerRef}>
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={toggleMenu}
         disabled={loading}
-        className={`flex w-full items-center justify-between gap-2 sm:gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-3 sm:px-4 py-3 text-left font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] disabled:cursor-not-allowed disabled:opacity-60 min-h-[44px] ${
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={`${label.toLowerCase().replace(/\s+/g, '-')}-dropdown`}
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] disabled:cursor-not-allowed disabled:opacity-60 ${
           open
-            ? 'border-[#ff00ff] text-[#ff00ff] shadow-lg shadow-[#ff00ff]/30'
-            : 'border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]'
+            ? "border-[#ff00ff] text-[#ff00ff] shadow-lg shadow-[#ff00ff]/30"
+            : selected.size > 0
+              ? "border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]"
+              : "border-[#00ffff] text-gray-500 hover:border-[#ff00ff] hover:text-[#ff00ff]"
         }`}
       >
-  <span>{selectionSummary}</span>
+        <span className="truncate text-left">{selectionSummary}</span>
         <span className="text-xs text-[#ff00ff]">{open ? "▲" : "▼"}</span>
       </button>
 
       {open && (
-        <div className={`absolute right-0 z-20 mt-2 overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20 ${menuWidth} max-w-[calc(100vw-2rem)] sm:max-w-none`}>
-          <div className="max-h-64 overflow-y-auto">
-            {options.length > 0 ? (
-              <ul className="divide-y divide-[#1a1a3e]">
-                {options.map((option) => (
-                  <li key={option.id}>
-                    <label className="flex cursor-pointer items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-[#1a1a3e]/50 min-h-[44px]">
-                      <input
-                        type="checkbox"
-                        checked={selected.has(option.id)}
-                        onChange={() => toggleOption(option.id)}
-                        disabled={loading}
-                        className="rounded border-[#00ffff] border-opacity-30 text-[#ff00ff] focus:ring-[#ff00ff] bg-[#0f0f23] disabled:opacity-60 w-4 h-4 flex-shrink-0"
-                      />
-                      <span className="flex flex-1 flex-col">
-                        <span className="text-[#00ffff] text-sm break-words">{option.label}</span>
-                        {option.subLabel && (
-                          <span className="text-xs text-gray-500 uppercase tracking-wider break-words">{option.subLabel}</span>
-                        )}
-                      </span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
+        <div
+          id={`${label.toLowerCase().replace(/\s+/g, '-')}-dropdown`}
+          role="listbox"
+          className={`absolute z-20 mt-2 w-full overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20 ${menuWidth} max-w-[calc(100vw-2rem)] sm:max-w-none`}
+        >
+          <div className="border-b border-[#1a1a3e] px-3 py-2">
+            <input
+              type="text"
+              autoFocus
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search sessions"
+              className="w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="max-h-60 overflow-y-auto">
+            {filteredOptions.length === 0 ? (
+              <p className="px-4 py-6 text-center text-xs font-mono text-gray-500">{emptyMessage}</p>
             ) : (
-              <p className="px-3 sm:px-4 py-6 text-center text-xs font-mono text-gray-500">{emptyMessage}</p>
+              <ul className="divide-y divide-[#1a1a3e]">
+                {filteredOptions.map((option) => {
+                  const checked = selected.has(option.id)
+                  return (
+                    <li key={option.id}>
+                      <button
+                        type="button"
+                        onClick={() => toggleOption(option.id)}
+                        className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[#1a1a3e]/60 ${
+                          checked ? 'text-[#ff00ff]' : 'text-[#00ffff]'
+                        }`}
+                      >
+                        <span className="truncate">
+                          {checked ? "✓ " : ""}{option.label}
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
             )}
           </div>
 
-          <div className="border-t border-[#00ffff] border-opacity-20 bg-[#0f0f23] p-3 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="rounded px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#00ffff] hover:text-[#ff00ff] min-h-[36px] flex items-center"
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="rounded bg-[#ff00ff] px-3 py-2 text-xs font-bold uppercase tracking-wider text-black hover:bg-[#cc00cc] disabled:cursor-not-allowed disabled:opacity-60 min-h-[36px] flex items-center"
-              disabled={loading}
-            >
-              {loading ? "Saving…" : submitLabel}
-            </button>
+          <div className="border-t border-[#00ffff]/20 bg-[#050517] px-3 py-2 flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={clearSelections}
+                className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#00ffff] transition hover:text-[#ff00ff] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={loading}
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="rounded bg-[#ff00ff] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[#cc00cc] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={loading}
+              >
+                {loading ? "Working…" : submitLabel}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -279,7 +279,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
         {/* Session Notes */}
         {session.notes && (
-          <div>
+          <div className="mb-8">
             <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Session Notes</h3>
             <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-6">
               <div className="text-gray-300 whitespace-pre-wrap font-mono text-base sm:text-lg leading-relaxed break-words">
@@ -290,7 +290,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         )}
 
         {sessionGroups.length > 0 && (
-          <div>
+          <div className="mb-8">
             <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Groups</h3>
             <div className="flex flex-wrap gap-2">
               {sessionGroups.map((group) => (
@@ -319,7 +319,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             })
 
             return (
-              <div>
+              <div className="mb-8">
                 <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Characters</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {sortedCharacters.map((character) => (
