@@ -5,7 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import AutoCapitalizeProvider from "@/components/providers/auto-capitalize-provider";
 import { SidebarProvider } from "@/components/providers/sidebar-provider";
-import Topbar from "@/components/layout/topbar";
+import ConditionalTopbar from "@/components/layout/conditional-topbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,7 +52,7 @@ export default function RootLayout({
       >
         <AutoCapitalizeProvider>
           <SidebarProvider>
-            <Topbar />
+            <ConditionalTopbar />
             {children}
           </SidebarProvider>
         </AutoCapitalizeProvider>
