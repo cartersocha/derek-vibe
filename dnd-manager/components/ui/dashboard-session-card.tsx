@@ -78,16 +78,16 @@ export function DashboardSessionCard({ session, sessionNumber, players, organiza
               Campaign: {session.campaign.name}
             </Link>
           )}
-          {players.length > 0 && (
+          {players && players.length > 0 && (
             <SessionParticipantPills
               sessionId={session.id}
               players={players}
-              className={`pointer-events-auto ${organizations.length > 0 ? 'mt-3' : 'mt-3'}`}
+              className={`pointer-events-auto ${organizations && organizations.length > 0 ? 'mt-3' : 'mt-3'}`}
               showOrganizations={false}
             />
           )}
-          {organizations.length > 0 && (
-            <div className={`pointer-events-auto ${players.length > 0 ? 'mt-2' : 'mt-3'}`}>
+          {organizations && organizations.length > 0 && (
+            <div className={`pointer-events-auto ${players && players.length > 0 ? 'mt-2' : 'mt-3'}`}>
               <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
                 Groups
               </div>
@@ -99,9 +99,10 @@ export function DashboardSessionCard({ session, sessionNumber, players, organiza
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] min-h-[24px]"
+                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] min-h-[24px] max-w-[250px]"
+                    title={organization.name}
                   >
-                    {organization.name}
+                    <span className="truncate">{organization.name}</span>
                   </Link>
                 ))}
                 {!expandedGroups.has(session.id) && organizations.length > 5 && (

@@ -161,9 +161,10 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                             <Link
                               key={organization.id}
                               href={`/organizations/${organization.id}`}
-                              className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c]"
+                              className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] max-w-[250px]"
+                              title={organization.name}
                             >
-                              {organization.name}
+                              <span className="truncate">{organization.name}</span>
                             </Link>
                           ))}
                           {!expandedGroups.has(session.id) && groups.length > 6 && (

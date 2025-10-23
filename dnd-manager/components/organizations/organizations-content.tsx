@@ -23,14 +23,14 @@ export default function OrganizationsContent({
   const filteredOrganizations = selectedCampaignId 
     ? organizations.filter(organization => {
         // Check if organization is linked to any sessions in the selected campaign
-        const hasSessionInCampaign = organization.sessions.some(
-          session => session.campaign?.id === selectedCampaignId
-        );
+        const hasSessionInCampaign = organization.organization_sessions?.some(
+          sessionRelation => sessionRelation.session.campaign?.id === selectedCampaignId
+        ) || false;
         
         // Check if organization is directly linked to the campaign
-        const isInCampaign = organization.campaigns.some(
-          campaign => campaign.id === selectedCampaignId
-        );
+        const isInCampaign = organization.organization_campaigns?.some(
+          campaignRelation => campaignRelation.campaign.id === selectedCampaignId
+        ) || false;
         
         return hasSessionInCampaign || isInCampaign;
       })

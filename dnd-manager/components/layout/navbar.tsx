@@ -5,7 +5,6 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import CampaignFilter from "@/components/ui/campaign-filter";
 
 const NAV_LINKS = [
   { href: "/campaigns", label: "Campaigns", symbol: "⚔" },
@@ -333,13 +332,6 @@ const hasAppliedAutoWidthRef = useRef(false);
               : "px-4 overflow-y-auto"
           )}
         >
-          {/* Campaign Filter */}
-          <div className={cn(
-            "mb-4",
-            isCollapsed ? "flex justify-center" : ""
-          )}>
-            <CampaignFilter isCollapsed={isCollapsed} />
-          </div>
 
           {NAV_LINKS.map((link) => {
             const isActive = pathname.startsWith(link.href);

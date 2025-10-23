@@ -12,17 +12,6 @@ import DashboardContent from '@/components/dashboard/dashboard-content'
 export default async function DashboardPage() {
   const supabase = await createClient()
 
-  // Fetch statistics
-  const [
-    { count: campaignsCount },
-    { count: sessionsCount },
-    { count: charactersCount },
-  ] = await Promise.all([
-    supabase.from('campaigns').select('*', { count: 'exact', head: true }),
-    supabase.from('sessions').select('*', { count: 'exact', head: true }),
-    supabase.from('characters').select('*', { count: 'exact', head: true }),
-  ])
-
   // Fetch recent sessions
   const { data: recentSessions } = await supabase
     .from('sessions')
@@ -33,7 +22,7 @@ export default async function DashboardPage() {
       created_at,
       campaign_id,
       notes,
-      campaign:campaigns(id, name),
+      campaigns(id, name),
       session_characters:session_characters(
         character:characters(
           id,
@@ -54,12 +43,18 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(3)
 
+  // Transform the data to match the expected interface
+  const transformedSessions = recentSessions?.map(session => ({
+    ...session,
+    campaign: session.campaigns?.[0] || null
+  })) || []
+
   const sessionNumberMap = new Map<string, number>()
 
-  if (recentSessions && recentSessions.length > 0) {
+  if (transformedSessions && transformedSessions.length > 0) {
     const campaignIds = Array.from(
       new Set(
-        recentSessions
+        transformedSessions
           .map((session) => session.campaign_id)
           .filter((campaignId): campaignId is string => Boolean(campaignId))
       )
@@ -122,10 +117,7 @@ export default async function DashboardPage() {
       </div>
 
       <DashboardContent 
-        recentSessions={recentSessions || []}
-        campaignsCount={campaignsCount || 0}
-        sessionsCount={sessionsCount || 0}
-        charactersCount={charactersCount || 0}
+        recentSessions={transformedSessions}
       />
     </div>
   )
