@@ -6,6 +6,8 @@ import { deleteOrganization } from "@/lib/actions/organizations";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateStringForDisplay, formatTimestampForDisplay } from "@/lib/utils";
 import { mapEntitiesToMentionTargets, mergeMentionTargets, renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
+import { Suspense } from "react";
+import { unstable_cache } from "next/cache";
 
 interface OrganizationRecord {
   id: string;
@@ -41,68 +43,92 @@ interface CharacterSummary {
   role: CharacterRole;
 }
 
-export default async function OrganizationDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const supabase = await createClient();
+// Cache organization basic info
+const getCachedOrganization = unstable_cache(
+  async (organizationId: string) => {
+    const supabase = await createClient();
+    
+    const { data, error } = await supabase
+      .from("organizations")
+      .select("id, name, description, logo_url, created_at")
+      .eq("id", organizationId)
+      .single();
 
-  const { data, error } = await supabase
-    .from("organizations")
-    .select("id, name, description, logo_url, created_at")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    if (error.code === "PGRST116") {
-      notFound();
+    if (error) {
+      if (error.code === "PGRST116") {
+        return null;
+      }
+      throw new Error(error.message);
     }
-    throw new Error(error.message);
-  }
 
-  if (!data) {
+    return data as OrganizationRecord;
+  },
+  ['organization-basic'],
+  { 
+    revalidate: 300, // 5 minutes
+    tags: ['organization-basic'] 
+  }
+);
+
+// Cache organization relationships
+const getCachedOrganizationRelations = unstable_cache(
+  async (organizationId: string) => {
+    const supabase = await createClient();
+    
+    const [
+      { data: campaignData, error: campaignError },
+      { data: sessionData, error: sessionError },
+      { data: characterData, error: characterError },
+    ] = await Promise.all([
+      supabase
+        .from("organization_campaigns")
+        .select("campaign:campaigns (id, name, created_at)")
+        .eq("organization_id", organizationId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("organization_sessions")
+        .select(
+          "session:sessions (id, name, session_date, created_at, campaign:campaigns (id, name))",
+        )
+        .eq("organization_id", organizationId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("organization_characters")
+        .select("role, character:characters (id, name, player_type, status, image_url)")
+        .eq("organization_id", organizationId)
+        .order("created_at", { ascending: false }),
+    ]);
+
+    if (campaignError) {
+      throw new Error(campaignError.message);
+    }
+    if (sessionError) {
+      throw new Error(sessionError.message);
+    }
+    if (characterError) {
+      throw new Error(characterError.message);
+    }
+
+    return { campaignData, sessionData, characterData };
+  },
+  ['organization-relations'],
+  { 
+    revalidate: 180, // 3 minutes
+    tags: ['organization-relations'] 
+  }
+);
+
+async function OrganizationContent({ organizationId }: { organizationId: string }) {
+  const [organization, relations] = await Promise.all([
+    getCachedOrganization(organizationId),
+    getCachedOrganizationRelations(organizationId)
+  ]);
+
+  if (!organization) {
     notFound();
   }
 
-  const organization = data as OrganizationRecord;
-
-  const [
-    { data: campaignData, error: campaignError },
-    { data: sessionData, error: sessionError },
-    { data: characterData, error: characterError },
-  ] = await Promise.all([
-    supabase
-      .from("organization_campaigns")
-      .select("campaign:campaigns (id, name, created_at)")
-      .eq("organization_id", organization.id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("organization_sessions")
-      .select(
-        "session:sessions (id, name, session_date, created_at, campaign:campaigns (id, name))",
-      )
-      .eq("organization_id", organization.id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("organization_characters")
-      .select("role, character:characters (id, name, player_type, status, image_url)")
-      .eq("organization_id", organization.id)
-      .order("created_at", { ascending: false }),
-  ]);
-
-  if (campaignError) {
-    throw new Error(campaignError.message);
-  }
-
-  if (sessionError) {
-    throw new Error(sessionError.message);
-  }
-
-  if (characterError) {
-    throw new Error(characterError.message);
-  }
+  const { campaignData, sessionData, characterData } = relations;
 
   type CampaignRow = { campaign: CampaignSummary | null };
   const campaigns = ((campaignData ?? []) as unknown as CampaignRow[])
@@ -185,7 +211,7 @@ export default async function OrganizationDetailPage({
 
   async function handleDelete() {
     "use server";
-    await deleteOrganization(id);
+    await deleteOrganization(organizationId);
   }
 
   return (
@@ -390,5 +416,27 @@ export default async function OrganizationDetailPage({
         </section>
       </div>
     </div>
+  );
+}
+
+export default async function OrganizationDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  return (
+    <Suspense fallback={
+      <div className="space-y-6 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-[#1a1a3e] rounded w-32 mb-6"></div>
+          <div className="h-12 bg-[#1a1a3e] rounded mb-8"></div>
+          <div className="h-96 bg-[#1a1a3e] rounded"></div>
+        </div>
+      </div>
+    }>
+      <OrganizationContent organizationId={id} />
+    </Suspense>
   );
 }
