@@ -30,7 +30,7 @@ export default function Topbar() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
-  const { isCollapsed, toggleSidebar } = useSidebar();
+  const { isCollapsed, toggleSidebar, sidebarWidth } = useSidebar();
   const createMenuRef = useRef<HTMLDivElement>(null);
 
   // Search functionality
@@ -119,33 +119,19 @@ export default function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#0a0a1f] backdrop-blur-sm">
+    <header 
+      className="sticky top-0 z-50 w-full bg-[#0a0a1f] backdrop-blur-sm"
+      style={{
+        marginLeft: `${sidebarWidth}px`,
+        width: `calc(100% - ${sidebarWidth}px)`
+      }}
+    >
       <div className="flex items-center justify-between px-3 py-2 sm:px-4 lg:px-6">
-        {/* Logo/Brand and Sidebar Toggle */}
-        <div className="flex items-center space-x-3">
-          {/* Sidebar Toggle Button - Desktop Only */}
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="hidden md:inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-40 p-1.5 text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff] transition-colors min-h-[32px] min-w-[32px]"
-          >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          
+        {/* Logo/Brand - positioned right next to sidebar like YouTube */}
+        <div className="flex items-center">
           <Link
             href="/dashboard"
-            className="retro-title text-base sm:text-lg font-bold text-[#00ffff] hover:text-[#ff00ff] transition-colors duration-200"
+            className="retro-title text-lg sm:text-xl font-bold text-[#00ffff] hover:text-[#ff00ff] transition-colors duration-200"
             style={{ "--retro-letter-spacing": "0.2em" } as React.CSSProperties}
           >
             RAT PALACE

@@ -212,7 +212,7 @@ export default async function OrganizationDetailPage({
         </div>
         
         <header className="-mt-4">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-widest text-[#e8faff] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)] break-words">
+          <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold uppercase tracking-widest text-[#e8faff] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)] break-words">
             {organization.name}
           </h1>
         </header>

@@ -252,7 +252,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
           {/* Session Name and Info */}
           <div>
-            <h1 className="text-4xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+            <h1 className="retro-title text-3xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
               {session.name}
             {campaignSessionNumber !== undefined && (
               <span className="ml-3 text-base font-mono uppercase tracking-widest text-[#ff00ff]">

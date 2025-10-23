@@ -15,7 +15,7 @@ const NAV_LINKS = [
 ];
 
 const DEFAULT_WIDTH = 200;
-const COLLAPSED_WIDTH = 72;
+const COLLAPSED_WIDTH = 64; // Reduced to decrease margin between content and sidebar
 const COLLAPSE_THRESHOLD = 120;
 const INITIAL_MAX_WIDTH = 288;
 const SIDEBAR_WIDTH_STORAGE_KEY = "sidebar-width";
@@ -29,13 +29,11 @@ const clampWithMax = (value: number, maxWidth: number) => {
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { isCollapsed } = useSidebar();
+  const { isCollapsed, setSidebarWidth, toggleSidebar } = useSidebar();
   const measurementRef = useRef<HTMLDivElement | null>(null);
   const [maxWidth, setMaxWidth] = useState(INITIAL_MAX_WIDTH);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
-  const [isDragging, setIsDragging] = useState(false);
-const dragState = useRef({ startX: 0, startWidth: DEFAULT_WIDTH });
-const isDraggingRef = useRef(false);
+  // Drag-related state removed
 const widthFrameRef = useRef<number | null>(null);
 const hasCustomWidthRef = useRef(false);
 const measuredWidthRef = useRef(Math.max(DEFAULT_WIDTH, COLLAPSED_WIDTH));
@@ -46,6 +44,11 @@ const hasAppliedAutoWidthRef = useRef(false);
 
   const updateWidth = useCallback(
     (value: number) => {
+      // Don't update width if sidebar is collapsed
+      if (isCollapsed) {
+        return;
+      }
+      
       const clamped = clampWidth(value);
 
       if (typeof window === "undefined") {
@@ -62,66 +65,41 @@ const hasAppliedAutoWidthRef = useRef(false);
         setWidth(clamped);
       });
     },
-    [clampWidth]
+    [clampWidth, isCollapsed]
   );
 
-  const isCollapsedFromWidth = width <= COLLAPSE_THRESHOLD;
+  // Use provider's isCollapsed as the primary source, but also consider width
+  const shouldShowIconsOnly = isCollapsed || width <= COLLAPSE_THRESHOLD;
 
-  const handlePointerMove = useCallback(
-    (event: PointerEvent) => {
-      if (!isDraggingRef.current) return;
-      const delta = event.clientX - dragState.current.startX;
-      const nextWidth = dragState.current.startWidth + delta;
-      updateWidth(nextWidth);
-    },
-    [updateWidth]
-  );
-
-  const handlePointerUp = useCallback(() => {
-    if (!isDraggingRef.current) return;
-    isDraggingRef.current = false;
-    setIsDragging(false);
-    window.removeEventListener("pointermove", handlePointerMove);
-    window.removeEventListener("pointerup", handlePointerUp);
-    if (widthFrameRef.current !== null) {
-      cancelAnimationFrame(widthFrameRef.current);
-      widthFrameRef.current = null;
-    }
-    setWidth((prev) => (prev <= COLLAPSE_THRESHOLD ? COLLAPSED_WIDTH : clampWidth(prev)));
-  }, [clampWidth, handlePointerMove]);
-
-  const handlePointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      if (typeof window === "undefined" || window.matchMedia("(max-width: 767px)").matches) {
-        return;
-      }
-      if (event.button !== 0) return;
-      isDraggingRef.current = true;
-      setIsDragging(true);
-      dragState.current = { startX: event.clientX, startWidth: width };
-      hasCustomWidthRef.current = true;
-      window.addEventListener("pointermove", handlePointerMove);
-      window.addEventListener("pointerup", handlePointerUp);
-      event.preventDefault();
-    },
-    [handlePointerMove, handlePointerUp, width]
-  );
+  // Drag functionality removed - only hamburger button toggle is used
 
   const toggleCollapse = useCallback(() => {
-    setWidth((prev) => {
-      if (prev <= COLLAPSE_THRESHOLD) {
-        const desired = hasCustomWidthRef.current ? lastExpandedWidthRef.current : measuredWidthRef.current;
-        const clampedDesired = Math.min(Math.max(desired, COLLAPSED_WIDTH), maxWidth);
-        return clampedDesired;
-      }
-      lastExpandedWidthRef.current = prev;
-      return COLLAPSED_WIDTH;
-    });
-  }, [maxWidth]);
+    // Use the provider's toggle function instead of managing width directly
+    toggleSidebar();
+  }, [toggleSidebar]);
+
+  // Handle hamburger menu collapse - sync with provider state
+  useEffect(() => {
+    if (isCollapsed) {
+      // When hamburger menu collapses, set to collapsed width (icon tabs mode)
+      setWidth(COLLAPSED_WIDTH);
+    } else {
+      // When hamburger menu expands, restore to last expanded width or default
+      const desired = hasCustomWidthRef.current ? lastExpandedWidthRef.current : DEFAULT_WIDTH;
+      const clampedDesired = Math.min(Math.max(desired, COLLAPSED_WIDTH), maxWidth);
+      setWidth(clampedDesired);
+    }
+  }, [isCollapsed, maxWidth]);
 
   const measureSidebarWidth = useCallback(() => {
     const measureNode = measurementRef.current;
     if (!measureNode) return;
+    
+    // Don't remeasure if sidebar is intentionally collapsed
+    if (isCollapsed) {
+      return;
+    }
+    
     const measured = Math.ceil(measureNode.scrollWidth + 16);
     const limitedMeasured = Math.min(measured, INITIAL_MAX_WIDTH);
     const clampedMeasured = Math.max(limitedMeasured, DEFAULT_WIDTH);
@@ -145,7 +123,19 @@ const hasAppliedAutoWidthRef = useRef(false);
       }
       return prev;
     });
-  }, []);
+  }, [isCollapsed]);
+
+  // Separate effect to handle measurement after expansion
+  useEffect(() => {
+    if (!isCollapsed && width > COLLAPSE_THRESHOLD) {
+      // Trigger a measurement after expansion to ensure proper sizing
+      const timeoutId = setTimeout(() => {
+        measureSidebarWidth();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isCollapsed, width, measureSidebarWidth]);
 
 
   useEffect(() => {
@@ -158,19 +148,28 @@ const hasAppliedAutoWidthRef = useRef(false);
     if (storedWidth) {
       const parsed = Number(storedWidth);
       if (!Number.isNaN(parsed)) {
-        setWidth((prev) => clampWidth(Number.isFinite(parsed) ? parsed : prev));
+        // Store the width for later use, but don't apply it if collapsed
+        lastExpandedWidthRef.current = parsed;
+        if (!isCollapsed) {
+          setWidth((prev) => clampWidth(Number.isFinite(parsed) ? parsed : prev));
+        }
       }
     }
-  }, [clampWidth]);
+  }, [clampWidth, isCollapsed]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(width));
+    
+    // Only save expanded widths to localStorage
+    if (!isCollapsed && width > COLLAPSE_THRESHOLD) {
+      window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(width));
+    }
+    
     window.localStorage.setItem(
       SIDEBAR_MODE_STORAGE_KEY,
       hasCustomWidthRef.current ? SIDEBAR_MODE_CUSTOM : SIDEBAR_MODE_AUTO
     );
-  }, [width]);
+  }, [width, isCollapsed]);
 
   useEffect(() => {
     if (width > COLLAPSE_THRESHOLD) {
@@ -178,60 +177,87 @@ const hasAppliedAutoWidthRef = useRef(false);
     }
   }, [width]);
 
+  // Sync width changes with the provider
   useEffect(() => {
-    return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-      if (widthFrameRef.current !== null) {
-        cancelAnimationFrame(widthFrameRef.current);
-        widthFrameRef.current = null;
-      }
-    };
-  }, [handlePointerMove, handlePointerUp]);
+    setSidebarWidth(width);
+  }, [width, setSidebarWidth]);
+
+  // Immediate sync on mount to ensure provider has correct initial width
+  useEffect(() => {
+    setSidebarWidth(width);
+  }, []); // Empty dependency array - runs once on mount
+
+  // Cleanup effect removed - no more drag event listeners
 
   useLayoutEffect(() => {
-    measureSidebarWidth();
-  }, [measureSidebarWidth]);
+    // Only measure if sidebar is not collapsed
+    if (!isCollapsed) {
+      measureSidebarWidth();
+    }
+  }, [measureSidebarWidth, isCollapsed]);
 
   useEffect(() => {
     const handleResize = () => {
-      window.requestAnimationFrame(measureSidebarWidth);
+      // Don't remeasure if sidebar is collapsed
+      if (!isCollapsed) {
+        window.requestAnimationFrame(measureSidebarWidth);
+      }
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [measureSidebarWidth]);
+  }, [measureSidebarWidth, isCollapsed]);
 
   const sidebarStyles = {
-    "--sidebar-width": `${Math.round(width)}px`,
+    width: `${Math.round(width)}px`,
   } as CSSProperties;
 
   return (
     <div
       className={cn(
-        "relative w-full md:fixed md:top-[60px] md:left-0 md:h-[calc(100vh-60px)] md:flex md:flex-col md:flex-shrink-0 md:bg-[#0a0a1f] md:w-[200px] md:z-40",
-        isDragging ? "md:transition-none" : "transition-[width] duration-300 ease-in-out",
-        isCollapsed && "md:hidden"
+        "relative w-full md:fixed md:top-0 md:left-0 md:h-screen md:flex md:flex-col md:flex-shrink-0 md:bg-[#0a0a1f] md:z-40",
+        isCollapsed ? "md:transition-none" : "transition-[width] duration-300 ease-in-out"
       )}
       style={sidebarStyles}
     >
 
       {/* Desktop sidebar */}
       <aside
-        onDoubleClick={toggleCollapse}
         className={cn(
           "hidden md:flex md:flex-1 md:flex-col md:overflow-hidden",
-          isCollapsedFromWidth && "items-center"
+          shouldShowIconsOnly && "items-center"
         )}
         role="presentation"
       >
+        {/* Sidebar Header with Hamburger Button */}
+        <div className="flex items-center justify-center px-4 py-2">
+          {/* Hamburger Button */}
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="inline-flex items-center justify-center rounded p-2 text-[#00ffff] hover:text-[#ff00ff] transition-colors min-h-[40px] min-w-[40px]"
+          >
+            <svg
+              className="h-6 w-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
 
         <div
           className={cn(
-            "flex-1 py-1 space-y-0.5",
-            isCollapsedFromWidth
-              ? "px-2 overflow-y-visible"
-              : "px-4 overflow-y-auto"
+            "flex-1 py-1",
+            shouldShowIconsOnly
+              ? "px-4 overflow-y-visible space-y-0 flex flex-col items-center" // No spacing, centered icons
+              : "px-4 overflow-y-auto space-y-1"
           )}
         >
           {NAV_LINKS.map((link) => {
@@ -240,12 +266,12 @@ const hasAppliedAutoWidthRef = useRef(false);
               <Link
                 key={link.href}
                 href={link.href}
-                title={isCollapsedFromWidth ? link.label : undefined}
-                aria-label={isCollapsedFromWidth ? link.label : undefined}
+                title={shouldShowIconsOnly ? link.label : undefined}
+                aria-label={shouldShowIconsOnly ? link.label : undefined}
                 className={cn(
                   "group relative flex items-center rounded transition-all duration-200 uppercase tracking-wider font-bold overflow-hidden",
-                  isCollapsedFromWidth
-                    ? "justify-center aspect-square w-14 p-0 text-xs"
+                  shouldShowIconsOnly
+                    ? "justify-center w-14 h-10 p-2 text-base"
                     : "px-4 py-2 text-xs",
                   isActive
                     ? "bg-[#ff00ff] text-black shadow-lg shadow-[#ff00ff]/50"
@@ -260,16 +286,21 @@ const hasAppliedAutoWidthRef = useRef(false);
                   fontSmoothing: 'never'
                 } as React.CSSProperties}
               >
-                <span className={cn(isCollapsedFromWidth && "sr-only")}>{link.label}</span>
-                {isCollapsedFromWidth && (
+                {shouldShowIconsOnly ? (
+                  // Collapsed state: only icon
                   <span
                     aria-hidden
-                    className="text-3xl leading-none text-[#00ffff] drop-shadow-[0_0_6px_rgba(0,255,255,0.45)] group-hover:text-[#ff00ff]"
+                    className="text-2xl leading-none text-[#00ffff] drop-shadow-[0_0_6px_rgba(0,255,255,0.45)] group-hover:text-[#ff00ff]"
                   >
                     {link.symbol}
                   </span>
+                ) : (
+                  // Expanded state: only text (no icons)
+                  <span>{link.label}</span>
                 )}
-                {isCollapsedFromWidth && (
+                
+                {/* Tooltip for collapsed state */}
+                {shouldShowIconsOnly && (
                   <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded border border-[#00ffff] border-opacity-40 bg-[#0f0f23] px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-[#00ffff] opacity-0 shadow-lg shadow-[#00ffff]/20 transition-opacity duration-150 group-hover:opacity-100">
                     {link.label}
                   </span>
@@ -280,22 +311,7 @@ const hasAppliedAutoWidthRef = useRef(false);
         </div>
 
       </aside>
-      <div
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Resize sidebar"
-        onPointerDown={handlePointerDown}
-        onDoubleClick={(event) => {
-          event.preventDefault();
-          toggleCollapse();
-        }}
-        className={cn(
-          "hidden md:block absolute top-0 right-0 h-full w-2 cursor-col-resize select-none",
-          isDragging ? "bg-[#ff00ff]/30" : "bg-transparent hover:bg-[#00ffff]/20"
-        )}
-      >
-        <span className="sr-only">Drag to resize navigation</span>
-      </div>
+      {/* Resize handle removed - only hamburger button toggle is used */}
 
       {/* Hidden measurement node ensures max width tracks the farthest text */}
       <div
