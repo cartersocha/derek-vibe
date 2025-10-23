@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { createCharacterInline } from "@/lib/actions/characters"
+import { sanitizeSearchQuery } from "@/lib/security/sanitize"
 
 export type CharacterOption = {
   value: string
@@ -93,7 +94,8 @@ export default function CharacterMultiSelect({
   }, [placeholder, selectedEntries])
 
   const filteredOptions = useMemo(() => {
-    const term = search.trim().toLowerCase()
+    const sanitizedSearch = sanitizeSearchQuery(search)
+    const term = sanitizedSearch.trim().toLowerCase()
     if (!term) {
       return localOptions
     }
@@ -101,7 +103,7 @@ export default function CharacterMultiSelect({
     return localOptions.filter((option) => option.label.toLowerCase().includes(term))
   }, [localOptions, search])
 
-  const trimmedSearch = search.trim()
+  const trimmedSearch = sanitizeSearchQuery(search).trim()
 
   const canCreateNew = useMemo(() => {
     if (!trimmedSearch) {

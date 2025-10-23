@@ -7,8 +7,16 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { campaignSchema } from '@/lib/validations/schemas'
-import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
-import { getIdList, getDateValue } from '@/lib/utils/form-data'
+import { 
+  getIdList, 
+  getDateValue, 
+  getString, 
+  getStringOrNull,
+  getName,
+  getDescription,
+  validateName,
+  validateDescription
+} from '@/lib/utils/form-data'
 import { resolveOrganizationIds, setCampaignOrganizations } from '@/lib/actions/organizations'
 import { extractOrganizationIds } from '@/lib/organizations/helpers'
 
@@ -47,10 +55,10 @@ export async function createCampaignInline(
 ): Promise<{ id: string; name: string }> {
   const supabase = await createClient()
 
-  const sanitizedDescription = sanitizeNullableText(description ?? null)
+  const sanitizedDescription = description?.trim() || null
 
   const data = {
-    name: sanitizeText(name).trim(),
+    name: name.trim(),
     description: sanitizedDescription ?? undefined,
   }
 
@@ -112,11 +120,20 @@ export async function createCampaign(formData: FormData): Promise<void> {
   const characterIds = getIdList(formData, 'character_ids')
   const createdAtOverride = getDateValue(formData, 'created_at')
 
-  const rawName = formData.get('name')
-  const sanitizedDescription = sanitizeNullableText(formData.get('description'))
+  // Validate input fields
+  const name = getName(formData, 'name');
+  const description = getDescription(formData, 'description');
+
+  if (!validateName(name)) {
+    throw new Error("Invalid campaign name. Name must be between 1-100 characters and contain no dangerous content.");
+  }
+  if (description && !validateDescription(description)) {
+    throw new Error("Invalid campaign description. Description must be 2,000 characters or less and contain no dangerous content.");
+  }
+
   const data = {
-    name: typeof rawName === 'string' ? sanitizeText(rawName).trim() : '',
-    description: sanitizedDescription ?? undefined,
+    name: name,
+    description: description || undefined,
   }
 
   const result = campaignSchema.safeParse(data)
@@ -132,7 +149,7 @@ export async function createCampaign(formData: FormData): Promise<void> {
   })
 
   const campaignId = randomUUID()
-  const descriptionValue = sanitizedDescription ?? null
+  const descriptionValue = result.data.description ?? null
 
   const { error } = await supabase
     .from('campaigns')
@@ -205,11 +222,9 @@ export async function updateCampaign(id: string, formData: FormData): Promise<vo
   const characterIds = getIdList(formData, 'character_ids')
   const createdAtOverride = getDateValue(formData, 'created_at')
 
-  const rawName = formData.get('name')
-  const sanitizedDescription = sanitizeNullableText(formData.get('description'))
   const data = {
-    name: typeof rawName === 'string' ? sanitizeText(rawName).trim() : '',
-    description: sanitizedDescription ?? undefined,
+    name: getString(formData, 'name'),
+    description: getStringOrNull(formData, 'description') ?? undefined,
   }
 
   const result = campaignSchema.safeParse(data)
@@ -225,7 +240,7 @@ export async function updateCampaign(id: string, formData: FormData): Promise<vo
     errorMessage: 'Campaign name already exists. Choose a different name.',
   })
 
-  const descriptionValue = sanitizedDescription ?? null
+  const descriptionValue = result.data.description ?? null
 
   const { error } = await supabase
     .from('campaigns')

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { sanitizeSearchQuery } from '@/lib/security/sanitize'
 
 interface CreatableSelectProps {
   id: string
@@ -177,7 +178,8 @@ export default function CreatableSelect({
   }, [customOptions, normalize, options, value])
 
   const filteredOptions = useMemo(() => {
-    const query = search.trim().toLowerCase()
+    const sanitizedSearch = sanitizeSearchQuery(search)
+    const query = sanitizedSearch.trim().toLowerCase()
     if (!query) {
       return combinedOptions
     }

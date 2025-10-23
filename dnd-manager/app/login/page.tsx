@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { login } from "@/lib/auth/actions";
+import { sanitizePassword } from "@/lib/security/sanitize";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -14,7 +15,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await login(password);
+      const sanitizedPassword = sanitizePassword(password);
+      const result = await login(sanitizedPassword);
       if (result?.error) {
         setError(result.error);
         setLoading(false);
@@ -55,7 +57,7 @@ export default function LoginPage() {
               className="appearance-none relative block w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 placeholder-gray-500 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => setPassword(sanitizePassword(e.target.value))}
               disabled={loading}
             />
           </div>

@@ -21,6 +21,7 @@ import { createCampaignInline } from "@/lib/actions/campaigns"
 import { cn } from "@/lib/utils"
 import { isMentionBoundary, type MentionTarget } from "@/lib/mention-utils"
 import { mentionEndPattern } from "@/lib/mentions"
+import { sanitizeMentionQuery } from "@/lib/security/sanitize"
 
 type MentionableTextareaProps = Omit<AutoResizeTextareaProps, "defaultValue" | "value" | "onChange" | "onKeyDown" | "onSelect" | "onBlur"> & {
   initialValue?: string | null
@@ -434,7 +435,8 @@ export default function MentionableTextarea({
       }
 
       const query = preceding.slice(atIndex + 1)
-      const trimmedQuery = query.trim()
+      const sanitizedQuery = sanitizeMentionQuery(query)
+      const trimmedQuery = sanitizedQuery.trim()
       const normalizedQuery = trimmedQuery.toLowerCase()
 
       // Allow spaces in mention queries for multi-word names

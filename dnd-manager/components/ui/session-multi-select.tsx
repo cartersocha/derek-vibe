@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { createSessionInline } from "@/lib/actions/sessions"
+import { sanitizeSearchQuery } from "@/lib/security/sanitize"
 
 export type SessionOption = {
   value: string
@@ -95,7 +96,8 @@ export default function SessionMultiSelect({
   }, [placeholder, selectedEntries])
 
   const filteredOptions = useMemo(() => {
-    const term = search.trim().toLowerCase()
+    const sanitizedSearch = sanitizeSearchQuery(search)
+    const term = sanitizedSearch.trim().toLowerCase()
     if (!term) {
       return localOptions
     }
@@ -103,7 +105,7 @@ export default function SessionMultiSelect({
     return localOptions.filter((option) => option.label.toLowerCase().includes(term))
   }, [localOptions, search])
 
-  const trimmedSearch = search.trim()
+  const trimmedSearch = sanitizeSearchQuery(search).trim()
 
   const canCreateNew = useMemo(() => {
     if (!trimmedSearch) {

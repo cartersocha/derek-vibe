@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { createOrganizationInline } from "@/lib/actions/organizations"
+import { sanitizeSearchQuery } from "@/lib/security/sanitize"
 
 export type OrganizationOption = {
   value: string
@@ -92,7 +93,8 @@ export default function OrganizationMultiSelect({
   }, [placeholder, selectedEntries])
 
   const filteredOptions = useMemo(() => {
-    const term = search.trim().toLowerCase()
+    const sanitizedSearch = sanitizeSearchQuery(search)
+    const term = sanitizedSearch.trim().toLowerCase()
     if (!term) {
       return localOptions
     }
@@ -100,7 +102,7 @@ export default function OrganizationMultiSelect({
     return localOptions.filter((option) => option.label.toLowerCase().includes(term))
   }, [localOptions, search])
 
-  const trimmedSearch = search.trim()
+  const trimmedSearch = sanitizeSearchQuery(search).trim()
 
   const canCreateNew = useMemo(() => {
     if (!trimmedSearch) {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { sanitizeSearchQuery } from "@/lib/security/sanitize";
 import { IndexEmptyState, IndexHeader, IndexSearchEmptyState } from "@/components/ui/index-utility";
 import type { Character } from "@/types/database";
 
@@ -68,7 +69,8 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
   };
 
   const filtered = useMemo(() => {
-    const trimmed = query.trim();
+    const sanitizedQuery = sanitizeSearchQuery(query);
+    const trimmed = sanitizedQuery.trim();
     if (!trimmed) {
       return characters;
     }

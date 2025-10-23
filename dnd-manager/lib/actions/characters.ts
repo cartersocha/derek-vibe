@@ -7,7 +7,29 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { collectMentionTargets } from "@/lib/mentions";
 import { assertUniqueValue } from "@/lib/supabase/ensure-unique";
 import { createClient } from "@/lib/supabase/server";
-import { getString, getStringOrNull, getFile } from '@/lib/utils/form-data'
+import { 
+  getString, 
+  getStringOrNull, 
+  getFile, 
+  getName, 
+  getDescription, 
+  getNotes, 
+  getBackstory, 
+  getLocation, 
+  getRace, 
+  getClass, 
+  getLevel, 
+  getRole,
+  validateName,
+  validateDescription,
+  validateNotes,
+  validateBackstory,
+  validateLocation,
+  validateRace,
+  validateClass,
+  validateLevel,
+  validateRole
+} from '@/lib/utils/form-data'
 import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import {
   deleteImage,
@@ -15,7 +37,6 @@ import {
   uploadImage,
 } from "@/lib/supabase/storage";
 import { characterSchema } from "@/lib/validations/schemas";
-import { sanitizeText } from "@/lib/security/sanitize";
 import { CharacterStatus, PlayerType } from "@/lib/characters/constants";
 import { toTitleCase } from "@/lib/utils";
 import {
@@ -57,7 +78,12 @@ export async function createCharacter(formData: FormData): Promise<void> {
   const imageFile = getFile(formData, "image");
   let imageUrl: string | null = null;
 
-  const normalizedName = toTitleCase(getString(formData, "name"));
+  const normalizedName = toTitleCase(getName(formData, "name"));
+
+  // Validate name before proceeding
+  if (!validateName(normalizedName)) {
+    throw new Error("Invalid character name. Name must be between 1-100 characters and contain no dangerous content.");
+  }
 
   await assertUniqueValue(supabase, {
     table: "characters",
@@ -80,15 +106,38 @@ export async function createCharacter(formData: FormData): Promise<void> {
     imageUrl = url;
   }
 
+  // Validate all input fields
+  const race = getRace(formData, "race");
+  const characterClass = getClass(formData, "class");
+  const level = getLevel(formData, "level");
+  const backstory = getBackstory(formData, "backstory");
+  const location = getLocation(formData, "last_known_location");
+
+  if (race && !validateRace(race)) {
+    throw new Error("Invalid race. Race must be 50 characters or less and contain no dangerous content.");
+  }
+  if (characterClass && !validateClass(characterClass)) {
+    throw new Error("Invalid class. Class must be 50 characters or less and contain no dangerous content.");
+  }
+  if (level && !validateLevel(level)) {
+    throw new Error("Invalid level. Level must be 20 characters or less and contain no dangerous content.");
+  }
+  if (backstory && !validateBackstory(backstory)) {
+    throw new Error("Invalid backstory. Backstory must be 10,000 characters or less and contain no dangerous content.");
+  }
+  if (location && !validateLocation(location)) {
+    throw new Error("Invalid location. Location must be 200 characters or less and contain no dangerous content.");
+  }
+
   const data = {
     name: normalizedName,
-    race: getStringOrNull(formData, "race"),
-    class: getStringOrNull(formData, "class"),
-    level: getStringOrNull(formData, "level"),
-    backstory: getStringOrNull(formData, "backstory"),
+    race: race || null,
+    class: characterClass || null,
+    level: level || null,
+    backstory: backstory || null,
     image_url: imageUrl,
     player_type: (getString(formData, "player_type") || "npc") as PlayerType,
-    last_known_location: getStringOrNull(formData, "last_known_location"),
+    last_known_location: location || null,
     status: (getString(formData, "status") || "alive") as CharacterStatus,
   };
 
@@ -182,7 +231,7 @@ export async function createCharacterInline(
   name: string;
 }> {
   const supabase = await createClient();
-  const sanitized = sanitizeText(name).trim();
+  const sanitized = name.trim();
 
   if (!sanitized) {
     throw new Error("Character name is required");
@@ -269,7 +318,12 @@ export async function updateCharacter(
   const removeImage = formData.get("image_remove") === "true";
   let imageUrl = existing.image_url;
 
-  const normalizedName = toTitleCase(getString(formData, "name"));
+  const normalizedName = toTitleCase(getName(formData, "name"));
+
+  // Validate name before proceeding
+  if (!validateName(normalizedName)) {
+    throw new Error("Invalid character name. Name must be between 1-100 characters and contain no dangerous content.");
+  }
 
   await assertUniqueValue(supabase, {
     table: "characters",
@@ -317,15 +371,38 @@ export async function updateCharacter(
     imageUrl = null;
   }
 
+  // Validate all input fields
+  const race = getRace(formData, "race");
+  const characterClass = getClass(formData, "class");
+  const level = getLevel(formData, "level");
+  const backstory = getBackstory(formData, "backstory");
+  const location = getLocation(formData, "last_known_location");
+
+  if (race && !validateRace(race)) {
+    throw new Error("Invalid race. Race must be 50 characters or less and contain no dangerous content.");
+  }
+  if (characterClass && !validateClass(characterClass)) {
+    throw new Error("Invalid class. Class must be 50 characters or less and contain no dangerous content.");
+  }
+  if (level && !validateLevel(level)) {
+    throw new Error("Invalid level. Level must be 20 characters or less and contain no dangerous content.");
+  }
+  if (backstory && !validateBackstory(backstory)) {
+    throw new Error("Invalid backstory. Backstory must be 10,000 characters or less and contain no dangerous content.");
+  }
+  if (location && !validateLocation(location)) {
+    throw new Error("Invalid location. Location must be 200 characters or less and contain no dangerous content.");
+  }
+
   const data = {
     name: normalizedName,
-    race: getStringOrNull(formData, "race"),
-    class: getStringOrNull(formData, "class"),
-    level: getStringOrNull(formData, "level"),
-    backstory: getStringOrNull(formData, "backstory"),
+    race: race || null,
+    class: characterClass || null,
+    level: level || null,
+    backstory: backstory || null,
     image_url: imageUrl,
     player_type: (getString(formData, "player_type") || "npc") as PlayerType,
-    last_known_location: getStringOrNull(formData, "last_known_location"),
+    last_known_location: location || null,
     status: (getString(formData, "status") || "alive") as CharacterStatus,
   };
 
