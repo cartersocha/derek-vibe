@@ -7,8 +7,16 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
-import { sanitizeNullableText, sanitizeText } from '@/lib/security/sanitize'
-import { getString, getFile, getIdList } from '@/lib/utils/form-data'
+import { 
+  getString, 
+  getStringOrNull, 
+  getFile, 
+  getIdList,
+  getName,
+  getDescription,
+  validateName,
+  validateDescription
+} from '@/lib/utils/form-data'
 import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import { organizationSchema, type CharacterOrganizationAffiliationInput } from '@/lib/validations/organization'
 
@@ -32,8 +40,12 @@ export async function createOrganization(formData: FormData): Promise<void> {
   const supabase = await createClient()
   const organizationId = randomUUID()
 
-  const rawName = getString(formData, 'name')
-  const sanitizedName = sanitizeText(rawName).trim()
+  const sanitizedName = getName(formData, 'name')
+
+  // Validate name before proceeding
+  if (!validateName(sanitizedName)) {
+    throw new Error("Invalid organization name. Name must be between 1-100 characters and contain no dangerous content.");
+  }
 
   await assertUniqueValue(supabase, {
     table: 'organizations',
@@ -42,7 +54,12 @@ export async function createOrganization(formData: FormData): Promise<void> {
     errorMessage: 'Organization name already exists. Choose a different name.',
   })
 
-  const description = sanitizeNullableText(formData.get('description'))
+  const description = getDescription(formData, 'description')
+  
+  // Validate description if provided
+  if (description && !validateDescription(description)) {
+    throw new Error("Invalid organization description. Description must be 2,000 characters or less and contain no dangerous content.");
+  }
 
   const logoFile = getFile(formData, 'logo')
   let logoUrl: string | null = null
@@ -109,8 +126,7 @@ export async function updateOrganization(id: string, formData: FormData): Promis
   const removeLogo = formData.get('logo_remove') === 'true'
   let logoUrl = existing.logo_url
 
-  const rawName = getString(formData, 'name')
-  const sanitizedName = sanitizeText(rawName).trim()
+  const sanitizedName = getString(formData, 'name')
 
   await assertUniqueValue(supabase, {
     table: 'organizations',
@@ -120,7 +136,7 @@ export async function updateOrganization(id: string, formData: FormData): Promis
     errorMessage: 'Organization name already exists. Choose a different name.',
   })
 
-  const description = sanitizeNullableText(formData.get('description'))
+  const description = getStringOrNull(formData, 'description')
 
   if (logoFile) {
     const { url, path, error } = await uploadImage(
@@ -322,7 +338,7 @@ export async function deleteOrganization(id: string): Promise<void> {
 
 export async function createOrganizationInline(name: string): Promise<{ id: string; name: string }> {
   const supabase = await createClient()
-  const sanitized = sanitizeText(name).trim()
+  const sanitized = name.trim()
 
   if (!sanitized) {
     throw new Error('Organization name is required')

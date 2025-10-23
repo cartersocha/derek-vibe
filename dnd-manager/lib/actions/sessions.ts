@@ -8,9 +8,16 @@ import { createClient } from '@/lib/supabase/server'
 import { assertUniqueValue } from '@/lib/supabase/ensure-unique'
 import { deleteImage, getStoragePathFromUrl, uploadImage } from '@/lib/supabase/storage'
 import { sessionSchema } from '@/lib/validations/schemas'
-import { getString, getStringOrNull, getFile } from '@/lib/utils/form-data'
+import { 
+  getString, 
+  getStringOrNull, 
+  getFile,
+  getName,
+  getNotes,
+  validateName,
+  validateNotes
+} from '@/lib/utils/form-data'
 import { STORAGE_BUCKETS } from '@/lib/utils/storage'
-import { sanitizeText } from '@/lib/security/sanitize'
 import { toTitleCase } from '@/lib/utils'
 import {
   resolveOrganizationIds,
@@ -48,7 +55,7 @@ export async function createSessionInline(
   options?: CreateSessionInlineOptions
 ): Promise<{ id: string; name: string }> {
   const supabase = await createClient()
-  const sanitized = sanitizeText(name).trim()
+  const sanitized = name.trim()
 
   if (!sanitized) {
     throw new Error('Session name is required')
@@ -118,7 +125,12 @@ export async function createSession(formData: FormData): Promise<void> {
 
   const headerImageFile = getFile(formData, 'header_image')
 
-  const sessionName = toTitleCase(getString(formData, 'name'))
+  const sessionName = toTitleCase(getName(formData, 'name'))
+
+  // Validate name before proceeding
+  if (!validateName(sessionName)) {
+    throw new Error("Invalid session name. Name must be between 1-100 characters and contain no dangerous content.");
+  }
 
   await assertUniqueValue(supabase, {
     table: 'sessions',
@@ -130,11 +142,17 @@ export async function createSession(formData: FormData): Promise<void> {
   const submittedSessionDate = getStringOrNull(formData, 'session_date')
   const sessionDate = submittedSessionDate ?? getTodayDateString()
 
+  // Validate notes if provided
+  const notes = getNotes(formData, 'notes');
+  if (notes && !validateNotes(notes)) {
+    throw new Error("Invalid session notes. Notes must be 10,000 characters or less and contain no dangerous content.");
+  }
+
   const baseData = {
     name: sessionName,
     campaign_id: getStringOrNull(formData, 'campaign_id'),
     session_date: sessionDate,
-    notes: getStringOrNull(formData, 'notes'),
+    notes: notes || null,
     header_image_url: null as string | null,
   }
 
