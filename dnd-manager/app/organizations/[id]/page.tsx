@@ -189,7 +189,7 @@ export default async function OrganizationDetailPage({
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <Link
           href="/organizations"
@@ -288,57 +288,6 @@ export default async function OrganizationDetailPage({
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-lg sm:text-xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h2>
-          {sessionsWithNumbers.length === 0 ? (
-            <p className="text-gray-500 font-mono italic text-sm sm:text-base">No sessions are linked to this group yet.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {sessionsWithNumbers.map((session) => (
-                <article
-                  key={session.id}
-                  className="group relative overflow-hidden rounded border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/40 p-3 sm:p-4 shadow-2xl transition-all duration-200 hover:border-[#ff00ff] hover:bg-[#0f0f23] hover:shadow-[#ff00ff]/40 min-h-[80px]"
-                >
-                  <Link
-                    href={`/sessions/${session.id}`}
-                    className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
-                    aria-label={`View session ${session.name}`}
-                  >
-                    <span aria-hidden="true" />
-                  </Link>
-                  <div className="relative z-10 flex flex-col h-full pointer-events-none">
-                    <div className="flex items-start justify-between gap-2 sm:gap-3">
-                      <span className="font-medium text-[#00ffff] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff00ff] break-words flex-1">
-                        {session.name}
-                      </span>
-                      <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#00ffff] border border-[#00ffff]/40 bg-[#0f0f23] flex-shrink-0">
-                        {formatDateStringForDisplay(session.session_date) ?? "Date TBD"}
-                      </span>
-                    </div>
-                    <div className="mt-auto pt-2 flex items-center justify-between gap-2 flex-wrap">
-                      {session.campaign?.name ? (
-                        <Link
-                          href={`/campaigns/${session.campaign.id}`}
-                          className="pointer-events-auto inline-flex items-center rounded border border-[#ff6b35]/40 bg-[#211027] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] min-h-[24px]"
-                        >
-                          {session.campaign.name}
-                        </Link>
-                      ) : (
-                        <div />
-                      )}
-                      {session.session_number && (
-                        <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff00ff] min-h-[24px]">
-                          Session {session.session_number}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="space-y-4">
           <h2 className="text-lg sm:text-xl font-bold text-[#00ffff] uppercase tracking-wider">Characters</h2>
           {characters.length === 0 ? (
             <p className="text-gray-500 font-mono italic text-sm sm:text-base">No characters are affiliated with this group yet.</p>
@@ -385,6 +334,57 @@ export default async function OrganizationDetailPage({
                   </article>
                 );
               })}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-lg sm:text-xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h2>
+          {sessionsWithNumbers.length === 0 ? (
+            <p className="text-gray-500 font-mono italic text-sm sm:text-base">No sessions are linked to this group yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {sessionsWithNumbers.map((session) => (
+                <article
+                  key={session.id}
+                  className="group relative overflow-hidden rounded border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/40 p-3 sm:p-4 shadow-2xl transition-all duration-200 hover:border-[#ff00ff] hover:bg-[#0f0f23] hover:shadow-[#ff00ff]/40 min-h-[80px]"
+                >
+                  <Link
+                    href={`/sessions/${session.id}`}
+                    className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                    aria-label={`View session ${session.name}`}
+                  >
+                    <span aria-hidden="true" />
+                  </Link>
+                  <div className="relative z-10 flex flex-col h-full pointer-events-none">
+                    <div className="flex items-start justify-between gap-2 sm:gap-3">
+                      <span className="font-medium text-[#00ffff] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff00ff] break-words flex-1">
+                        {session.name}
+                      </span>
+                      <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[#00ffff] border border-[#00ffff]/40 bg-[#0f0f23] flex-shrink-0">
+                        {formatDateStringForDisplay(session.session_date) ?? "Date TBD"}
+                      </span>
+                    </div>
+                    <div className="mt-auto pt-2 flex items-center justify-between gap-2 flex-wrap">
+                      {session.campaign?.name ? (
+                        <Link
+                          href={`/campaigns/${session.campaign.id}`}
+                          className="pointer-events-auto inline-flex items-center rounded border border-[#ff6b35]/40 bg-[#211027] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] min-h-[24px]"
+                        >
+                          {session.campaign.name}
+                        </Link>
+                      ) : (
+                        <div />
+                      )}
+                      {session.session_number && (
+                        <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff00ff] min-h-[24px]">
+                          Session {session.session_number}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
           )}
         </section>

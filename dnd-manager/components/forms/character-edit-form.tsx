@@ -415,7 +415,7 @@ export default function CharacterEditForm({
         </div>
         <div className="space-y-2">
           <label htmlFor="organization_ids" className="block text-sm font-bold text-[#00ffff] uppercase tracking-wider">
-            Organization Affiliation
+            Group Affiliation
           </label>
           <OrganizationMultiSelect
             id="organization_ids"
@@ -423,7 +423,7 @@ export default function CharacterEditForm({
             value={organizationIds}
             onChange={setOrganizationIds}
             options={organizationOptions}
-            placeholder="Select organizations"
+            placeholder="Select groups"
             onCreateOption={handleOrganizationCreated}
           />
         </div>

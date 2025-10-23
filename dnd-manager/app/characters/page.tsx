@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client'
 
@@ -146,8 +147,15 @@ export default function CharactersPage() {
                 : 'bg-[#1a1a3e] bg-opacity-50'
             }`}
           >
+            <Link
+              href={`/characters/${character.id}`}
+              className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+              aria-label={`View character ${character.name}`}
+            >
+              <span aria-hidden="true" />
+            </Link>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
-              <div className="relative z-10 flex-1">
+              <div className="relative z-10 flex-1 pointer-events-none">
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <span className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
                     {character.name}
@@ -195,15 +203,19 @@ export default function CharactersPage() {
                 {/* Organizations */}
                 {character.organization_characters && character.organization_characters.length > 0 && (
                   <div className="mb-3">
-                    <div className="text-xs font-mono uppercase tracking-widest text-[#00ffff] opacity-60 mb-2">Organizations:</div>
+                    <div className="text-xs font-mono uppercase tracking-widest text-[#00ffff] opacity-60 mb-2">Groups:</div>
                     <div className="flex flex-wrap gap-2">
                       {(expandedOrganizations.has(character.id) 
                         ? character.organization_characters 
                         : character.organization_characters.slice(0, 3)
                       ).map((org, index) => (
-                        <span key={index} className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c]">
+                        <Link
+                          key={index}
+                          href={`/organizations/${org.organization?.id}`}
+                          className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] pointer-events-auto"
+                        >
                           {org.organization?.name || 'Unknown Org'}
-                        </span>
+                        </Link>
                       ))}
                       {!expandedOrganizations.has(character.id) && character.organization_characters.length > 3 && (
                         <button

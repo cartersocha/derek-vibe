@@ -222,7 +222,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   const deleteCampaignWithId = deleteCampaign.bind(null, id)
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <Link href="/campaigns" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
           ← Back to Campaigns
