@@ -85,7 +85,7 @@ export default function CharactersPage() {
             ?.filter(rel => rel.character_id === character.id)
             .map(rel => rel.campaign) || []
 
-          const sortedOrganizations = (character.organization_characters || []).sort((a, b) => {
+          const sortedOrganizations = (character.organization_characters || []).sort((a: any, b: any) => {
             const nameA = a.organization?.name || '';
             const nameB = b.organization?.name || '';
             return nameA.localeCompare(nameB);
@@ -193,7 +193,7 @@ export default function CharactersPage() {
                       {(expandedOrganizations.has(character.id) 
                         ? character.organization_characters 
                         : character.organization_characters.slice(0, 3)
-                      ).map((org, index) => (
+                      ).map((org: any, index: number) => (
                         <Link
                           key={index}
                           href={`/organizations/${org.organization?.id}`}
