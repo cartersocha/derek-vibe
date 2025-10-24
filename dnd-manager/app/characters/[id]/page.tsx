@@ -431,7 +431,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                   <Link
                     key={campaign.id}
                     href={`/campaigns/${campaign.id}`}
-                    className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-3 py-1.5 text-xs font-mono uppercase tracking-[0.25em] text-[#ff6b35] transition hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                    className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6b35] transition hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] whitespace-nowrap"
                   >
                     <span className="font-semibold">{campaign.name}</span>
                   </Link>
@@ -453,7 +453,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                   <Link
                     key={affiliation.id}
                     href={`/organizations/${affiliation.id}`}
-                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-3 py-1.5 text-xs font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c]"
+                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] whitespace-nowrap"
                   >
                     <span className="font-semibold">{affiliation.name}</span>
                   </Link>

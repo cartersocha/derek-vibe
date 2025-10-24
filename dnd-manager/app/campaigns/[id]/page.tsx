@@ -310,7 +310,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-3 py-1.5 text-xs font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447]"
+                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] whitespace-nowrap"
                   >
                     {organization.name}
                   </Link>

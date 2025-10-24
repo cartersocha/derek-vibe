@@ -30,8 +30,8 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
   const nameClasses = isPlayer
     ? 'font-medium text-[#00ffff] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
     : 'font-medium text-[#ff6ad5] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff9de6] focus-visible:ring-[#ff6ad5]';
-  const organizationChipClasses = 'inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#fcee0c] transition-colors hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:ring-[#ffd447]';
-  const showMoreButtonBaseClasses = 'inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#fcee0c] transition-colors focus-visible:outline-none focus-visible:ring-2';
+  const organizationChipClasses = 'inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#fcee0c] transition-colors hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:ring-[#ffd447] whitespace-nowrap';
+  const showMoreButtonBaseClasses = 'inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#fcee0c] transition-colors focus-visible:outline-none focus-visible:ring-2 whitespace-nowrap';
   const levelLabel = character.level
     ? isPlayer
       ? `Level ${character.level}`
