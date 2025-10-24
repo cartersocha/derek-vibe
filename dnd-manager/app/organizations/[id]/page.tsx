@@ -263,7 +263,7 @@ export default async function OrganizationDetailPage({
                 <Link
                   key={campaign.id}
                   href={`/campaigns/${campaign.id}`}
-                  className="inline-flex items-center rounded-full border border-[var(--semantic)]/70 bg-[var(--semantic)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--semantic)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)]"
+                  className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                 >
                   <span className="font-semibold">{campaign.name}</span>
                 </Link>
@@ -329,7 +329,7 @@ export default async function OrganizationDetailPage({
                       {session.campaign?.name ? (
                         <Link
                           href={`/campaigns/${session.campaign.id}`}
-                          className="pointer-events-auto inline-flex items-center rounded border border-[var(--semantic)]/40 bg-[var(--bg-card)] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--semantic)] transition-colors hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)] min-h-[24px]"
+                          className="pointer-events-auto inline-flex items-center rounded border border-[var(--cyber-magenta)]/40 bg-[var(--bg-card)] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] transition-colors hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] min-h-[24px]"
                         >
                           {session.campaign.name}
                         </Link>

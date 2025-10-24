@@ -62,9 +62,9 @@ function MentionKindLabel({ kind }: MentionKindLabelProps) {
       case "session":
         return "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)]"
       case "organization":
-        return "border-[var(--semantic)] text-[var(--semantic)]"
+        return "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)]"
       case "campaign":
-        return "border-[var(--semantic)] text-[var(--semantic)]"
+        return "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)]"
       default:
         return "border-[var(--text-muted)] text-[var(--text-muted)]"
     }
@@ -942,13 +942,13 @@ export default function MentionableTextarea({
                       }
                     case "organization":
                       return {
-                        baseTextColor: "text-[var(--semantic)]",
-                        activeTextColor: "text-[var(--semantic)]",
+                        baseTextColor: "text-[var(--cyber-magenta)]",
+                        activeTextColor: "text-[var(--cyber-magenta)]",
                       }
                     case "campaign":
                       return {
-                        baseTextColor: "text-[var(--semantic)]",
-                        activeTextColor: "text-[var(--semantic)]",
+                        baseTextColor: "text-[var(--cyber-magenta)]",
+                        activeTextColor: "text-[var(--cyber-magenta)]",
                       }
                     default:
                       return {
@@ -1009,14 +1009,14 @@ export default function MentionableTextarea({
                   disabled={isCreatingMentionCharacter}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
                     mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0))
-                      ? "bg-[var(--bg-card)] text-[var(--semantic)]"
-                      : "text-[var(--semantic)] hover:bg-[var(--bg-dark)]"
+                      ? "bg-[var(--bg-card)] text-[var(--cyber-magenta)]"
+                      : "text-[var(--cyber-magenta)] hover:bg-[var(--bg-dark)]"
                   } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
                 >
                   <span className="font-semibold">
                     {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
                   </span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--semantic)]">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--cyber-magenta)]">
                     New Organization
                   </span>
                 </button>
@@ -1055,14 +1055,14 @@ export default function MentionableTextarea({
                   disabled={isCreatingMentionCharacter}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
                     mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0))
-                      ? "bg-[var(--bg-card)] text-[var(--semantic)]"
-                      : "text-[var(--semantic)] hover:bg-[var(--bg-dark)]"
+                      ? "bg-[var(--bg-card)] text-[var(--cyber-magenta)]"
+                      : "text-[var(--cyber-magenta)] hover:bg-[var(--bg-dark)]"
                   } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
                 >
                   <span className="font-semibold">
                     {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
                   </span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--semantic)]">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--cyber-magenta)]">
                     New Campaign
                   </span>
                 </button>

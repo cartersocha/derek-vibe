@@ -13,7 +13,6 @@
   --text-muted: #64748b;
   
   /* Semantic color (1 color - use with opacity variations) */
-  --semantic: #ff00ff;
   
   /* Legacy support */
   --background: var(--bg-dark);
@@ -23,9 +22,9 @@
   --cyber-dark: var(--bg-dark);
   
   /* Semantic aliases for backward compatibility */
-  --success: var(--semantic);
-  --warning: var(--semantic);
-  --error: var(--semantic);
+  --success: var(--cyber-magenta);
+  --warning: var(--cyber-magenta);
+  --error: var(--cyber-magenta);
   --status-active: var(--cyber-cyan);
   --status-inactive: var(--text-muted);
 }
@@ -374,47 +373,47 @@ body {
 
 /* Semantic state utilities with opacity variations */
 .semantic-success {
-  color: var(--semantic);
+  color: var(--cyber-magenta);
   opacity: 0.8;
 }
 
 .semantic-warning {
-  color: var(--semantic);
+  color: var(--cyber-magenta);
   opacity: 0.9;
 }
 
 .semantic-error {
-  color: var(--semantic);
+  color: var(--cyber-magenta);
   opacity: 1;
 }
 
 .bg-semantic-success {
-  background-color: var(--semantic);
+  background-color: var(--cyber-magenta);
   opacity: 0.1;
 }
 
 .bg-semantic-warning {
-  background-color: var(--semantic);
+  background-color: var(--cyber-magenta);
   opacity: 0.15;
 }
 
 .bg-semantic-error {
-  background-color: var(--semantic);
+  background-color: var(--cyber-magenta);
   opacity: 0.2;
 }
 
 .border-semantic-success {
-  border-color: var(--semantic);
+  border-color: var(--cyber-magenta);
   opacity: 0.3;
 }
 
 .border-semantic-warning {
-  border-color: var(--semantic);
+  border-color: var(--cyber-magenta);
   opacity: 0.5;
 }
 
 .border-semantic-error {
-  border-color: var(--semantic);
+  border-color: var(--cyber-magenta);
   opacity: 0.7;
 }
 

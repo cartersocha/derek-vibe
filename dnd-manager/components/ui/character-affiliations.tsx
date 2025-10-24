@@ -23,7 +23,7 @@ export function CharacterAffiliations({ affiliations }: CharacterAffiliationsPro
             <Link
               key={affiliation.id}
               href={`/organizations/${affiliation.id}`}
-              className="inline-flex items-center rounded-full border border-[var(--semantic)]/70 bg-[var(--semantic)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--semantic)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)]"
+              className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
             >
               <span className="font-semibold">{affiliation.name}</span>
             </Link>

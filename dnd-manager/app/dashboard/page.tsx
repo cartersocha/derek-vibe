@@ -126,7 +126,7 @@ export default async function DashboardPage() {
           href="/campaigns"
           className="group block rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[var(--cyber-magenta)] hover:shadow-[var(--cyber-magenta)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)] focus:ring-offset-2 focus:ring-offset-[var(--bg-dark)] min-h-[100px] flex flex-col justify-center"
         >
-          <h3 className="text-xs sm:text-sm font-medium text-[var(--semantic)] uppercase tracking-wider font-mono">Total Campaigns</h3>
+          <h3 className="text-xs sm:text-sm font-medium text-[var(--cyber-magenta)] uppercase tracking-wider font-mono">Total Campaigns</h3>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-[var(--cyber-cyan)]">{campaignsCount || 0}</p>
         </Link>
 
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
           href="/sessions"
           className="group block rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[var(--cyber-magenta)] hover:shadow-[var(--cyber-magenta)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)] focus:ring-offset-2 focus:ring-offset-[var(--bg-dark)] min-h-[100px] flex flex-col justify-center"
         >
-          <h3 className="text-xs sm:text-sm font-medium text-[var(--semantic)] uppercase tracking-wider font-mono">Total Sessions</h3>
+          <h3 className="text-xs sm:text-sm font-medium text-[var(--cyber-magenta)] uppercase tracking-wider font-mono">Total Sessions</h3>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-[var(--cyber-cyan)]">{sessionsCount || 0}</p>
         </Link>
 
@@ -142,7 +142,7 @@ export default async function DashboardPage() {
           href="/characters"
           className="group block rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[var(--cyber-magenta)] hover:shadow-[var(--cyber-magenta)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)] focus:ring-offset-2 focus:ring-offset-[var(--bg-dark)] min-h-[100px] flex flex-col justify-center sm:col-span-2 lg:col-span-1"
         >
-          <h3 className="text-xs sm:text-sm font-medium text-[var(--semantic)] uppercase tracking-wider font-mono">Total Characters</h3>
+          <h3 className="text-xs sm:text-sm font-medium text-[var(--cyber-magenta)] uppercase tracking-wider font-mono">Total Characters</h3>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-[var(--cyber-cyan)]">{charactersCount || 0}</p>
         </Link>
       </div>

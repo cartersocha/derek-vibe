@@ -264,7 +264,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             {session.campaign && (
               <Link 
                 href={`/campaigns/${session.campaign.id}`}
-                className="text-[var(--semantic)] hover-brightness font-mono uppercase tracking-wider"
+                className="text-[var(--cyber-magenta)] hover-brightness font-mono uppercase tracking-wider"
               >
                 Campaign: {session.campaign.name}
               </Link>
@@ -297,7 +297,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
                 <Link
                   key={group.id}
                   href={`/organizations/${group.id}`}
-                  className="inline-flex items-center rounded-full border border-[var(--semantic)]/70 bg-[var(--semantic)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--semantic)] transition-colors hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)]"
+                  className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] transition-colors hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                 >
                   {group.name}
                 </Link>

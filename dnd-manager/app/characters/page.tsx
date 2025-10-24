@@ -197,7 +197,7 @@ export default function CharactersPage() {
                         <Link
                           key={index}
                           href={`/organizations/${org.organization?.id}`}
-                          className="inline-flex items-center rounded-full border border-[var(--semantic)]/70 bg-[var(--semantic)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--semantic)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)]"
+                          className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                         >
                           {org.organization?.name || 'Unknown Org'}
                         </Link>
@@ -209,7 +209,7 @@ export default function CharactersPage() {
                             e.stopPropagation();
                             toggleOrganizationExpansion(character.id);
                           }}
-                          className="inline-flex items-center rounded-full border border-dashed border-[var(--semantic)]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--semantic)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)]"
+                          className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                         >
                           +{character.organization_characters.length - 3} more
                         </button>
@@ -221,7 +221,7 @@ export default function CharactersPage() {
                             e.stopPropagation();
                             toggleOrganizationExpansion(character.id);
                           }}
-                          className="inline-flex items-center rounded-full border border-[var(--semantic)]/70 bg-[var(--semantic)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--semantic)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)]"
+                          className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                         >
                           Show less
                         </button>

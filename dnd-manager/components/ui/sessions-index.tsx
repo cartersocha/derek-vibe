@@ -99,7 +99,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                     {session.campaign && session.campaign.id && session.campaign.name && (
                       <Link
                         href={`/campaigns/${session.campaign.id}`}
-                        className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest semantic-warning transition-colors hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
+                        className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest semantic-warning transition-colors hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
                       >
                         Campaign: {session.campaign.name}
                       </Link>
@@ -125,7 +125,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                             <Link
                               key={organization.id}
                               href={`/organizations/${organization.id}`}
-                              className="inline-flex items-center rounded-full border border-[var(--semantic)]/70 bg-[var(--semantic)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--semantic)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)] whitespace-nowrap"
+                              className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                             >
                               {organization.name}
                             </Link>
@@ -133,7 +133,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                           {!expandedGroups.has(session.id) && groups.length > 6 && (
                             <button
                               onClick={() => toggleSessionGroups(session.id)}
-                              className="inline-flex items-center rounded-full border border-dashed border-[var(--semantic)]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--semantic)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)] whitespace-nowrap"
+                              className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                             >
                               +{groups.length - 6} more
                             </button>
@@ -141,7 +141,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                           {expandedGroups.has(session.id) && groups.length > 6 && (
                             <button
                               onClick={() => toggleSessionGroups(session.id)}
-                              className="inline-flex items-center rounded-full border border-[var(--semantic)]/70 bg-[var(--semantic)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--semantic)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)] whitespace-nowrap"
+                              className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                             >
                               Show less
                             </button>

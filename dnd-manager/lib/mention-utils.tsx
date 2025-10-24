@@ -30,7 +30,7 @@ export function renderNotesWithMentions(text: string, targets: MentionTarget[]):
           case 'session':
             return 'text-[var(--cyber-magenta)] decoration-[var(--cyber-magenta)]/70 hover:text-[var(--cyber-magenta)] focus-visible:ring-[var(--cyber-magenta)]/50'
           case 'organization':
-            return 'text-[var(--semantic)] decoration-[var(--semantic)]/70 hover-brightness focus-visible:ring-[var(--semantic)]/50'
+            return 'text-[var(--cyber-magenta)] decoration-[var(--cyber-magenta)]/70 hover-brightness focus-visible:ring-[var(--cyber-magenta)]/50'
           case 'campaign':
             return 'text-[var(--cyber-cyan)] decoration-[var(--cyber-cyan)]/70 hover:text-[var(--cyber-magenta)] focus-visible:ring-[var(--cyber-cyan)]/50'
           default:

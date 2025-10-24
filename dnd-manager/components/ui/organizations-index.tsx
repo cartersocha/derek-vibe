@@ -179,7 +179,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                       {expandedOrganizations.has(organization.id) && organization.organization_sessions.length > 3 && (
                         <button
                           onClick={() => toggleOrganizationSessions(organization.id)}
-                          className="inline-flex items-center rounded-full border border-[var(--semantic)]/70 bg-[var(--semantic)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--semantic)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)] whitespace-nowrap"
+                          className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                         >
                           Show less
                         </button>
