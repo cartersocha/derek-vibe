@@ -120,15 +120,43 @@ export default function Topbar() {
 
   return (
     <header 
-      className="sticky top-0 z-50 w-full bg-[#0a0a1f] backdrop-blur-sm"
+      className="fixed top-0 z-[60] bg-[#0a0a1f] backdrop-blur-sm"
       style={{
-        marginLeft: `${sidebarWidth}px`,
-        width: `calc(100% - ${sidebarWidth}px)`
+        width: '100vw', // Always full viewport width
+        height: '4rem', // Fixed navbar height
+        left: 0,
+        right: 0,
+        top: 0
       }}
     >
       <div className="flex items-center justify-between px-2 py-2 sm:px-4 lg:px-6">
-        {/* Logo/Brand - positioned right next to sidebar like YouTube */}
-        <div className="flex items-center">
+        {/* Logo/Brand with Hamburger - always positioned on far left */}
+        <div className="flex items-center gap-3" style={{ marginLeft: '0px' }}>
+          {/* Hamburger Button - vertically centered with RAT PALACE text */}
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="inline-flex items-center justify-center rounded text-[#00ffff] hover:text-[#ff00ff] transition-colors touch-target w-14 h-12 p-2"
+            style={{
+              marginLeft: '-24px', // Always use the same left positioning
+              alignSelf: 'center', // Center vertically with the text
+              transform: 'translateY(-2px)' // Move up slightly
+            }}
+          >
+            <svg
+              className="h-6 w-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          {/* Website Title - always next to hamburger like YouTube */}
           <Link
             href="/dashboard"
             className="retro-title text-base sm:text-lg md:text-xl font-bold text-[#00ffff] hover:text-[#ff00ff] transition-colors duration-200"
@@ -221,7 +249,7 @@ export default function Topbar() {
               onClick={handleCreateClick}
               aria-expanded={showCreateMenu}
               aria-label="Create new item"
-              className="inline-flex items-center justify-center rounded border border-[#ff00ff] border-opacity-40 p-1.5 text-[#ff00ff] hover:border-[#ff00ff] hover:bg-[#ff00ff]/10 transition-colors min-h-[32px] min-w-[32px] bg-[#ff00ff]/5"
+              className="inline-flex items-center justify-center rounded border border-[#ff00ff] p-1.5 text-black hover:bg-[#ff00ff]/80 transition-colors min-h-[32px] min-w-[32px] bg-[#ff00ff]"
             >
               <span className="sr-only">Create new item</span>
               <svg
