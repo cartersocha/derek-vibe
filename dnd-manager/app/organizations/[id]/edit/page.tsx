@@ -97,7 +97,7 @@ export default async function EditOrganizationPage({
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Edit Group</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-[#00ffff] uppercase tracking-wider break-words">Edit Group</h2>
       </div>
 
       <OrganizationForm

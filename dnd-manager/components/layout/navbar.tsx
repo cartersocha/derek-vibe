@@ -215,9 +215,8 @@ const hasAppliedAutoWidthRef = useRef(false);
   return (
     <div
       className={cn(
-        "relative w-full md:absolute md:top-16 md:left-0 md:h-[calc(100vh-4rem)] md:flex md:flex-col md:flex-shrink-0 md:bg-[#0a0a1f] md:z-50",
-        "sm:absolute sm:top-16 sm:left-0 sm:h-[calc(100vh-4rem)] sm:flex sm:flex-col sm:flex-shrink-0 sm:bg-[#0a0a1f] sm:z-50",
-        isCollapsed ? "md:transition-none sm:transition-none" : "transition-[width] duration-300 ease-in-out"
+        "relative w-full hidden md:block md:top-16 md:left-0 md:h-[calc(100vh-4rem)] md:flex-shrink-0 md:bg-[#0a0a1f] md:z-50",
+        isCollapsed ? "md:transition-none" : "transition-[width] duration-300 ease-in-out"
       )}
       style={sidebarStyles}
     >

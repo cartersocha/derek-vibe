@@ -31,6 +31,7 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
     ? 'font-medium text-[#00ffff] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
     : 'font-medium text-[#ff6ad5] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff9de6] focus-visible:ring-[#ff6ad5]';
   const organizationChipClasses = 'inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#fcee0c] transition-colors hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:ring-[#ffd447]';
+  const showMoreButtonBaseClasses = 'inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#fcee0c] transition-colors focus-visible:outline-none focus-visible:ring-2';
   const levelLabel = character.level
     ? isPlayer
       ? `Level ${character.level}`
@@ -76,10 +77,10 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
           {hasMore && (
             <button
               onClick={toggleExpanded}
-              className={`inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 ${
+              className={`${showMoreButtonBaseClasses} ${
                 expanded
-                  ? 'border-[#ff6b35]/70 bg-[#1f1100] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:ring-[#ff6b35]'
-                  : 'border-dashed border-[#fcee0c]/50 text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:ring-[#ffd447]'
+                  ? 'border-[#fcee0c]/70 bg-[#1a1400] hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:ring-[#ffd447]'
+                  : 'border-dashed border-[#fcee0c]/50 hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:ring-[#ffd447]'
               }`}
             >
               {expanded ? 'Show less' : `+${character.organizations.length - 3} more`}

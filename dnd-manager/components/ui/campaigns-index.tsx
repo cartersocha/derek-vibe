@@ -109,7 +109,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                           <Link
                             key={`${campaign.id}-session-${session.id}`}
                             href={`/sessions/${session.id}`}
-                            className="inline-flex items-center rounded-full border border-[#00ff88]/70 bg-[#0a1a0f] px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] transition hover:border-[#00cc6a] hover:text-[#00cc6a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88] min-h-[24px]"
+                            className="inline-flex items-center rounded-full border border-[#00ff88]/70 bg-[#0a1a0f] px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] transition hover:border-[#00cc6a] hover:text-[#00cc6a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88]"
                           >
                             {session.name}
                           </Link>
@@ -117,7 +117,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {!expandedCampaigns.has(campaign.id) && (campaign.sessionCount ?? campaign.sessions.length) > 3 && (
                           <button
                             onClick={() => toggleCampaignSessions(campaign.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[#00ff88]/50 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] hover:border-[#00cc6a] hover:text-[#00cc6a] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88] min-h-[24px]"
+                            className="inline-flex items-center rounded-full border border-dashed border-[#00ff88]/50 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] hover:border-[#00cc6a] hover:text-[#00cc6a] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88]"
                           >
                             +{(campaign.sessionCount ?? campaign.sessions.length) - 3} more
                           </button>
@@ -125,7 +125,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {expandedCampaigns.has(campaign.id) && (campaign.sessionCount ?? campaign.sessions.length) > 3 && (
                           <button
                             onClick={() => toggleCampaignSessions(campaign.id)}
-                            className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] min-h-[24px]"
+                            className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
                           >
                             Show less
                           </button>
@@ -146,7 +146,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                           <Link
                             key={`${campaign.id}-org-${organization.id}`}
                             href={`/organizations/${organization.id}`}
-                            className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447] min-h-[24px]"
+                            className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
                           >
                             {organization.name}
                           </Link>
@@ -154,7 +154,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {!expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
                           <button
                             onClick={() => toggleCampaignGroups(campaign.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[#fcee0c]/50 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] min-h-[24px]"
+                            className="inline-flex items-center rounded-full border border-dashed border-[#fcee0c]/50 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c]"
                           >
                             +{campaign.organizations.length - 6} more
                           </button>
@@ -162,7 +162,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
                           <button
                             onClick={() => toggleCampaignGroups(campaign.id)}
-                            className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] min-h-[24px]"
+                            className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
                           >
                             Show less
                           </button>
@@ -181,7 +181,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                             key={`${campaign.id}-char-${character.id}`}
                             href={`/characters/${character.id}`}
                             className={cn(
-                              "inline-flex items-center rounded px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 min-h-[24px]",
+                              "inline-flex items-center rounded px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2",
                               character.player_type === "player"
                                 ? "border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]"
                                 : "border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]"

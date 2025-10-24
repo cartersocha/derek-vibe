@@ -114,7 +114,7 @@ export default function CharactersPage() {
     return (
       <div className="max-w-5xl mx-auto">
         <div className="mb-6">
-          <h1 className="retro-title text-3xl font-bold text-[#00ffff]">Characters</h1>
+          <h1 className="retro-title text-base sm:text-lg md:text-xl font-bold text-[#00ffff] break-words">Characters</h1>
         </div>
         <div className="text-[#00ffff]">Loading characters...</div>
       </div>
@@ -125,7 +125,7 @@ export default function CharactersPage() {
     return (
       <div className="max-w-5xl mx-auto">
         <div className="mb-6">
-          <h1 className="retro-title text-3xl font-bold text-[#00ffff]">Characters</h1>
+          <h1 className="retro-title text-base sm:text-lg md:text-xl font-bold text-[#00ffff] break-words">Characters</h1>
         </div>
         <div className="text-[#00ffff]">No characters found.</div>
       </div>
@@ -135,7 +135,7 @@ export default function CharactersPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="retro-title text-3xl font-bold text-[#00ffff]">Characters</h1>
+        <h1 className="retro-title text-base sm:text-lg md:text-xl font-bold text-[#00ffff] break-words">Characters</h1>
       </div>
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {characters.map((character) => (

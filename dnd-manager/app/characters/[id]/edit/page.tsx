@@ -80,7 +80,7 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
         </Link>
       </div>
 
-      <h2 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Edit Character</h2>
+      <h2 className="text-xl sm:text-2xl font-bold text-[#00ffff] uppercase tracking-wider break-words">Edit Character</h2>
       
       <CharacterEditForm
         action={updateCharacterWithId}
