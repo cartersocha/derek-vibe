@@ -26,7 +26,7 @@ export function IndexHeader({
 }: IndexHeaderProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h1 className="retro-title text-3xl font-bold text-[#00ffff]">{title}</h1>
+      <h1 className="retro-title text-base sm:text-lg md:text-xl font-bold text-[#00ffff] break-words">{title}</h1>
       <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
         {searchId && searchPlaceholder && searchValue !== undefined && onSearchChange && (
           <>

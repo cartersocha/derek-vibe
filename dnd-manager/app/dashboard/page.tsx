@@ -117,7 +117,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6 sm:space-y-8">
       <div>
-        <h1 className="retro-title glitch-subtle text-2xl sm:text-3xl font-bold text-[#00ffff] break-words" data-text="DASHBOARD">Dashboard</h1>
+        <h1 className="retro-title glitch-subtle text-base sm:text-lg md:text-xl font-bold text-[#00ffff] break-words" data-text="DASHBOARD">Dashboard</h1>
       </div>
 
       {/* Statistics */}

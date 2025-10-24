@@ -252,7 +252,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
           {/* Session Name and Info */}
           <div>
-            <h1 className="retro-title text-3xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+            <h1 className="retro-title text-xl sm:text-2xl md:text-3xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider break-words">
               {session.name}
             {campaignSessionNumber !== undefined && (
               <span className="ml-3 text-base font-mono uppercase tracking-widest text-[#ff00ff]">
@@ -297,7 +297,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
                 <Link
                   key={group.id}
                   href={`/organizations/${group.id}`}
-                  className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-3 py-1.5 text-xs font-mono uppercase tracking-widest text-[#fcee0c] transition-colors hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+                  className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#fcee0c] transition-colors hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
                 >
                   {group.name}
                 </Link>

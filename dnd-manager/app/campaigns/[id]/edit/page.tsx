@@ -141,7 +141,7 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
         </Link>
       </div>
 
-      <h2 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Edit Campaign</h2>
+      <h2 className="text-xl sm:text-2xl font-bold text-[#00ffff] uppercase tracking-wider break-words">Edit Campaign</h2>
 
       <CampaignForm
         action={updateCampaignWithId}

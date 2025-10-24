@@ -29,9 +29,45 @@ export default function Topbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
   const { isCollapsed, toggleSidebar, sidebarWidth } = useSidebar();
   const createMenuRef = useRef<HTMLDivElement>(null);
+
+  // Search history management
+  const addToSearchHistory = (query: string) => {
+    if (query.trim() === "") return;
+    
+    console.log('Adding to search history:', query);
+    setSearchHistory(prev => {
+      const filtered = prev.filter(item => item !== query);
+      const newHistory = [query, ...filtered].slice(0, 10);
+      console.log('New search history:', newHistory);
+      localStorage.setItem('search-history', JSON.stringify(newHistory));
+      return newHistory;
+    });
+  };
+
+  const loadSearchHistory = () => {
+    try {
+      const stored = localStorage.getItem('search-history');
+      if (stored) {
+        setSearchHistory(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Error loading search history:', error);
+    }
+  };
+
+  const clearSearchHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem('search-history');
+  };
+
+  // Load search history on component mount
+  useEffect(() => {
+    loadSearchHistory();
+  }, []);
 
   // Search functionality
   const performSearch = async (query: string) => {
@@ -53,13 +89,13 @@ export default function Topbar() {
           .limit(5),
         supabase
           .from('sessions')
-          .select('id, name, description')
-          .ilike('name', `%${query}%`)
+          .select('id, name, notes')
+          .or(`name.ilike.%${query}%,notes.ilike.%${query}%`)
           .limit(5),
         supabase
           .from('characters')
-          .select('id, name, description')
-          .ilike('name', `%${query}%`)
+          .select('id, name, backstory, race, class')
+          .or(`name.ilike.%${query}%,backstory.ilike.%${query}%,race.ilike.%${query}%,class.ilike.%${query}%`)
           .limit(5),
         supabase
           .from('organizations')
@@ -75,6 +111,10 @@ export default function Topbar() {
         ...organizations.data?.map(item => ({ ...item, type: 'organization', url: `/organizations/${item.id}` })) || []
       ];
 
+      console.log('Desktop search query:', query);
+      console.log('Desktop search results:', results);
+      console.log('Desktop sessions data:', sessions.data);
+      console.log('Desktop characters data:', characters.data);
       setSearchResults(results);
       setShowResults(true);
     } catch (error) {
@@ -89,7 +129,27 @@ export default function Topbar() {
     performSearch(query);
   };
 
-  const handleResultClick = (url: string) => {
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const query = searchQuery.trim();
+      console.log('Enter key pressed, query:', query);
+      if (query) {
+        console.log('Adding to search history:', query);
+        addToSearchHistory(query);
+        performSearch(query);
+      }
+    }
+  };
+
+  const handleResultClick = (url: string, resultName?: string) => {
+    // Save the full name/title of the clicked item to history
+    if (resultName && resultName.trim()) {
+      addToSearchHistory(resultName.trim());
+    } else if (searchQuery.trim()) {
+      // Fallback to search query if no result name provided
+      addToSearchHistory(searchQuery.trim());
+    }
+    
     router.push(url);
     setSearchQuery("");
     setShowResults(false);
@@ -108,6 +168,13 @@ export default function Topbar() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Clear search when navigating to new page
+  useEffect(() => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowResults(false);
+  }, [pathname]);
 
   const handleCreateClick = () => {
     setShowCreateMenu(!showCreateMenu);
@@ -132,12 +199,12 @@ export default function Topbar() {
       <div className="flex items-center justify-between px-2 py-2 sm:px-4 lg:px-6">
         {/* Logo/Brand with Hamburger - always positioned on far left */}
         <div className="flex items-center gap-3" style={{ marginLeft: '0px' }}>
-          {/* Hamburger Button - vertically centered with RAT PALACE text */}
+          {/* Desktop Hamburger Button - hidden on mobile, visible on desktop */}
           <button
             type="button"
             onClick={toggleSidebar}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="inline-flex items-center justify-center rounded text-[#00ffff] hover:text-[#ff00ff] transition-colors touch-target w-14 h-12 p-2"
+            className="hidden md:inline-flex items-center justify-center rounded text-[#00ffff] hover:text-[#ff00ff] transition-colors touch-target w-14 h-12 p-2"
             style={{
               marginLeft: '-24px', // Always use the same left positioning
               alignSelf: 'center', // Center vertically with the text
@@ -156,25 +223,59 @@ export default function Topbar() {
               <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
+          
+          {/* Mobile Hamburger Button - only visible on mobile, positioned to the left of RAT PALACE */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-nav"
+            className="md:hidden inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-40 p-1.5 text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff] transition-colors min-h-[36px] min-w-[36px]"
+          >
+            <span className="sr-only">Toggle navigation</span>
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {isMobileMenuOpen ? (
+                <path d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+          
           {/* Website Title - always next to hamburger like YouTube */}
           <Link
             href="/dashboard"
             className="retro-title text-base sm:text-lg md:text-xl font-bold text-[#00ffff] hover:text-[#ff00ff] transition-colors duration-200"
-            style={{ "--retro-letter-spacing": "0.2em" } as React.CSSProperties}
+            style={{ "--retro-letter-spacing": "0.1em" } as React.CSSProperties}
           >
             RAT PALACE
           </Link>
         </div>
 
         {/* Search Bar - Desktop Only */}
-        <div className="hidden md:flex items-center justify-center flex-1">
+        <div className="hidden md:flex items-center justify-center flex-1" style={{ marginLeft: '-2rem' }}>
           <div className="relative w-full max-w-xl">
             <input
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
-              onFocus={() => searchQuery && setShowResults(true)}
-              onBlur={() => setTimeout(() => setShowResults(false), 200)}
+              onKeyPress={handleSearchKeyPress}
+              onFocus={() => {
+                if (searchQuery.trim()) {
+                  setShowResults(true);
+                } else {
+                  setShowResults(true);
+                }
+              }}
+              onBlur={() => setTimeout(() => setShowResults(false), 300)}
               className="w-full px-4 py-2 pl-10 text-sm bg-[#1a1a3e] border border-[#00ffff] border-opacity-30 rounded text-[#00ffff] focus:outline-none focus:border-[#ff00ff] focus:border-opacity-60 transition-colors"
             />
             <svg
@@ -190,9 +291,76 @@ export default function Topbar() {
               <path d="m21 21-4.35-4.35" />
             </svg>
             
+            {/* Clear Search Button */}
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSearchResults([]);
+                  setShowResults(false);
+                }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#00ffff] opacity-60 hover:opacity-100 transition-opacity"
+                aria-label="Clear search"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+            
             {/* Search Results Dropdown */}
-            {showResults && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a3e] border border-[#00ffff] border-opacity-30 rounded shadow-lg z-50 max-h-64 overflow-y-auto">
+            {showResults && (
+              <>
+                {/* Search History - show when no query or no results */}
+                {(!searchQuery.trim() || searchResults.length === 0) && searchHistory.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a3e] border border-[#00ffff] border-opacity-30 rounded shadow-lg z-50 max-h-64 overflow-y-auto">
+                    <div className="px-4 py-2 border-b border-[#00ffff] border-opacity-20">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#00ffff] uppercase tracking-wider">Recent Searches</span>
+                        <button
+                          onClick={clearSearchHistory}
+                          className="text-xs text-[#00ffff] opacity-60 hover:opacity-100 transition-opacity"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                    {searchHistory.map((historyItem, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSearchQuery(historyItem);
+                          addToSearchHistory(historyItem);
+                          performSearch(historyItem);
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-[#2a2a4e] transition-colors border-b border-[#00ffff] border-opacity-10 last:border-b-0"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <svg className="h-4 w-4 text-[#00ffff] opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                            <path d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
+                          </svg>
+                          <span className="text-sm text-[#00ffff]">{historyItem}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Search Results */}
+                {searchResults.length > 0 && (
+              <div 
+                className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a3e] border border-[#00ffff] border-opacity-30 rounded shadow-lg z-50 max-h-64 overflow-y-auto"
+                onMouseDown={(e) => e.preventDefault()}
+              >
                 {searchResults.map((result, index) => {
                   const getTypeColor = (type: string) => {
                     switch (type) {
@@ -217,7 +385,7 @@ export default function Topbar() {
                   return (
                     <button
                       key={`${result.type}-${result.id}-${index}`}
-                      onClick={() => handleResultClick(result.url)}
+                      onClick={() => handleResultClick(result.url, result.name)}
                       className={`w-full px-4 py-3 text-left hover:bg-[#2a2a4e] transition-colors border-b border-[#00ffff] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
                     >
                       <div className="flex items-center space-x-3">
@@ -236,11 +404,13 @@ export default function Topbar() {
                   );
                 })}
               </div>
+                )}
+              </>
             )}
           </div>
         </div>
 
-        {/* Create Button and Mobile Menu Button */}
+        {/* Create Button */}
         <div className="flex items-center space-x-2">
           {/* Create Button */}
           <div className="relative" ref={createMenuRef}>
@@ -283,31 +453,6 @@ export default function Topbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            type="button"
-            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-nav"
-            className="md:hidden inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-40 p-1.5 text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff] transition-colors min-h-[36px] min-w-[36px]"
-          >
-            <span className="sr-only">Toggle navigation</span>
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {isMobileMenuOpen ? (
-                <path d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
         </div>
       </div>
 
@@ -320,6 +465,145 @@ export default function Topbar() {
         )}
       >
         <div className="px-3 py-1.5 space-y-1">
+          {/* Search Bar - first item in mobile menu */}
+          <div className="px-3 py-2 border-b border-[#00ffff] border-opacity-20">
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onKeyPress={handleSearchKeyPress}
+                onFocus={() => setShowResults(true)}
+                onBlur={() => setTimeout(() => setShowResults(false), 200)}
+                placeholder="Search..."
+                className="w-full px-3 py-2 pl-10 text-sm bg-[#1a1a3e] border border-[#00ffff] border-opacity-30 rounded text-[#00ffff] focus:outline-none focus:border-[#ff00ff] focus:border-opacity-60 transition-colors"
+              />
+              <svg
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#00ffff] opacity-60"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              
+              {/* Clear Search Button - Mobile */}
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSearchResults([]);
+                    setShowResults(false);
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#00ffff] opacity-60 hover:opacity-100 transition-opacity"
+                  aria-label="Clear search"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            
+            {/* Mobile Search Results */}
+            {showResults && (
+              <>
+                {/* Mobile Search History - show when no query or no results */}
+                {(!searchQuery.trim() || searchResults.length === 0) && searchHistory.length > 0 && (
+                  <div className="mt-2 bg-[#0a0a1f] border border-[#00ffff] border-opacity-30 rounded shadow-lg max-h-48 overflow-y-auto">
+                    <div className="px-3 py-2 border-b border-[#00ffff] border-opacity-20">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#00ffff] uppercase tracking-wider">Recent Searches</span>
+                        <button
+                          onClick={clearSearchHistory}
+                          className="text-xs text-[#00ffff] opacity-60 hover:opacity-100 transition-opacity"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                    {searchHistory.map((historyItem, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSearchQuery(historyItem);
+                          addToSearchHistory(historyItem);
+                          performSearch(historyItem);
+                        }}
+                        className="w-full px-3 py-2 text-left hover:bg-[#2a2a4e] transition-colors border-b border-[#00ffff] border-opacity-10 last:border-b-0"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <svg className="h-4 w-4 text-[#00ffff] opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                            <path d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
+                          </svg>
+                          <span className="text-xs sm:text-sm text-[#00ffff] break-words leading-tight">{historyItem}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Mobile Search Results */}
+                {searchResults.length > 0 && (
+              <div className="mt-2 bg-[#0a0a1f] border border-[#00ffff] border-opacity-30 rounded shadow-lg max-h-48 overflow-y-auto">
+                {searchResults.map((result, index) => {
+                  const getTypeColor = (type: string) => {
+                    switch (type) {
+                      case 'campaign': return 'text-orange-400';
+                      case 'session': return 'text-blue-400';
+                      case 'character': return 'text-green-400';
+                      case 'organization': return 'text-purple-400';
+                      default: return 'text-[#ff00ff]';
+                    }
+                  };
+                  const getTypeBgColor = (type: string) => {
+                    switch (type) {
+                      case 'campaign': return 'bg-orange-400/10 border-orange-400/20';
+                      case 'session': return 'bg-blue-400/10 border-blue-400/20';
+                      case 'character': return 'bg-green-400/10 border-green-400/20';
+                      case 'organization': return 'bg-purple-400/10 border-purple-400/20';
+                      default: return 'bg-[#ff00ff]/10 border-[#ff00ff]/20';
+                    }
+                  };
+                  return (
+                    <button
+                      key={`${result.type}-${result.id}-${index}`}
+                      onClick={() => handleResultClick(result.url, result.name)}
+                      className={`w-full px-3 py-2 text-left hover:bg-[#2a2a4e] transition-colors border-b border-[#00ffff] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
+                    >
+                      <div className="flex flex-col space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className={`text-xs font-bold ${getTypeColor(result.type)} uppercase tracking-wider`}>
+                            {result.type}
+                          </span>
+                        </div>
+                        <div className="text-xs sm:text-sm font-medium text-[#00ffff] break-words leading-tight">
+                          {result.name}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+                )}
+              </>
+            )}
+          </div>
+          
+          {/* Navigation Links */}
           {NAV_LINKS.map((link) => {
             const isActive = pathname.startsWith(link.href);
             return (

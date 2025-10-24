@@ -242,7 +242,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         </div>
         {/* Campaign Name and Description */}
         <div>
-          <h1 className="retro-title text-4xl font-bold text-[#00ffff] mb-4 text-center">{campaign.name}</h1>
+          <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[#00ffff] mb-4 text-center break-words">{campaign.name}</h1>
           {campaign.description && (
             <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-6">
               <div className="text-gray-300 whitespace-pre-wrap font-mono">

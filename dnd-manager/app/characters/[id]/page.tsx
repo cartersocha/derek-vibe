@@ -322,7 +322,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
         </div>
         
         <header className="-mt-2">
-          <h1 className="retro-title text-3xl md:text-4xl font-bold uppercase tracking-widest text-[#e8faff] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)]">
+          <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold uppercase tracking-widest text-[#e8faff] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)] break-words">
             {character.name}
           </h1>
         </header>

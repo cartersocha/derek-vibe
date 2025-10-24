@@ -113,7 +113,7 @@ export default async function SessionEditPage({
         </Link>
       </div>
 
-      <h2 className="text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Edit Session</h2>
+      <h2 className="text-xl sm:text-2xl font-bold text-[#00ffff] uppercase tracking-wider break-words">Edit Session</h2>
       
       <SessionForm
         action={updateSessionWithId}
