@@ -75,12 +75,12 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Link href={`/characters/${id}`} className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
+        <Link href={`/characters/${id}`} className="text-[var(--cyber-cyan)] hover:text-[var(--cyber-magenta)] font-mono uppercase tracking-wider">
           ← Back to Character
         </Link>
       </div>
 
-      <h2 className="text-xl sm:text-2xl font-bold text-[#00ffff] uppercase tracking-wider break-words">Edit Character</h2>
+      <h2 className="text-xl sm:text-2xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider break-words">Edit Character</h2>
       
       <CharacterEditForm
         action={updateCharacterWithId}

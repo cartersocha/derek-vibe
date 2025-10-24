@@ -75,11 +75,11 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
             return (
               <article
                 key={session.id}
-                className="group relative overflow-hidden rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e] bg-opacity-50 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/50"
+                className="group relative overflow-hidden rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)] bg-opacity-50 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover-cyber"
               >
                 <Link
                   href={`/sessions/${session.id}`}
-                  className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                  className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
                   aria-label={`View session ${session.name}`}
                 >
                   <span aria-hidden="true" />
@@ -87,11 +87,11 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                 <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
                   <div className="relative z-10 flex-1 pointer-events-none">
                     <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <span className="text-xl font-bold text-[#00ffff] uppercase tracking-wider transition-colors group-hover:text-[#ff00ff]">
+                      <span className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider transition-colors hover-cyber">
                         {session.name}
                       </span>
                       {session.sessionNumber !== null && session.sessionNumber !== undefined && (
-                        <span className="inline-flex items-center rounded border border-[#ff00ff] border-opacity-40 bg-[#ff00ff]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[#ff00ff]">
+                        <span className="inline-flex items-center rounded border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[var(--cyber-magenta)]">
                           Session #{session.sessionNumber}
                         </span>
                       )}
@@ -99,7 +99,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                     {session.campaign && session.campaign.id && session.campaign.name && (
                       <Link
                         href={`/campaigns/${session.campaign.id}`}
-                        className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                        className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest semantic-warning transition-colors hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
                       >
                         Campaign: {session.campaign.name}
                       </Link>
@@ -114,7 +114,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                     )}
                     {groups.length > 0 && (
                       <div className={`pointer-events-auto ${players.length > 0 ? "mt-2" : "mt-3"}`}>
-                        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                           Groups
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -125,7 +125,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                             <Link
                               key={organization.id}
                               href={`/organizations/${organization.id}`}
-                              className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] whitespace-nowrap"
+                              className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                             >
                               {organization.name}
                             </Link>
@@ -133,7 +133,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                           {!expandedGroups.has(session.id) && groups.length > 6 && (
                             <button
                               onClick={() => toggleSessionGroups(session.id)}
-                              className="inline-flex items-center rounded-full border border-dashed border-[#fcee0c]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] whitespace-nowrap"
+                              className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                             >
                               +{groups.length - 6} more
                             </button>
@@ -141,7 +141,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                           {expandedGroups.has(session.id) && groups.length > 6 && (
                             <button
                               onClick={() => toggleSessionGroups(session.id)}
-                              className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] whitespace-nowrap"
+                              className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                             >
                               Show less
                             </button>
@@ -150,7 +150,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                       </div>
                     )}
                   </div>
-                  <div className="relative z-10 pointer-events-none text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right sm:ml-4">
+                  <div className="relative z-10 pointer-events-none text-xs text-[var(--text-muted)] font-mono uppercase tracking-wider sm:text-right sm:ml-4">
                     {sessionDateLabel ? (
                       <div>{sessionDateLabel}</div>
                     ) : (

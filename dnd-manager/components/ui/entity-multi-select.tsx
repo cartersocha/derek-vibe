@@ -125,38 +125,38 @@ export function EntityMultiSelect({
         aria-expanded={open}
         aria-controls={`${id}-dropdown`}
         onClick={() => setOpen((prev) => !prev)}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] ${
           open
-            ? "border-[#ff00ff] text-[#ff00ff] shadow-lg shadow-[#ff00ff]/30"
+            ? "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[var(--cyber-magenta)]/30"
             : normalizedSelections.length > 0
-            ? "border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]"
-            : "border-[#00ffff] text-gray-500 hover:border-[#ff00ff] hover:text-[#ff00ff]"
+            ? "border-[var(--cyber-cyan)] text-[var(--cyber-cyan)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
+            : "border-[var(--cyber-cyan)] text-[var(--text-muted)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
         }`}
       >
         <span className="truncate text-left">{summary}</span>
-        <span className="text-xs text-[#ff00ff]">{open ? "▲" : "▼"}</span>
+        <span className="text-xs text-[var(--cyber-magenta)]">{open ? "▲" : "▼"}</span>
       </button>
 
       {open && (
         <div
           id={`${id}-dropdown`}
           role="listbox"
-          className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20"
+          className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[var(--cyber-cyan)]/20"
         >
-          <div className="border-b border-[#1a1a3e] px-3 py-2">
+          <div className="border-b border-[var(--bg-card)] px-3 py-2">
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Search"
-                className="w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+                className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)]"
               />
               {createOption ? (
                 <Link
                   href={createOption.href}
                   onClick={() => setOpen(false)}
-                  className="whitespace-nowrap rounded border border-dashed border-[#ff00ff]/60 px-3 py-2 text-xs font-bold uppercase tracking-[0.3em] text-[#ff00ff] transition hover:border-[#ff00ff] hover:bg-[#1a1a3e]/60"
+                  className="whitespace-nowrap rounded border border-dashed border-[var(--cyber-magenta)]/60 px-3 py-2 text-xs font-bold uppercase tracking-[0.3em] text-[var(--cyber-magenta)] transition hover:border-[var(--cyber-magenta)] hover:bg-[var(--bg-card)]/60"
                 >
                   + {createOption.label}
                 </Link>
@@ -166,26 +166,26 @@ export function EntityMultiSelect({
 
           <div className="max-h-60 overflow-y-auto">
             {filteredOptions.length === 0 ? (
-              <p className="px-4 py-6 text-center text-xs font-mono text-gray-500">{emptyMessage}</p>
+              <p className="px-4 py-6 text-center text-xs font-mono text-[var(--text-muted)]">{emptyMessage}</p>
             ) : (
-              <ul className="divide-y divide-[#1a1a3e]">
+              <ul className="divide-y divide-[var(--bg-card)]">
                 {filteredOptions.map((option) => {
                   const checked = normalizedSelections.includes(option.value);
                   return (
                     <li key={option.value}>
-                      <label className="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[#00ffff] transition-colors duration-150 hover:bg-[#1a1a3e]/60">
+                      <label className="flex cursor-pointer items-center gap-3 px-4 py-3 text-sm text-[var(--cyber-cyan)] transition-colors duration-150 hover:bg-[var(--bg-card)]/60">
                         <input
                           type="checkbox"
                           checked={checked}
                           onChange={() => toggleSelection(option.value)}
-                          className="h-4 w-4 rounded border-[#00ffff]/40 bg-[#0f0f23] text-[#ff00ff] focus:ring-[#ff00ff]"
+                          className="h-4 w-4 rounded border-[var(--cyber-cyan)]/40 bg-[var(--bg-dark)] text-[var(--cyber-magenta)] focus:ring-[var(--cyber-magenta)]"
                         />
                         <span className="flex-1">
                           <span className="block truncate font-semibold uppercase tracking-[0.25em]">
                             {option.label}
                           </span>
                           {option.hint ? (
-                            <span className="text-[10px] uppercase tracking-[0.3em] text-[#64748b]">
+                            <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--text-muted)]">
                               {option.hint}
                             </span>
                           ) : null}
@@ -198,21 +198,21 @@ export function EntityMultiSelect({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-2 border-t border-[#00ffff]/20 bg-[#050517] px-3 py-2">
+          <div className="flex items-center justify-between gap-2 border-t border-[var(--cyber-cyan)]/20 bg-[var(--bg-dark)] px-3 py-2">
             <button
               type="button"
               onClick={() => {
                 onChange([]);
                 setOpen(false);
               }}
-              className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#00ffff] transition hover:text-[#ff00ff]"
+              className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-magenta)]"
             >
               Clear
             </button>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded bg-[#ff00ff] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[#cc00cc]"
+              className="rounded bg-[var(--cyber-magenta)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80"
             >
               Done
             </button>

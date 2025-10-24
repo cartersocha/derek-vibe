@@ -218,15 +218,15 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="space-y-6">
-      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-8">
+      <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/sessions" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
+          <Link href="/sessions" className="text-[var(--cyber-cyan)] hover-cyber font-mono uppercase tracking-wider">
             ← Back to Sessions
           </Link>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href={`/sessions/${id}/edit`}
-              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
+              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"
             >
               Edit Session
             </Link>
@@ -239,7 +239,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         <div className="-mt-4">
           {/* Header Image */}
           {session.header_image_url && (
-            <div className="relative w-full h-48 sm:h-64 rounded border-2 border-[#00ffff] border-opacity-30 overflow-hidden bg-[#0f0f23]">
+            <div className="relative w-full h-48 sm:h-64 rounded border-2 border-[var(--cyber-cyan)] border-opacity-30 overflow-hidden bg-[var(--bg-dark)]">
               <Image
                 src={session.header_image_url}
                 alt={session.name}
@@ -252,10 +252,10 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
           {/* Session Name and Info */}
           <div>
-            <h1 className="retro-title text-xl sm:text-2xl md:text-3xl font-bold text-[#00ffff] mb-2 uppercase tracking-wider break-words">
+            <h1 className="retro-title text-xl sm:text-2xl md:text-3xl font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider break-words">
               {session.name}
             {campaignSessionNumber !== undefined && (
-              <span className="ml-3 text-base font-mono uppercase tracking-widest text-[#ff00ff]">
+              <span className="ml-3 text-base font-mono uppercase tracking-widest text-[var(--cyber-magenta)]">
                 Session #{campaignSessionNumber}
               </span>
             )}
@@ -264,13 +264,13 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             {session.campaign && (
               <Link 
                 href={`/campaigns/${session.campaign.id}`}
-                className="text-[#ff6b35] hover:text-[#ff8a5b] font-mono uppercase tracking-wider"
+                className="text-[var(--cyber-magenta)] hover-brightness font-mono uppercase tracking-wider"
               >
                 Campaign: {session.campaign.name}
               </Link>
             )}
             {sessionDateLabel && (
-              <span className="text-gray-400 font-mono uppercase tracking-wider">
+              <span className="text-[var(--text-secondary)] font-mono uppercase tracking-wider">
                 Date: {sessionDateLabel}
               </span>
             )}
@@ -280,9 +280,9 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         {/* Session Notes */}
         {session.notes && (
           <div className="mb-8">
-            <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Session Notes</h3>
-            <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-6">
-              <div className="text-gray-300 whitespace-pre-wrap font-mono text-base sm:text-lg leading-relaxed break-words">
+            <h3 className="text-xl font-bold text-[var(--cyber-cyan)] mb-4 uppercase tracking-wider">Session Notes</h3>
+            <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-6">
+              <div className="text-[var(--text-primary)] whitespace-pre-wrap font-mono text-base sm:text-lg leading-relaxed break-words">
                 {renderNotesWithMentions(session.notes, mentionTargets)}
               </div>
             </div>
@@ -291,13 +291,13 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
         {sessionGroups.length > 0 && (
           <div className="mb-8">
-            <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Groups</h3>
+            <h3 className="text-xl font-bold text-[var(--cyber-cyan)] mb-4 uppercase tracking-wider">Related Groups</h3>
             <div className="flex flex-wrap gap-2">
               {sessionGroups.map((group) => (
                 <Link
                   key={group.id}
                   href={`/organizations/${group.id}`}
-                  className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#fcee0c] transition-colors hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+                  className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] transition-colors hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                 >
                   {group.name}
                 </Link>
@@ -320,7 +320,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
             return (
               <div className="mb-8">
-                <h3 className="text-xl font-bold text-[#00ffff] mb-4 uppercase tracking-wider">Related Characters</h3>
+                <h3 className="text-xl font-bold text-[var(--cyber-cyan)] mb-4 uppercase tracking-wider">Related Characters</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                   {sortedCharacters.map((character) => (
                     <SessionCharacterCard

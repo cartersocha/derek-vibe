@@ -131,11 +131,11 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
           {filtered.map((character) => {
             const isPlayerCharacter = character.player_type === "player";
             const headingClasses = isPlayerCharacter
-              ? "text-[#00ffff] group-hover:text-[#ff00ff]"
-              : "text-[#ff6ad5] group-hover:text-[#ff9de6]";
+              ? "text-[var(--cyber-cyan)] hover-cyber"
+              : "text-[var(--cyber-magenta)] hover-cyber";
             const detailLabelClass = cn(
               "mr-1 align-middle text-[10px] font-semibold uppercase tracking-widest",
-              isPlayerCharacter ? "text-[#00ffff]" : "text-[#ff6ad5]"
+              isPlayerCharacter ? "text-[var(--cyber-cyan)]" : "text-[var(--cyber-magenta)]"
             );
 
             const statusLabel =
@@ -184,20 +184,20 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
             }
 
             const borderStyle = isPlayerCharacter
-              ? "border-[#00ffff] hover:border-[#00ffff] hover:shadow-[#00ffff]/50 focus-visible:ring-[#00ffff]"
-              : "border-[#ff00ff] hover:border-[#ff6ad5] hover:shadow-[#ff6ad5]/50 focus-visible:ring-[#ff6ad5]";
+              ? "border-[var(--cyber-cyan)] hover-cyber focus-visible:ring-[var(--cyber-cyan)]"
+              : "border-[var(--cyber-magenta)] hover-cyber focus-visible:ring-[var(--cyber-magenta)]";
 
             return (
               <article
                 key={character.id}
                 className={cn(
-                  "group relative overflow-hidden rounded-lg border border-opacity-30 bg-[#1a1a3e]/70 p-5 shadow-2xl backdrop-blur-sm transition-all duration-200 focus:outline-none focus-visible:ring-2",
+                  "group relative overflow-hidden rounded-lg border border-opacity-30 bg-[var(--bg-card)]/70 p-5 shadow-2xl backdrop-blur-sm transition-all duration-200 focus:outline-none focus-visible:ring-2",
                   borderStyle
                 )}
               >
                 <Link
                   href={`/characters/${character.id}`}
-                  className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff00ff] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+                  className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
                   aria-label={`View character ${character.name}`}
                 >
                   <span aria-hidden="true" />
@@ -212,11 +212,11 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                     >
                       {character.name}
                     </h3>
-                    <div className="space-y-1 text-xs text-[#cbd5f5] sm:text-sm">
+                    <div className="space-y-1 text-xs text-[var(--text-primary)] sm:text-sm">
                       {details.map((detail) => (
-                        <p key={`${character.id}-${detail.label}`} className="font-mono text-[#94a3b8]">
+                        <p key={`${character.id}-${detail.label}`} className="font-mono text-[var(--text-secondary)]">
                           <span className={detailLabelClass}>{detail.label}:</span>
-                          <span className="align-middle text-[#cbd5f5]">{detail.value}</span>
+                          <span className="align-middle text-[var(--text-primary)]">{detail.value}</span>
                         </p>
                       ))}
                     </div>
@@ -224,7 +224,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
 
                   {character.organization_characters && character.organization_characters.length > 0 ? (
                     <div className="pointer-events-auto mt-2">
-                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                         Groups
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -235,7 +235,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                           <Link
                             key={`${character.id}-org-${organization.id}`}
                             href={`/organizations/${organization.id}`}
-                            className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447] whitespace-nowrap"
+                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                           >
                             {organization.name}
                           </Link>
@@ -243,7 +243,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {!expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
                           <button
                             onClick={() => toggleCharacterGroups(character.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[#fcee0c]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] whitespace-nowrap"
+                            className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                           >
                             +{character.organization_characters.length - 4} more
                           </button>
@@ -251,7 +251,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
                           <button
                             onClick={() => toggleCharacterGroups(character.id)}
-                            className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                           >
                             Show less
                           </button>
@@ -262,7 +262,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
 
                   {character.session_characters && character.session_characters.length > 0 && (
                     <div className="pointer-events-auto mt-2">
-                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[#94a3b8]">
+                      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                         Sessions
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
@@ -279,7 +279,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                           <Link
                             key={`${character.id}-session-${sessionRelation.session.id}`}
                             href={`/sessions/${sessionRelation.session.id}`}
-                            className="inline-flex items-center rounded-full border border-[#00ff88]/70 bg-[#0a1a0f] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] transition hover:border-[#00cc6a] hover:text-[#00cc6a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88] whitespace-nowrap"
+                            className="inline-flex items-center rounded-full border border-[var(--cyber-cyan)]/70 bg-[var(--cyber-cyan)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-cyan)] transition hover-cyber focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)] whitespace-nowrap"
                           >
                             {sessionRelation.session.name}
                           </Link>
@@ -287,7 +287,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {!expandedCharacters.has(character.id) && character.session_characters.length > 3 && (
                           <button
                             onClick={() => toggleCharacterSessions(character.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[#00ff88]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] hover:border-[#00cc6a] hover:text-[#00cc6a] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88] whitespace-nowrap"
+                            className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-cyan)]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-cyan)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)] whitespace-nowrap"
                           >
                             +{character.session_characters.length - 3} more
                           </button>
@@ -295,7 +295,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {expandedCharacters.has(character.id) && character.session_characters.length > 3 && (
                           <button
                             onClick={() => toggleCharacterSessions(character.id)}
-                            className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35]"
+                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                           >
                             Show less
                           </button>

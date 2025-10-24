@@ -303,15 +303,15 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="space-y-6">
-      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-6">
+      <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/characters" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
+          <Link href="/characters" className="text-[var(--cyber-cyan)] hover-cyber font-mono uppercase tracking-wider">
             ← Back to Characters
           </Link>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href={`/characters/${id}/edit`}
-              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-3 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
+              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-3 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"
             >
               Edit Character
             </Link>
@@ -322,7 +322,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
         </div>
         
         <header className="-mt-2">
-          <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold uppercase tracking-widest text-[#e8faff] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)] break-words">
+          <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold uppercase tracking-widest text-[var(--text-primary)] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)] break-words">
             {character.name}
           </h1>
         </header>
@@ -330,11 +330,11 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
         <div className="md:flow-root space-y-6 md:space-y-0">
           {/* Infobox floats right just like the reference layout */}
-          <aside className="md:float-right md:w-72 md:ml-8 md:mb-4 w-full max-w-xs rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-lg shadow-[#00ffff]/20 font-mono text-sm text-gray-200">
+          <aside className="md:float-right md:w-72 md:ml-8 md:mb-4 w-full max-w-xs rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-lg shadow-[var(--cyber-cyan)]/20 font-mono text-sm text-[var(--text-primary)]">
             <div className="p-4 space-y-4">
               {character.image_url && (
                 <div>
-                  <div className="relative aspect-[3/4] overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-black">
+                  <div className="relative aspect-[3/4] overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-black">
                     <Image
                       src={character.image_url}
                       alt={character.name}
@@ -343,38 +343,38 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                       unoptimized
                     />
                   </div>
-                  <p className="mt-2 text-center text-xs uppercase tracking-widest text-gray-400">{character.name || 'Unknown'}</p>
+                  <p className="mt-2 text-center text-xs uppercase tracking-widest text-[var(--text-secondary)]">{character.name || 'Unknown'}</p>
                 </div>
               )}
 
               <div className="space-y-3">
                 <div>
-                  <h2 className="text-[#00ffff] text-base font-semibold uppercase tracking-wider">Character Details</h2>
+                  <h2 className="text-[var(--cyber-cyan)] text-base font-semibold uppercase tracking-wider">Character Details</h2>
                 </div>
                 <dl className="space-y-2">
                   <div className="flex justify-between gap-3">
-                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Type</dt>
-                    <dd className="text-right text-[#f0f0ff]">{playerTypeLabel}</dd>
+                    <dt className="text-[var(--text-secondary)] uppercase tracking-widest text-[10px]">Type</dt>
+                    <dd className="text-right text-[var(--text-primary)]">{playerTypeLabel}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Status</dt>
-                    <dd className="text-right text-[#f0f0ff]">{statusLabel}</dd>
+                    <dt className="text-[var(--text-secondary)] uppercase tracking-widest text-[10px]">Status</dt>
+                    <dd className="text-right text-[var(--text-primary)]">{statusLabel}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Race</dt>
-                    <dd className="text-right text-[#f0f0ff]">{character.race || 'Unknown'}</dd>
+                    <dt className="text-[var(--text-secondary)] uppercase tracking-widest text-[10px]">Race</dt>
+                    <dd className="text-right text-[var(--text-primary)]">{character.race || 'Unknown'}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Class</dt>
-                    <dd className="text-right text-[#f0f0ff]">{character.class || 'Untrained'}</dd>
+                    <dt className="text-[var(--text-secondary)] uppercase tracking-widest text-[10px]">Class</dt>
+                    <dd className="text-right text-[var(--text-primary)]">{character.class || 'Untrained'}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">{levelLabel}</dt>
-                    <dd className="text-right text-[#f0f0ff]">{levelValue}</dd>
+                    <dt className="text-[var(--text-secondary)] uppercase tracking-widest text-[10px]">{levelLabel}</dt>
+                    <dd className="text-right text-[var(--text-primary)]">{levelValue}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-gray-400 uppercase tracking-widest text-[10px]">Last Seen</dt>
-                    <dd className="text-right text-[#f0f0ff]">{locationLabel}</dd>
+                    <dt className="text-[var(--text-secondary)] uppercase tracking-widest text-[10px]">Last Seen</dt>
+                    <dd className="text-right text-[var(--text-primary)]">{locationLabel}</dd>
                   </div>
                 </dl>
               </div>
@@ -385,7 +385,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
           {/* Backstory text now wraps around the infobox */}
           <section className="text-gray-300 font-mono leading-relaxed space-y-4 text-base sm:text-lg">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-              <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Backstory & Notes</h3>
+              <h3 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Backstory & Notes</h3>
             </div>
             {character.backstory ? (
               <div className="whitespace-pre-wrap leading-relaxed">
@@ -408,7 +408,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
               '200px'
           }}>
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Campaigns</h3>
+              <h3 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Campaigns</h3>
             </div>
             {linkedSessions.length > 0 ? (
               <div className="flex flex-wrap gap-2">
@@ -431,7 +431,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                   <Link
                     key={campaign.id}
                     href={`/campaigns/${campaign.id}`}
-                    className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#ff6b35] transition hover:border-[#ff8a5b] hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] whitespace-nowrap"
+                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                   >
                     <span className="font-semibold">{campaign.name}</span>
                   </Link>
@@ -445,7 +445,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
           {/* Affiliations Section */}
           <section className="space-y-4 flex-1">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Affiliations</h3>
+              <h3 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Affiliations</h3>
             </div>
             {organizationAffiliations.length > 0 ? (
               <div className="flex flex-wrap gap-2">
@@ -453,7 +453,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                   <Link
                     key={affiliation.id}
                     href={`/organizations/${affiliation.id}`}
-                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] whitespace-nowrap"
+                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                   >
                     <span className="font-semibold">{affiliation.name}</span>
                   </Link>
@@ -469,7 +469,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
         {/* Sessions */}
         <section className="space-y-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <h3 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h3>
+            <h3 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Sessions</h3>
             {allSessions.length > 0 ? (
               /* Dropdown control to link/unlink sessions without large inline form */
               <SessionManager

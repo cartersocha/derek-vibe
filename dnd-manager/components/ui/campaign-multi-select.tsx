@@ -136,13 +136,13 @@ export default function CampaignMultiSelect({
               return (
                 <div
                   key={selection}
-                  className="flex items-center gap-2 px-3 py-1 bg-[#00ffff] bg-opacity-10 border border-[#00ffff] border-opacity-30 rounded text-[#00ffff] text-sm"
+                  className="flex items-center gap-2 px-3 py-1 bg-[var(--cyber-cyan)] bg-opacity-10 border border-[var(--cyber-cyan)] border-opacity-30 rounded text-[var(--cyber-cyan)] text-sm"
                 >
                   <span className="font-mono">{option.label}</span>
                   <button
                     type="button"
                     onClick={() => handleRemove(selection)}
-                    className="text-[#ff00ff] hover:text-[#ff00ff] font-bold"
+                    className="text-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)] font-bold"
                   >
                     ×
                   </button>
@@ -156,28 +156,28 @@ export default function CampaignMultiSelect({
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono text-left"
+          className="w-full px-4 py-3 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono text-left"
         >
           {placeholder}
         </button>
 
         {/* Dropdown */}
         {open && (
-          <div className="absolute z-50 w-full mt-1 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded shadow-lg">
+          <div className="absolute z-50 w-full mt-1 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded shadow-lg">
             <div className="p-2">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search campaigns..."
-                className="w-full px-3 py-2 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono text-sm"
+                className="w-full px-3 py-2 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono text-sm"
                 autoFocus
               />
             </div>
 
             <div className="max-h-60 overflow-y-auto">
               {filteredOptions.length === 0 && !canCreateNew ? (
-                <div className="px-4 py-3 text-gray-500 text-sm font-mono">
+                <div className="px-4 py-3 text-[var(--text-muted)] text-sm font-mono">
                   {emptyMessage}
                 </div>
               ) : (
@@ -189,8 +189,8 @@ export default function CampaignMultiSelect({
                         key={option.value}
                         type="button"
                         onClick={() => handleToggle(option.value)}
-                        className={`w-full px-4 py-2 text-left hover:bg-[#00ffff] hover:bg-opacity-10 font-mono text-sm ${
-                          isSelected ? "bg-[#00ffff] bg-opacity-20 text-[#00ffff]" : "text-[#00ffff]"
+                        className={`w-full px-4 py-2 text-left hover:bg-[var(--cyber-cyan)] hover:bg-opacity-10 font-mono text-sm ${
+                          isSelected ? "bg-[var(--cyber-cyan)] bg-opacity-20 text-[var(--cyber-cyan)]" : "text-[var(--cyber-cyan)]"
                         }`}
                       >
                         {option.label}
@@ -208,7 +208,7 @@ export default function CampaignMultiSelect({
                       type="button"
                       onClick={handleCreateNew}
                       disabled={isPending}
-                      className="w-full px-4 py-2 text-left hover:bg-[#00ffff] hover:bg-opacity-10 text-[#00ffff] font-mono text-sm border-t border-[#00ffff] border-opacity-30"
+                      className="w-full px-4 py-2 text-left hover:bg-[var(--cyber-cyan)] hover:bg-opacity-10 text-[var(--cyber-cyan)] font-mono text-sm border-t border-[var(--cyber-cyan)] border-opacity-30"
                     >
                       {isPending ? "Creating..." : `+ Create "${trimmedSearch}"`}
                     </button>

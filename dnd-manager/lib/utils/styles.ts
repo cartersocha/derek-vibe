@@ -3,34 +3,62 @@
  */
 
 export const CYBERPUNK_STYLES = {
-  // Common border styles
-  BORDER: {
-    DEFAULT: 'border border-[#00ffff] border-opacity-30',
-    HOVER: 'hover:border-[#ff00ff] hover:text-[#ff00ff]',
-    FOCUS: 'focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent',
-    ACTIVE: 'border-[#ff00ff] text-[#ff00ff] shadow-lg shadow-[#ff00ff]/30',
-  },
-  
-  // Background styles
+  // Background styles using CSS variables
   BACKGROUND: {
-    CARD: 'bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm',
-    INPUT: 'bg-[#0f0f23]',
-    DARK: 'bg-[#0a0a1f]',
+    MAIN: 'bg-[var(--bg-dark)]',
+    CARD: 'bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm',
+    INPUT: 'bg-[var(--bg-dark)]',
   },
   
-  // Text styles
+  // Text styles using CSS variables
   TEXT: {
-    CYAN: 'text-[#00ffff]',
-    MAGENTA: 'text-[#ff00ff]',
-    GRAY: 'text-gray-500',
-    WHITE: 'text-white',
+    PRIMARY: 'text-[var(--text-primary)]',
+    SECONDARY: 'text-[var(--text-secondary)]',
+    MUTED: 'text-[var(--text-muted)]',
+    CYAN: 'text-[var(--cyber-cyan)]',
+    MAGENTA: 'text-[var(--cyber-magenta)]',
+    SUCCESS: 'semantic-success',
+    WARNING: 'semantic-warning',
+    ERROR: 'semantic-error',
   },
+  
+  // Border styles using CSS variables
+  BORDER: {
+    DEFAULT: 'border border-[var(--cyber-cyan)] border-opacity-30',
+    FOCUS: 'focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent',
+    ACTIVE: 'border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[var(--cyber-magenta)]/30',
+  },
+  
+  // Hover effects using CSS classes
+  HOVER: {
+    CYBER: 'hover-cyber',
+    GLOW: 'hover-glow',
+    LIFT: 'hover-lift',
+    BRIGHTNESS: 'hover-brightness',
+    SATURATE: 'hover-saturate',
+    SUCCESS: 'hover-success',
+    WARNING: 'hover-warning',
+  },
+  
+  // Semantic state utilities
+  SEMANTIC: {
+    SUCCESS: 'semantic-success',
+    WARNING: 'semantic-warning',
+    ERROR: 'semantic-error',
+    BG_SUCCESS: 'bg-semantic-success',
+    BG_WARNING: 'bg-semantic-warning',
+    BG_ERROR: 'bg-semantic-error',
+    BORDER_SUCCESS: 'border-semantic-success',
+    BORDER_WARNING: 'border-semantic-warning',
+    BORDER_ERROR: 'border-semantic-error',
+  },
+  
   
   // Common component styles
   COMPONENT: {
-    CARD: 'rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6',
+    CARD: 'rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl p-6',
     INPUT: 'w-full px-4 py-3 rounded font-mono text-sm transition-colors duration-200',
-    BUTTON: 'inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-30 text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff] transition-colors',
+    BUTTON: 'inline-flex items-center justify-center rounded border border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] hover-cyber transition-all duration-200',
   },
 } as const
 
@@ -38,7 +66,7 @@ export const CYBERPUNK_STYLES = {
  * Combines common input styles
  */
 export function getInputStyles(additionalClasses = ''): string {
-  return `${CYBERPUNK_STYLES.COMPONENT.INPUT} ${CYBERPUNK_STYLES.BACKGROUND.INPUT} ${CYBERPUNK_STYLES.BORDER.DEFAULT} ${CYBERPUNK_STYLES.TEXT.CYAN} ${CYBERPUNK_STYLES.BORDER.FOCUS} ${CYBERPUNK_STYLES.BORDER.HOVER} ${additionalClasses}`
+  return `${CYBERPUNK_STYLES.COMPONENT.INPUT} ${CYBERPUNK_STYLES.BACKGROUND.INPUT} ${CYBERPUNK_STYLES.BORDER.DEFAULT} ${CYBERPUNK_STYLES.TEXT.CYAN} ${CYBERPUNK_STYLES.BORDER.FOCUS} ${CYBERPUNK_STYLES.HOVER.CYBER} ${additionalClasses}`
 }
 
 /**

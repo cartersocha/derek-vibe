@@ -47,37 +47,37 @@ export function CharacterOrganizationField({
     <section className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">Organization Affiliations</h3>
-          <p className="text-xs font-mono uppercase tracking-wider text-[#94a3b8]">
+          <h3 className="text-sm font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)]">Organization Affiliations</h3>
+          <p className="text-xs font-mono uppercase tracking-wider text-[var(--text-secondary)]">
             Choose which organizations this character belongs to and set their role within each group.
           </p>
         </div>
         <Link
           href="/organizations/new"
-          className="inline-flex items-center justify-center rounded border border-[#00ffff]/30 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.35em] text-[#00ffff] transition hover:border-[#ff00ff] hover:text-[#ff00ff]"
+          className="inline-flex items-center justify-center rounded border border-[var(--cyber-cyan)]/30 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)] transition hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
         >
           New Organization
         </Link>
       </div>
 
       {!hasOrganizations ? (
-        <p className="rounded border border-dashed border-[#00ffff]/20 bg-[#050517] px-4 py-5 text-xs text-[#64748b]">
+        <p className="rounded border border-dashed border-[var(--cyber-cyan)]/20 bg-[var(--bg-dark)] px-4 py-5 text-xs text-[var(--text-muted)]">
           No organizations found. Create one first to assign affiliations.
         </p>
       ) : (
-        <div className="space-y-3 rounded border border-[#00ffff]/20 bg-[#0f0f23] p-4">
+        <div className="space-y-3 rounded border border-[var(--cyber-cyan)]/20 bg-[var(--bg-dark)] p-4">
           <ul className="space-y-3">
             {organizations.map((organization) => {
               const isSelected = selection.has(organization.id)
 
               return (
-                <li key={organization.id} className="flex flex-col gap-3 rounded border border-[#00ffff]/10 bg-[#050517] p-3 sm:flex-row sm:items-center sm:justify-between">
-                  <label className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.3em] text-[#00ffff]">
+                <li key={organization.id} className="flex flex-col gap-3 rounded border border-[var(--cyber-cyan)]/10 bg-[var(--bg-dark)] p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <label className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--cyber-cyan)]">
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => toggleOrganization(organization.id)}
-                      className="h-4 w-4 rounded border-[#00ffff]/40 bg-[#0f0f23] text-[#ff00ff] focus:ring-[#ff00ff]"
+                      className="h-4 w-4 rounded border-[var(--cyber-cyan)]/40 bg-[var(--bg-dark)] text-[var(--cyber-magenta)] focus:ring-[var(--cyber-magenta)]"
                     />
                     <span>{organization.name}</span>
                   </label>
@@ -86,7 +86,7 @@ export function CharacterOrganizationField({
             })}
           </ul>
 
-          <div className="text-xs uppercase tracking-[0.3em] text-[#94a3b8]">
+          <div className="text-xs uppercase tracking-[0.3em] text-[var(--text-secondary)]">
             {selectedCount === 0
               ? 'No organizations selected'
               : `${selectedCount} organization${selectedCount === 1 ? '' : 's'} selected`}

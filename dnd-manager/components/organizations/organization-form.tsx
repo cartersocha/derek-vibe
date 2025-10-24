@@ -247,12 +247,12 @@ export function OrganizationForm({
   return (
     <form
       action={action}
-      className="space-y-6 rounded border border-[#00ffff]/20 bg-[#0f0f23] p-6 shadow-[0_0_25px_rgba(0,255,255,0.08)]"
+      className="space-y-6 rounded border border-[var(--cyber-cyan)]/20 bg-[var(--bg-dark)] p-6 shadow-[0_0_25px_rgba(0,255,255,0.08)]"
     >
       <div>
         <label
           htmlFor="name"
-          className="mb-2 block text-xs font-bold uppercase tracking-[0.35em] text-[#00ffff]"
+          className="mb-2 block text-xs font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)]"
         >
           Group Name *
         </label>
@@ -263,7 +263,7 @@ export function OrganizationForm({
           required
           maxLength={200}
           defaultValue={defaultValues?.name ?? ""}
-          className="w-full rounded border border-[#00ffff]/30 bg-[#050517] px-4 py-3 text-[#e2e8f0] outline-none transition focus:border-[#ff00ff] focus:ring-2 focus:ring-[#ff00ff]/40"
+          className="w-full rounded border border-[var(--cyber-cyan)]/30 bg-[var(--bg-dark)] px-4 py-3 text-[var(--text-primary)] outline-none transition focus:border-[var(--cyber-magenta)] focus:ring-2 focus:ring-[var(--cyber-magenta)]/40"
           placeholder="Waterdeep Adventurers Guild"
         />
       </div>
@@ -271,7 +271,7 @@ export function OrganizationForm({
       <div>
         <label
           htmlFor="description"
-          className="mb-2 block text-xs font-bold uppercase tracking-[0.35em] text-[#00ffff]"
+          className="mb-2 block text-xs font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)]"
         >
           Description
         </label>
@@ -283,7 +283,7 @@ export function OrganizationForm({
           mentionTargets={mentionableTargets}
           onMentionInsert={handleMentionInsert}
           onMentionCreate={handleMentionInsert}
-          className="w-full rounded border border-[#00ffff]/30 bg-[#050517] px-4 py-3 text-[#e2e8f0] outline-none transition focus:border-[#ff00ff] focus:ring-2 focus:ring-[#ff00ff]/40"
+          className="w-full rounded border border-[var(--cyber-cyan)]/30 bg-[var(--bg-dark)] px-4 py-3 text-[var(--text-primary)] outline-none transition focus:border-[var(--cyber-magenta)] focus:ring-2 focus:ring-[var(--cyber-magenta)]/40"
           placeholder="Share the mission, history, or vibe of this group."
         />
       </div>
@@ -292,7 +292,7 @@ export function OrganizationForm({
         <div>
           <label
             htmlFor="logo"
-            className="mb-2 block text-xs font-bold uppercase tracking-[0.35em] text-[#00ffff]"
+            className="mb-2 block text-xs font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)]"
           >
             Logo
           </label>
@@ -301,29 +301,29 @@ export function OrganizationForm({
             id="logo"
             name="logo"
             accept="image/*"
-            className="block w-full text-sm text-[#94a3b8] file:mr-4 file:rounded file:border-0 file:bg-[#00ffff] file:px-4 file:py-2 file:text-sm file:font-semibold file:tracking-[0.25em] file:text-black hover:file:bg-[#ff00ff]"
+            className="block w-full text-sm text-[var(--text-secondary)] file:mr-4 file:rounded file:border-0 file:bg-[var(--cyber-cyan)] file:px-4 file:py-2 file:text-sm file:font-semibold file:tracking-[0.25em] file:text-black hover:file:bg-[var(--cyber-magenta)]"
           />
         </div>
 
         {logoUrl ? (
-          <div className="flex items-center gap-4 rounded border border-[#00ffff]/20 bg-[#050517] p-3">
-            <div className="relative h-16 w-16 overflow-hidden rounded border border-[#00ffff]/30">
+          <div className="flex items-center gap-4 rounded border border-[var(--cyber-cyan)]/20 bg-[var(--bg-dark)] p-3">
+            <div className="relative h-16 w-16 overflow-hidden rounded border border-[var(--cyber-cyan)]/30">
               <Image src={logoUrl} alt="Current logo" fill sizes="64px" className="object-contain" />
             </div>
-            <div className="text-xs text-[#94a3b8]">
-              <p className="font-semibold uppercase tracking-[0.3em] text-[#00ffff]">Current Logo</p>
+            <div className="text-xs text-[var(--text-secondary)]">
+              <p className="font-semibold uppercase tracking-[0.3em] text-[var(--cyber-cyan)]">Current Logo</p>
               <p>Upload a new file to replace the existing image.</p>
             </div>
           </div>
         ) : null}
 
         {showLogoRemove && logoUrl ? (
-          <label className="flex items-center gap-3 text-xs text-[#94a3b8]">
+          <label className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
             <input
               type="checkbox"
               name="logo_remove"
               value="true"
-              className="h-4 w-4 rounded border-[#00ffff]/40 bg-[#050517] text-[#ff00ff] focus:ring-[#ff00ff]"
+              className="h-4 w-4 rounded border-[var(--cyber-cyan)]/40 bg-[var(--bg-dark)] text-[var(--cyber-magenta)] focus:ring-[var(--cyber-magenta)]"
             />
             Remove current logo
           </label>
@@ -335,7 +335,7 @@ export function OrganizationForm({
           {campaignOptions.length > 0 ? (
             <section className="space-y-3">
               <div>
-                <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+                <span className="text-sm font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)]">
                   Linked Campaigns
                 </span>
               </div>
@@ -355,7 +355,7 @@ export function OrganizationForm({
           {sessionOptions.length > 0 ? (
             <section className="space-y-3">
               <div>
-                <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+                <span className="text-sm font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)]">
                   Linked Sessions
                 </span>
               </div>
@@ -375,7 +375,7 @@ export function OrganizationForm({
           {characterOptions.length > 0 ? (
             <section className="space-y-3">
               <div>
-                <span className="text-sm font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+                <span className="text-sm font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)]">
                   Linked Characters
                 </span>
               </div>
@@ -397,13 +397,13 @@ export function OrganizationForm({
       <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
         <button
           type="submit"
-          className="w-full sm:flex-1 px-4 py-3 text-sm sm:text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-[#ff00ff] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50"
+          className="w-full sm:flex-1 px-4 py-3 text-sm sm:text-base font-bold rounded text-black bg-[var(--cyber-magenta)] hover:bg-[var(--cyber-magenta)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[var(--cyber-magenta)]/50"
         >
           {submitLabel}
         </button>
         <Link
           href={cancelHref}
-          className="w-full sm:flex-1 px-4 py-3 text-sm sm:text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
+          className="w-full sm:flex-1 px-4 py-3 text-sm sm:text-base font-bold rounded text-[var(--cyber-cyan)] border border-[var(--cyber-cyan)] border-opacity-30 hover:bg-[var(--bg-card)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
         >
           Cancel
         </Link>

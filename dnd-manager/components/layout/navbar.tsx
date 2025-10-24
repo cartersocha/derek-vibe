@@ -215,7 +215,7 @@ const hasAppliedAutoWidthRef = useRef(false);
   return (
     <div
       className={cn(
-        "relative w-full hidden md:block md:top-16 md:left-0 md:h-[calc(100vh-4rem)] md:flex-shrink-0 md:bg-[#0a0a1f] md:z-50",
+        "relative w-full hidden md:block md:top-16 md:left-0 md:h-[calc(100vh-4rem)] md:flex-shrink-0 md:bg-[var(--bg-dark)] md:z-50",
         isCollapsed ? "md:transition-none" : "transition-[width] duration-300 ease-in-out"
       )}
       style={sidebarStyles}
@@ -253,8 +253,8 @@ const hasAppliedAutoWidthRef = useRef(false);
                     ? "justify-center w-14 text-base" // Icons: narrow width, centered, larger text
                     : "justify-start w-full text-xs", // Text: full width, left-aligned, smaller text
                   isActive
-                    ? "bg-[#ff00ff] text-black shadow-lg shadow-[#ff00ff]/50"
-                    : "text-[#00ffff] hover:bg-[#1a1a3e] hover:text-[#ff00ff]"
+                    ? "bg-[var(--cyber-magenta)] text-black shadow-lg shadow-[var(--cyber-magenta)]/50"
+                    : "text-[var(--cyber-cyan)] hover:bg-[var(--bg-card)] hover-cyber"
                 )}
                 style={{
                   fontFamily: 'var(--font-press-start), var(--font-geist-mono), monospace',
@@ -269,7 +269,7 @@ const hasAppliedAutoWidthRef = useRef(false);
                   // Collapsed state: only icon
                   <span
                     aria-hidden
-                    className="text-2xl leading-none text-[#00ffff] drop-shadow-[0_0_6px_rgba(0,255,255,0.45)] group-hover:text-[#ff00ff]"
+                    className="text-2xl leading-none text-[var(--cyber-cyan)] drop-shadow-[0_0_6px_rgba(0,255,255,0.45)] hover-cyber"
                   >
                     {link.symbol}
                   </span>
@@ -280,7 +280,7 @@ const hasAppliedAutoWidthRef = useRef(false);
                 
                 {/* Tooltip for collapsed state */}
                 {shouldShowIconsOnly && (
-                  <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded border border-[#00ffff] border-opacity-40 bg-[#0f0f23] px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-[#00ffff] opacity-0 shadow-lg shadow-[#00ffff]/20 transition-opacity duration-150 group-hover:opacity-100">
+                  <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-[var(--cyber-cyan)] opacity-0 shadow-lg shadow-[var(--cyber-cyan)]/20 transition-opacity duration-150 group-hover:opacity-100">
                     {link.label}
                   </span>
                 )}
@@ -297,21 +297,21 @@ const hasAppliedAutoWidthRef = useRef(false);
         ref={measurementRef}
         className="pointer-events-none fixed left-[-9999px] top-[-9999px] hidden opacity-0 md:block"
       >
-        <div className="flex w-max flex-col border border-[#00ffff] border-opacity-20 bg-[#0a0a1f]">
+        <div className="flex w-max flex-col border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-dark)]">
           <div className="px-4 py-6">
             <div className="space-y-2">
               {NAV_LINKS.map((link) => (
                 <div
                   key={link.href}
-                  className="px-5 py-3 text-lg font-bold uppercase tracking-wider text-[#00ffff]"
+                  className="px-5 py-3 text-lg font-bold uppercase tracking-wider text-[var(--cyber-cyan)]"
                 >
                   {link.label}
                 </div>
               ))}
             </div>
           </div>
-          <div className="flex items-center justify-between gap-3 border-t border-[#00ffff] border-opacity-10 px-4 py-4">
-            <span className="inline-flex gap-2 px-3 py-2 text-xs font-bold uppercase tracking-[0.35em] text-[#00ffff]">
+          <div className="flex items-center justify-between gap-3 border-t border-[var(--cyber-cyan)] border-opacity-10 px-4 py-4">
+            <span className="inline-flex gap-2 px-3 py-2 text-xs font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)]">
               Collapse
             </span>
           </div>
