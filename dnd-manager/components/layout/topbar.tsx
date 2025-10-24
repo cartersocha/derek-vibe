@@ -120,15 +120,40 @@ export default function Topbar() {
 
   return (
     <header 
-      className="sticky top-0 z-50 w-full bg-[#0a0a1f] backdrop-blur-sm"
+      className="sticky top-0 z-[60] bg-[#0a0a1f] backdrop-blur-sm"
       style={{
-        marginLeft: `${sidebarWidth}px`,
-        width: `calc(100% - ${sidebarWidth}px)`
+        width: '100vw', // Always full viewport width
+        height: '4rem', // Fixed navbar height
+        left: 0,
+        right: 0
       }}
     >
       <div className="flex items-center justify-between px-2 py-2 sm:px-4 lg:px-6">
-        {/* Logo/Brand - positioned right next to sidebar like YouTube */}
-        <div className="flex items-center">
+        {/* Logo/Brand with Hamburger - positioned like YouTube */}
+        <div className="flex items-center gap-3">
+          {/* Hamburger Button - consistent sizing regardless of sidebar state */}
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="inline-flex items-center justify-center rounded text-[#00ffff] hover:text-[#ff00ff] transition-colors touch-target w-14 h-12 p-2"
+            style={{
+              marginLeft: isCollapsed ? '-24px' : '0px' // Only adjust position, not size
+            }}
+          >
+            <svg
+              className="h-6 w-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          {/* Website Title - always next to hamburger like YouTube */}
           <Link
             href="/dashboard"
             className="retro-title text-base sm:text-lg md:text-xl font-bold text-[#00ffff] hover:text-[#ff00ff] transition-colors duration-200"

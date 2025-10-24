@@ -14,9 +14,10 @@ export default function ProtectedLayout({
     <div className="min-h-screen bg-[#0a0a1f] flex flex-col sm:flex-row">
       <Navbar />
       <main 
-        className="flex-1 overflow-x-hidden overflow-y-auto px-2 py-4 sm:px-4 sm:py-6 md:p-6 md:pt-2 relative z-40"
+        className="flex-1 overflow-x-hidden overflow-y-auto px-2 py-4 sm:px-4 sm:py-6 md:p-6 md:pt-2 relative z-30"
         style={{
-          marginLeft: `${sidebarWidth}px`
+          marginLeft: isCollapsed ? '0px' : `${sidebarWidth}px`,
+          marginTop: '4rem' // Account for topbar height
         }}
       >
         {children}

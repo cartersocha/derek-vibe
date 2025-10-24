@@ -215,8 +215,8 @@ const hasAppliedAutoWidthRef = useRef(false);
   return (
     <div
       className={cn(
-        "relative w-full md:fixed md:top-0 md:left-0 md:h-screen md:flex md:flex-col md:flex-shrink-0 md:bg-[#0a0a1f] md:z-40",
-        "sm:fixed sm:top-0 sm:left-0 sm:h-screen sm:flex sm:flex-col sm:flex-shrink-0 sm:bg-[#0a0a1f] sm:z-40",
+        "relative w-full md:fixed md:top-0 md:left-0 md:h-screen md:flex md:flex-col md:flex-shrink-0 md:bg-[#0a0a1f] md:z-50",
+        "sm:fixed sm:top-0 sm:left-0 sm:h-screen sm:flex sm:flex-col sm:flex-shrink-0 sm:bg-[#0a0a1f] sm:z-50",
         isCollapsed ? "md:transition-none sm:transition-none" : "transition-[width] duration-300 ease-in-out"
       )}
       style={sidebarStyles}
@@ -230,32 +230,11 @@ const hasAppliedAutoWidthRef = useRef(false);
         )}
         role="presentation"
       >
-        {/* Sidebar Header with Hamburger Button */}
-        <div className="flex items-center justify-center px-4 py-2">
-          {/* Hamburger Button */}
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="inline-flex items-center justify-center rounded p-2 text-[#00ffff] hover:text-[#ff00ff] transition-colors min-h-[44px] min-w-[44px] touch-target"
-          >
-            <svg
-              className="h-6 w-6"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
+        {/* Sidebar Header - hamburger now in topbar */}
 
         <div
           className={cn(
-            "flex-1 py-1",
+            "flex-1 py-1 pt-16", // Add top padding to account for navbar height
             shouldShowIconsOnly
               ? "px-4 overflow-y-visible space-y-0 flex flex-col items-center" // No spacing, centered icons
               : "px-4 overflow-y-auto space-y-1"
