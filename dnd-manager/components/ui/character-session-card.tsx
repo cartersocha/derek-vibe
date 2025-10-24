@@ -71,7 +71,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
           {session.campaign?.id && session.campaign.name && (
             <Link
               href={`/campaigns/${session.campaign.id}`}
-              className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:text-[#ff8a5b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
+              className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[#ff6b35] transition-colors hover:text-[#ff6b35] hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050517]"
             >
               Campaign: {session.campaign.name}
             </Link>
@@ -106,7 +106,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] whitespace-nowrap"
+                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#fcee0c]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#fcee0c] hover:text-[#fcee0c] hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] whitespace-nowrap"
                   >
                     {organization.name}
                   </Link>
@@ -114,7 +114,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                 {!expandedGroups.has(session.id) && groups.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className="inline-flex items-center rounded-full border border-dashed border-[#fcee0c]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] whitespace-nowrap"
+                    className="inline-flex items-center rounded-full border border-dashed border-[#fcee0c]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] hover:border-[#fcee0c] hover:text-[#fcee0c] hover:brightness-110 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] whitespace-nowrap"
                   >
                     +{groups.length - 4} more
                   </button>
@@ -122,7 +122,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                 {expandedGroups.has(session.id) && groups.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#1f1100] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] hover:border-[#ff8a5b] hover:text-[#ff8a5b] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] whitespace-nowrap"
+                    className="inline-flex items-center rounded-full border border-[#ff6b35]/70 bg-[#ff6b35]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#ff6b35] hover:border-[#ff6b35] hover:text-[#ff6b35] hover:brightness-110 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6b35] whitespace-nowrap"
                   >
                     Show less
                   </button>

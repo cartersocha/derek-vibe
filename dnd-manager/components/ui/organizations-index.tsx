@@ -134,7 +134,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                           'inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2',
                           character.player_type === 'player'
                             ? 'border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
-                            : 'border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]'
+                            : 'border border-[#ff00ff] border-opacity-40 bg-[#ff6ad5]/10 text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff6ad5] hover:brightness-110 focus-visible:ring-[#ff00ff]'
                         )}
                       >
                         {character.name}

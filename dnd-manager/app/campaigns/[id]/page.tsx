@@ -231,7 +231,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href={`/campaigns/${id}/edit`}
-              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
+              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#ff00ff] hover:brightness-90 transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
             >
               Edit Campaign
             </Link>
@@ -310,7 +310,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] whitespace-nowrap"
+                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#fcee0c]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#fcee0c] hover:text-[#fcee0c] hover:brightness-110 whitespace-nowrap"
                   >
                     {organization.name}
                   </Link>
@@ -326,7 +326,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
             <h2 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h2>
             <Link
               href={`/sessions/new?campaign_id=${id}`}
-              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 text-sm shadow-lg shadow-[#ff00ff]/50 text-center"
+              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#ff00ff] hover:brightness-90 transition-all duration-200 text-sm shadow-lg shadow-[#ff00ff]/50 text-center"
             >
               + Add Session
             </Link>
@@ -337,7 +337,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
               <p className="text-gray-400 font-mono mb-4">No sessions yet for this campaign</p>
               <Link
                 href={`/sessions/new?campaign_id=${id}`}
-                className="inline-block w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
+                className="inline-block w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#ff00ff] hover:brightness-90 transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
               >
                 Create First Session
               </Link>

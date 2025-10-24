@@ -26,11 +26,40 @@ export const CYBERPUNK_STYLES = {
     WHITE: 'text-white',
   },
   
+  // Entity-specific colors with hover effects
+  ENTITY: {
+    CAMPAIGN: {
+      PRIMARY: 'text-[#ff6b35]',
+      HOVER: 'hover:text-[#ff6b35] hover:brightness-110',
+      BORDER: 'border-[#ff6b35]/70',
+      BACKGROUND: 'bg-[#ff6b35]/10',
+    },
+    ORGANIZATION: {
+      PRIMARY: 'text-[#fcee0c]',
+      HOVER: 'hover:text-[#fcee0c] hover:brightness-110',
+      BORDER: 'border-[#fcee0c]/70',
+      BACKGROUND: 'bg-[#fcee0c]/10',
+    },
+    NPC: {
+      PRIMARY: 'text-[#ff6ad5]',
+      HOVER: 'hover:text-[#ff6ad5] hover:brightness-110',
+      BORDER: 'border-[#ff6ad5]/70',
+      BACKGROUND: 'bg-[#ff6ad5]/10',
+    },
+    PLAYER: {
+      PRIMARY: 'text-[#00ffff]',
+      HOVER: 'hover:text-[#ff00ff]',
+      BORDER: 'border-[#00ffff]/40',
+      BACKGROUND: 'bg-[#0f0f23]',
+    },
+  },
+  
   // Common component styles
   COMPONENT: {
     CARD: 'rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6',
     INPUT: 'w-full px-4 py-3 rounded font-mono text-sm transition-colors duration-200',
     BUTTON: 'inline-flex items-center justify-center rounded border border-[#00ffff] border-opacity-30 text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff] transition-colors',
+    PRIMARY_BUTTON: 'bg-[#ff00ff] text-black hover:bg-[#ff00ff] hover:brightness-90 transition-all duration-200 shadow-lg shadow-[#ff00ff]/50',
   },
 } as const
 

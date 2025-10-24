@@ -43,7 +43,7 @@ export default function SynthwaveDropdown({
     if (colorVariant === 'campaign') {
       return {
         primary: '#ff6b35',
-        hover: '#ff8a5b',
+        hover: '#ff6b35', // Use same color with brightness filter
         focus: '#ff6b35',
         shadow: '#ff6b35'
       }
