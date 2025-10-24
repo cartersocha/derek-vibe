@@ -120,25 +120,26 @@ export default function Topbar() {
 
   return (
     <header 
-      className="sticky top-0 z-[60] bg-[#0a0a1f] backdrop-blur-sm"
+      className="fixed top-0 z-[60] bg-[#0a0a1f] backdrop-blur-sm"
       style={{
         width: '100vw', // Always full viewport width
         height: '4rem', // Fixed navbar height
         left: 0,
-        right: 0
+        right: 0,
+        top: 0
       }}
     >
       <div className="flex items-center justify-between px-2 py-2 sm:px-4 lg:px-6">
-        {/* Logo/Brand with Hamburger - positioned like YouTube */}
-        <div className="flex items-center gap-3">
-          {/* Hamburger Button - consistent sizing regardless of sidebar state */}
+        {/* Logo/Brand with Hamburger - always positioned on far left */}
+        <div className="flex items-center gap-3" style={{ marginLeft: '0px' }}>
+          {/* Hamburger Button - consistent left positioning in both states */}
           <button
             type="button"
             onClick={toggleSidebar}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             className="inline-flex items-center justify-center rounded text-[#00ffff] hover:text-[#ff00ff] transition-colors touch-target w-14 h-12 p-2"
             style={{
-              marginLeft: isCollapsed ? '-24px' : '0px' // Only adjust position, not size
+              marginLeft: '-24px' // Always use the same left positioning
             }}
           >
             <svg
