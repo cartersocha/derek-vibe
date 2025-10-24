@@ -235,7 +235,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                           <Link
                             key={`${character.id}-org-${organization.id}`}
                             href={`/organizations/${organization.id}`}
-                            className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+                            className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447] whitespace-nowrap"
                           >
                             {organization.name}
                           </Link>
@@ -243,7 +243,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {!expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
                           <button
                             onClick={() => toggleCharacterGroups(character.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[#fcee0c]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c]"
+                            className="inline-flex items-center rounded-full border border-dashed border-[#fcee0c]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[#fcee0c] hover:border-[#ffd447] hover:text-[#ffd447] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fcee0c] whitespace-nowrap"
                           >
                             +{character.organization_characters.length - 4} more
                           </button>
@@ -279,7 +279,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                           <Link
                             key={`${character.id}-session-${sessionRelation.session.id}`}
                             href={`/sessions/${sessionRelation.session.id}`}
-                            className="inline-flex items-center rounded-full border border-[#00ff88]/70 bg-[#0a1a0f] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] transition hover:border-[#00cc6a] hover:text-[#00cc6a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88]"
+                            className="inline-flex items-center rounded-full border border-[#00ff88]/70 bg-[#0a1a0f] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] transition hover:border-[#00cc6a] hover:text-[#00cc6a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88] whitespace-nowrap"
                           >
                             {sessionRelation.session.name}
                           </Link>
@@ -287,7 +287,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {!expandedCharacters.has(character.id) && character.session_characters.length > 3 && (
                           <button
                             onClick={() => toggleCharacterSessions(character.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[#00ff88]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] hover:border-[#00cc6a] hover:text-[#00cc6a] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88]"
+                            className="inline-flex items-center rounded-full border border-dashed border-[#00ff88]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#00ff88] hover:border-[#00cc6a] hover:text-[#00cc6a] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88] whitespace-nowrap"
                           >
                             +{character.session_characters.length - 3} more
                           </button>
