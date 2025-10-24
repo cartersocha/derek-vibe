@@ -86,7 +86,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                   <h3 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider transition-colors hover-cyber break-words flex-1">
                     {campaign.name}
                   </h3>
-                  <span className="text-xs font-mono uppercase tracking-wider text-orange-400 flex-shrink-0">
+                  <span className="inline-block rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] flex-shrink-0">
                     {formatTimestampForDisplay(campaign.created_at) ?? "Unknown"}
                   </span>
                 </div>

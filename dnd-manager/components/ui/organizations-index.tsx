@@ -111,17 +111,13 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                     </h2>
                   </div>
                 </div>
-                <div className="text-sm leading-relaxed text-[var(--text-primary)] pointer-events-auto">
-                  {organization.description ? (
+                {organization.description && (
+                  <div className="text-sm leading-relaxed text-[var(--text-primary)] pointer-events-auto">
                     <p className="line-clamp-4 text-[var(--text-primary)]">
                       {renderNotesWithMentions(organization.description, mentionTargets)}
                     </p>
-                  ) : (
-                    <p className="text-[var(--text-muted)]">
-                      No description yet. Edit this group to add background details.
-                    </p>
-                  )}
-                </div>
+                  </div>
+                )}
                 
                 {/* Character Pills */}
                 {organization.organization_characters && organization.organization_characters.length > 0 && (

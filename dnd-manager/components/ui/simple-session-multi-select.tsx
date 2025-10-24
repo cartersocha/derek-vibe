@@ -189,7 +189,7 @@ export default function SimpleSessionMultiSelect({
                         <span className="truncate">
                           {isSelected ? "✓ " : ""}{option.label}
                           {option.hint && (
-                            <span className="ml-2 text-gray-400 text-xs">
+                            <span className="ml-2 text-[var(--gray-400)] text-xs">
                               {option.hint}
                             </span>
                           )}

@@ -270,8 +270,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
               </Link>
             )}
             {sessionDateLabel && (
-              <span className="text-[var(--text-secondary)] font-mono uppercase tracking-wider">
-                Date: {sessionDateLabel}
+              <span className="inline-block rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+                {sessionDateLabel}
               </span>
             )}
           </div>

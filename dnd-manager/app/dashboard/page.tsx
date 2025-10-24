@@ -152,7 +152,6 @@ export default async function DashboardPage() {
         <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl p-4 sm:p-6 lg:p-8">
           <div className="mb-4 sm:mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Recent Sessions</h2>
-            <p className="text-xs sm:text-sm text-gray-400 font-mono">Your latest adventures at a glance</p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:gap-5">
             {recentSessions.map((session) => {

@@ -279,7 +279,7 @@ export default function SessionMultiSelect({
           <div className="max-h-60 overflow-y-auto">
             {filteredOptions.length === 0 ? (
               canCreateNew ? null : (
-                <p className="px-4 py-6 text-center text-xs font-mono text-gray-500">{emptyMessage}</p>
+                <p className="px-4 py-6 text-center text-xs font-mono text-[var(--gray-500)]">{emptyMessage}</p>
               )
             ) : (
               <ul className="divide-y divide-[var(--bg-card)]">
@@ -297,7 +297,7 @@ export default function SessionMultiSelect({
                         <span className="truncate">
                           {checked ? "✓ " : ""}{option.label}
                           {option.hint && (
-                            <span className="ml-2 text-gray-400 text-xs">
+                            <span className="ml-2 text-[var(--gray-400)] text-xs">
                               {option.hint}
                             </span>
                           )}

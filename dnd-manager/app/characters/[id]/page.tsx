@@ -383,7 +383,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
 
           {/* Backstory text now wraps around the infobox */}
-          <section className="text-gray-300 font-mono leading-relaxed space-y-4 text-base sm:text-lg">
+          <section className="text-[var(--gray-300)] font-mono leading-relaxed space-y-4 text-base sm:text-lg">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
               <h3 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Backstory & Notes</h3>
             </div>
@@ -392,7 +392,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                 {renderNotesWithMentions(character.backstory, mentionTargets)}
               </div>
             ) : (
-              <p className="text-gray-500 italic">No backstory provided yet.</p>
+              <p className="text-[var(--gray-500)] italic">No backstory provided yet.</p>
             )}
           </section>
 
@@ -438,7 +438,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                 ))}
               </div>
             ) : (
-              <p className="text-sm font-mono uppercase tracking-wider text-gray-500">No campaign affiliations yet.</p>
+              <p className="text-sm font-mono uppercase tracking-wider text-[var(--gray-500)]">No campaign affiliations yet.</p>
             )}
           </section>
 
@@ -460,7 +460,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                 ))}
               </div>
             ) : (
-              <p className="text-sm font-mono uppercase tracking-wider text-gray-500">No organization affiliations yet.</p>
+              <p className="text-sm font-mono uppercase tracking-wider text-[var(--gray-500)]">No organization affiliations yet.</p>
             )}
           </section>
         </div>
@@ -481,7 +481,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                 menuWidthClass="w-full sm:w-60"
               />
             ) : (
-              <p className="text-xs text-gray-500 font-mono uppercase tracking-wider sm:text-right">Create a session to link it.</p>
+              <p className="text-xs text-[var(--gray-500)] font-mono uppercase tracking-wider sm:text-right">Create a session to link it.</p>
             )}
           </div>
 
@@ -504,7 +504,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
               })}
             </div>
           ) : (
-            <p className="text-gray-500 font-mono italic">No related sessions yet.</p>
+            <p className="text-[var(--gray-500)] font-mono italic">No related sessions yet.</p>
           )}
         </section>
       </div>

@@ -59,7 +59,7 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
         ) : null}
       </div>
       {levelLabel ? (
-        <p className="mt-2 text-[11px] text-gray-400 font-mono uppercase tracking-wider">
+        <p className="mt-2 text-[11px] text-[var(--gray-400)] font-mono uppercase tracking-wider">
           {levelLabel}
         </p>
       ) : null}

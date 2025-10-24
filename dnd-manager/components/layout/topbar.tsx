@@ -333,25 +333,62 @@ export default function Topbar() {
                         </button>
                       </div>
                     </div>
-                    {searchHistory.map((historyItem, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setSearchQuery(historyItem);
-                          addToSearchHistory(historyItem);
-                          performSearch(historyItem);
-                        }}
-                        className="w-full px-4 py-2 text-left hover:bg-[var(--bg-card)] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <svg className="h-4 w-4 text-[var(--cyber-cyan)] opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                            <path d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
-                          </svg>
-                          <span className="text-sm text-[var(--cyber-cyan)]">{historyItem}</span>
-                        </div>
-                      </button>
-                    ))}
+                    {searchHistory.map((historyItem, index) => {
+                      // Try to find a matching result to get the type
+                      const matchingResult = searchResults.find(result => 
+                        result.name.toLowerCase().includes(historyItem.toLowerCase()) ||
+                        historyItem.toLowerCase().includes(result.name.toLowerCase())
+                      );
+                      
+                      const getTypeColor = (type: string) => {
+                        switch (type) {
+                          case 'campaign': return 'text-[var(--orange-400)]';
+                          case 'session': return 'text-[var(--blue-400)]';
+                          case 'character': return 'text-[var(--green-400)]';
+                          case 'organization': return 'text-[var(--purple-400)]';
+                          default: return 'text-[var(--cyber-magenta)]';
+                        }
+                      };
+
+                      const getTypeBgColor = (type: string) => {
+                        switch (type) {
+                          case 'campaign': return 'bg-[var(--orange-400)]/10 border-[var(--orange-400)]/20';
+                          case 'session': return 'bg-[var(--blue-400)]/10 border-[var(--blue-400)]/20';
+                          case 'character': return 'bg-[var(--green-400)]/10 border-[var(--green-400)]/20';
+                          case 'organization': return 'bg-[var(--purple-400)]/10 border-[var(--purple-400)]/20';
+                          default: return 'bg-[var(--cyber-magenta)]/10 border-[var(--cyber-magenta)]/20';
+                        }
+                      };
+
+                      const resultType = matchingResult?.type || 'search';
+                      const typeColor = getTypeColor(resultType);
+                      const typeBgColor = getTypeBgColor(resultType);
+
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setSearchQuery(historyItem);
+                            addToSearchHistory(historyItem);
+                            performSearch(historyItem);
+                          }}
+                          className={`w-full px-4 py-3 text-left hover:bg-[var(--bg-card)] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${typeBgColor}`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-24 flex-shrink-0">
+                              <span className={`text-xs font-bold ${typeColor} uppercase tracking-wider`}>
+                                {resultType}
+                              </span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-[var(--cyber-cyan)] truncate">
+                                {historyItem}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
                 
@@ -364,20 +401,20 @@ export default function Topbar() {
                 {searchResults.map((result, index) => {
                   const getTypeColor = (type: string) => {
                     switch (type) {
-                      case 'campaign': return 'text-orange-400';
-                      case 'session': return 'text-blue-400';
-                      case 'character': return 'text-green-400';
-                      case 'organization': return 'text-purple-400';
+                      case 'campaign': return 'text-[var(--orange-400)]';
+                      case 'session': return 'text-[var(--blue-400)]';
+                      case 'character': return 'text-[var(--green-400)]';
+                      case 'organization': return 'text-[var(--purple-400)]';
                       default: return 'text-[var(--cyber-magenta)]';
                     }
                   };
 
                   const getTypeBgColor = (type: string) => {
                     switch (type) {
-                      case 'campaign': return 'bg-orange-400/10 border-orange-400/20';
-                      case 'session': return 'bg-blue-400/10 border-blue-400/20';
-                      case 'character': return 'bg-green-400/10 border-green-400/20';
-                      case 'organization': return 'bg-purple-400/10 border-purple-400/20';
+                      case 'campaign': return 'bg-[var(--orange-400)]/10 border-[var(--orange-400)]/20';
+                      case 'session': return 'bg-[var(--blue-400)]/10 border-[var(--blue-400)]/20';
+                      case 'character': return 'bg-[var(--green-400)]/10 border-[var(--green-400)]/20';
+                      case 'organization': return 'bg-[var(--purple-400)]/10 border-[var(--purple-400)]/20';
                       default: return 'bg-[var(--cyber-magenta)]/10 border-[var(--cyber-magenta)]/20';
                     }
                   };
@@ -562,19 +599,19 @@ export default function Topbar() {
                 {searchResults.map((result, index) => {
                   const getTypeColor = (type: string) => {
                     switch (type) {
-                      case 'campaign': return 'text-orange-400';
-                      case 'session': return 'text-blue-400';
-                      case 'character': return 'text-green-400';
-                      case 'organization': return 'text-purple-400';
+                      case 'campaign': return 'text-[var(--orange-400)]';
+                      case 'session': return 'text-[var(--blue-400)]';
+                      case 'character': return 'text-[var(--green-400)]';
+                      case 'organization': return 'text-[var(--purple-400)]';
                       default: return 'text-[var(--cyber-magenta)]';
                     }
                   };
                   const getTypeBgColor = (type: string) => {
                     switch (type) {
-                      case 'campaign': return 'bg-orange-400/10 border-orange-400/20';
-                      case 'session': return 'bg-blue-400/10 border-blue-400/20';
-                      case 'character': return 'bg-green-400/10 border-green-400/20';
-                      case 'organization': return 'bg-purple-400/10 border-purple-400/20';
+                      case 'campaign': return 'bg-[var(--orange-400)]/10 border-[var(--orange-400)]/20';
+                      case 'session': return 'bg-[var(--blue-400)]/10 border-[var(--blue-400)]/20';
+                      case 'character': return 'bg-[var(--green-400)]/10 border-[var(--green-400)]/20';
+                      case 'organization': return 'bg-[var(--purple-400)]/10 border-[var(--purple-400)]/20';
                       default: return 'bg-[var(--cyber-magenta)]/10 border-[var(--cyber-magenta)]/20';
                     }
                   };
