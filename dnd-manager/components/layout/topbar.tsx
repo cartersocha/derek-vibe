@@ -132,14 +132,16 @@ export default function Topbar() {
       <div className="flex items-center justify-between px-2 py-2 sm:px-4 lg:px-6">
         {/* Logo/Brand with Hamburger - always positioned on far left */}
         <div className="flex items-center gap-3" style={{ marginLeft: '0px' }}>
-          {/* Hamburger Button - consistent left positioning in both states */}
+          {/* Hamburger Button - vertically centered with RAT PALACE text */}
           <button
             type="button"
             onClick={toggleSidebar}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             className="inline-flex items-center justify-center rounded text-[#00ffff] hover:text-[#ff00ff] transition-colors touch-target w-14 h-12 p-2"
             style={{
-              marginLeft: '-24px' // Always use the same left positioning
+              marginLeft: '-24px', // Always use the same left positioning
+              alignSelf: 'center', // Center vertically with the text
+              transform: 'translateY(-2px)' // Move up slightly
             }}
           >
             <svg
@@ -247,7 +249,7 @@ export default function Topbar() {
               onClick={handleCreateClick}
               aria-expanded={showCreateMenu}
               aria-label="Create new item"
-              className="inline-flex items-center justify-center rounded border border-[#ff00ff] border-opacity-40 p-1.5 text-[#ff00ff] hover:border-[#ff00ff] hover:bg-[#ff00ff]/10 transition-colors min-h-[32px] min-w-[32px] bg-[#ff00ff]/5"
+              className="inline-flex items-center justify-center rounded border border-[#ff00ff] p-1.5 text-black hover:bg-[#ff00ff]/80 transition-colors min-h-[32px] min-w-[32px] bg-[#ff00ff]"
             >
               <span className="sr-only">Create new item</span>
               <svg

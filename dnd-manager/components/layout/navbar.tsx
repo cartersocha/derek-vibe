@@ -215,8 +215,8 @@ const hasAppliedAutoWidthRef = useRef(false);
   return (
     <div
       className={cn(
-        "relative w-full md:fixed md:top-0 md:left-0 md:h-screen md:flex md:flex-col md:flex-shrink-0 md:bg-[#0a0a1f] md:z-50",
-        "sm:fixed sm:top-0 sm:left-0 sm:h-screen sm:flex sm:flex-col sm:flex-shrink-0 sm:bg-[#0a0a1f] sm:z-50",
+        "relative w-full md:absolute md:top-16 md:left-0 md:h-[calc(100vh-4rem)] md:flex md:flex-col md:flex-shrink-0 md:bg-[#0a0a1f] md:z-50",
+        "sm:absolute sm:top-16 sm:left-0 sm:h-[calc(100vh-4rem)] sm:flex sm:flex-col sm:flex-shrink-0 sm:bg-[#0a0a1f] sm:z-50",
         isCollapsed ? "md:transition-none sm:transition-none" : "transition-[width] duration-300 ease-in-out"
       )}
       style={sidebarStyles}
@@ -234,7 +234,7 @@ const hasAppliedAutoWidthRef = useRef(false);
 
         <div
           className={cn(
-            "flex-1 py-1 pt-16", // Add top padding to account for navbar height
+            "flex-1 py-1", // Remove excessive top padding
             shouldShowIconsOnly
               ? "px-4 overflow-y-visible space-y-0 flex flex-col items-center" // No spacing, centered icons
               : "px-4 overflow-y-auto space-y-1"
@@ -249,10 +249,10 @@ const hasAppliedAutoWidthRef = useRef(false);
                 title={shouldShowIconsOnly ? link.label : undefined}
                 aria-label={shouldShowIconsOnly ? link.label : undefined}
                 className={cn(
-                  "group relative flex items-center rounded transition-all duration-200 uppercase tracking-wider font-bold overflow-hidden",
+                  "group relative flex items-center rounded transition-all duration-200 uppercase tracking-wider font-bold overflow-hidden h-12 p-2 touch-target",
                   shouldShowIconsOnly
-                    ? "justify-center w-14 h-12 p-2 text-base touch-target"
-                    : "px-4 py-2 text-xs",
+                    ? "justify-center w-14 text-base" // Icons: narrow width, centered, larger text
+                    : "justify-start w-full text-xs", // Text: full width, left-aligned, smaller text
                   isActive
                     ? "bg-[#ff00ff] text-black shadow-lg shadow-[#ff00ff]/50"
                     : "text-[#00ffff] hover:bg-[#1a1a3e] hover:text-[#ff00ff]"

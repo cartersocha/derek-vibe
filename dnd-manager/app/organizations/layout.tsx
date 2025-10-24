@@ -16,7 +16,9 @@ export default function OrganizationsLayout({
       <main 
         className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-6 md:p-6 md:pt-2 relative z-40 md:ml-0"
         style={{
-          marginLeft: `${sidebarWidth}px`
+          marginLeft: `${sidebarWidth}px`,
+          marginTop: '4.5rem', // Slightly increased to align with sidebar
+          paddingTop: '0.25rem' // Minimal padding for better alignment
         }}
       >
         {children}
