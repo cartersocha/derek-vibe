@@ -328,7 +328,7 @@ export default function CharacterMultiSelect({
               <button
                 type="button"
                 onClick={clearSelections}
-                className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-magenta)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-magenta)] disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isPending}
               >
                 Clear

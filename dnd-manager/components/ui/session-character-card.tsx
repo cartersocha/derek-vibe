@@ -30,7 +30,7 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
   const nameClasses = isPlayer
     ? 'font-medium text-[var(--cyber-cyan)] font-mono text-sm sm:text-base transition-colors group-hover:text-[var(--cyber-magenta)] focus-visible:ring-[var(--cyber-cyan)]'
     : 'font-medium text-[var(--cyber-magenta)] font-mono text-sm sm:text-base transition-colors group-hover:text-[var(--cyber-magenta)] focus-visible:ring-[var(--cyber-magenta)]';
-  const organizationChipClasses = 'inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] transition-colors hover-brightness focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap';
+  const organizationChipClasses = 'inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] hover-cyber transition-colors focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap';
   const showMoreButtonBaseClasses = 'inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] transition-colors focus-visible:outline-none focus-visible:ring-2 whitespace-nowrap';
   const levelLabel = character.level
     ? isPlayer
@@ -53,7 +53,7 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
           {character.name}
         </Link>
         {character.player_type ? (
-          <span className={`rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest transition-colors ${badgeClasses}`}>
+          <span className={`rounded px-[var(--pill-padding-x-tiny)] py-[var(--pill-padding-y-tiny)] text-[10px] font-mono uppercase tracking-widest transition-colors ${badgeClasses}`}>
             {isPlayer ? 'Player' : 'NPC'}
           </span>
         ) : null}
@@ -79,8 +79,8 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
               onClick={toggleExpanded}
               className={`${showMoreButtonBaseClasses} ${
                 expanded
-                  ? 'border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 hover-brightness focus-visible:ring-[var(--cyber-magenta)]'
-                  : 'border-dashed border-[var(--cyber-magenta)]/50 hover-brightness focus-visible:ring-[var(--cyber-magenta)]'
+                  ? 'border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 focus-visible:ring-[var(--cyber-magenta)]'
+                  : 'border-dashed border-[var(--cyber-magenta)]/50 hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/50 focus-visible:ring-[var(--cyber-magenta)]'
               }`}
             >
               {expanded ? 'Show less' : `+${character.organizations.length - 3} more`}

@@ -106,7 +106,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                   >
                     {organization.name}
                   </Link>
@@ -114,7 +114,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                 {!expandedGroups.has(session.id) && groups.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                    className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                   >
                     +{groups.length - 4} more
                   </button>
@@ -122,7 +122,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                 {expandedGroups.has(session.id) && groups.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                   >
                     Show less
                   </button>
@@ -133,11 +133,11 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
         </div>
         <div className="relative z-10 pointer-events-none sm:text-right sm:ml-4">
           {sessionDateLabel ? (
-            <span className="inline-block rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+            <span className="inline-block rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
               {sessionDateLabel}
             </span>
           ) : (
-            <span className="inline-block rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--text-muted)] border border-[var(--text-muted)]/40 bg-[var(--bg-dark)]">
+            <span className="inline-block rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--text-muted)] border border-[var(--text-muted)]/40 bg-[var(--bg-dark)]">
               No date set
             </span>
           )}

@@ -127,10 +127,10 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                         key={`${organization.id}-char-${character.id}`}
                         href={`/characters/${character.id}`}
                         className={cn(
-                          'inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2',
+                          'inline-flex items-center rounded px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2',
                           character.player_type === 'player'
                             ? 'border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] hover-cyber focus-visible:ring-[var(--cyber-cyan)]'
-                            : 'border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--bg-card)] text-[var(--cyber-magenta)] hover-cyber focus-visible:ring-[var(--cyber-magenta)]'
+                            : 'border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--bg-card)] text-[var(--cyber-magenta)] hover-magenta-to-cyan focus-visible:ring-[var(--cyber-magenta)]'
                         )}
                       >
                         {character.name}
@@ -175,7 +175,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                       {expandedOrganizations.has(organization.id) && organization.organization_sessions.length > 3 && (
                         <button
                           onClick={() => toggleOrganizationSessions(organization.id)}
-                          className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                          className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-magenta-to-cyan transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                         >
                           Show less
                         </button>

@@ -36,6 +36,8 @@ This document outlines the implementation plan for the D&D Campaign Manager appl
 
 > **Note (2025-10-21, late):** Added campaign created date positioning to the top-right of campaign cards for improved visual hierarchy and quick date reference.
 
+> **Note (2025-10-21, final):** Standardized pill sizes across the application by creating CSS variables for consistent pill dimensions (small, medium, tiny) and updating all components to use these variables for maintainable design system.
+
 ## Project Overview
 
 **Framework**: Next.js 15.5.6 (App Router)  
@@ -260,6 +262,7 @@ SESSION_SECRET=
 - ✅ Image optimization via Vercel CDN
 - ✅ Mobile-specific CSS optimizations
 - ✅ Throttled UI resizing with requestAnimationFrame
+- ✅ Standardized pill size variables for consistent UI components
 
 #### 5.3 Security Features ✅
 **Features Implemented**:
@@ -475,6 +478,7 @@ This implementation successfully delivers a fully functional D&D Campaign Manage
 - **Typography**: Space Grotesk (headings), Fira Code (monospace)
 - **Effects**: Backdrop blur, neon glows, glassmorphism
 - **Accessibility**: ARIA labels, keyboard navigation, reduced motion support
+- **Standardized Components**: CSS variables for consistent pill sizes (small, medium, tiny)
 
 ### 🔧 Technical Architecture
 

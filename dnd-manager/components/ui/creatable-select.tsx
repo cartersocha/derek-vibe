@@ -324,7 +324,7 @@ export default function CreatableSelect({
           <div className="flex items-center justify-between gap-2 border-t border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-dark)] px-3 py-2">
             <button
               type="button"
-              className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] hover:text-[var(--cyber-magenta)]"
+              className="rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] hover:text-[var(--cyber-magenta)]"
               onClick={() => {
                 setOpen(false)
                 setSearch('')
@@ -335,7 +335,7 @@ export default function CreatableSelect({
             {allowClear ? (
               <button
                 type="button"
-                className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]/80"
+                className="rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-bold uppercase tracking-wider text-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]/80"
                 onClick={handleClear}
               >
                 Clear
