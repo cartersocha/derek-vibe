@@ -30,7 +30,7 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
   const nameClasses = isPlayer
     ? 'font-medium text-[var(--cyber-cyan)] font-mono text-sm sm:text-base transition-colors group-hover:text-[var(--cyber-magenta)] focus-visible:ring-[var(--cyber-cyan)]'
     : 'font-medium text-[var(--cyber-magenta)] font-mono text-sm sm:text-base transition-colors group-hover:text-[var(--cyber-magenta)] focus-visible:ring-[var(--cyber-magenta)]';
-  const organizationChipClasses = 'inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] hover-cyber transition-colors focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap';
+  const organizationChipClasses = 'inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap';
   const showMoreButtonBaseClasses = 'inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] transition-colors focus-visible:outline-none focus-visible:ring-2 whitespace-nowrap';
   const levelLabel = character.level
     ? isPlayer
