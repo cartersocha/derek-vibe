@@ -223,7 +223,7 @@ export function NewCharacterForm({
   return (
     <form
       action={createCharacter}
-      className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-8"
+      className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl p-6 space-y-8"
     >
       {redirectTo ? <input type="hidden" name="redirect_to" value={redirectTo} /> : null}
       <input type="hidden" name="organization_field_present" value="true" />
@@ -232,7 +232,7 @@ export function NewCharacterForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+          <label htmlFor="name" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
             Character Name *
           </label>
           <input
@@ -240,12 +240,12 @@ export function NewCharacterForm({
             id="name"
             name="name"
             required
-            className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+            className="w-full px-4 py-3 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono"
           />
         </div>
 
         <div>
-          <label htmlFor="race" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+          <label htmlFor="race" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
             Race
           </label>
           <CreatableSelect
@@ -263,7 +263,7 @@ export function NewCharacterForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="class" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+          <label htmlFor="class" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
             Class
           </label>
           <CreatableSelect
@@ -279,7 +279,7 @@ export function NewCharacterForm({
         </div>
 
         <div>
-          <label htmlFor="player_type" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+          <label htmlFor="player_type" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
             Player Type
           </label>
           <SynthwaveDropdown
@@ -295,7 +295,7 @@ export function NewCharacterForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="status" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+          <label htmlFor="status" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
             Status
           </label>
           <SynthwaveDropdown
@@ -309,21 +309,21 @@ export function NewCharacterForm({
         </div>
 
         <div>
-          <label htmlFor="level" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+          <label htmlFor="level" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
             {levelLabel}
           </label>
           <input
             type="text"
             id="level"
             name="level"
-            className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+            className="w-full px-4 py-3 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="last_known_location" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+          <label htmlFor="last_known_location" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
             Last Known Location
           </label>
           <CreatableSelect
@@ -339,7 +339,7 @@ export function NewCharacterForm({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="organization_ids" className="block text-sm font-bold text-[#00ffff] uppercase tracking-wider">
+          <label htmlFor="organization_ids" className="block text-sm font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">
             Organization Affiliation
           </label>
           <OrganizationMultiSelect
@@ -354,7 +354,7 @@ export function NewCharacterForm({
         </div>
       </div>
       <div>
-        <label htmlFor="backstory" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+        <label htmlFor="backstory" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
           Backstory & Notes
         </label>
         <MentionableTextarea
@@ -364,11 +364,11 @@ export function NewCharacterForm({
           initialValue=""
           mentionTargets={mentionableTargets}
           onMentionInsert={handleMentionInsert}
-          className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+          className="w-full px-4 py-3 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono"
           placeholder="Character background, personality, goals..."
           spellCheck
         />
-        <p className="mt-2 text-xs text-gray-500 font-mono uppercase tracking-wider">
+        <p className="mt-2 text-xs text-[var(--text-muted)] font-mono uppercase tracking-wider">
           Use @ to mention characters or sessions. Mentioned sessions are linked automatically.
         </p>
       </div>
@@ -376,13 +376,13 @@ export function NewCharacterForm({
       <div className="flex flex-col gap-4 pt-4 sm:flex-row">
         <button
           type="submit"
-          className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-[#ff00ff] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50"
+          className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-black bg-[var(--cyber-magenta)] hover:bg-[var(--cyber-magenta)]/80 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)] transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[var(--cyber-magenta)]/50"
         >
           Create Character
         </button>
         <Link
           href="/characters"
-          className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-[#00ffff] border border-[#00ffff] border-opacity-30 hover:bg-[#1a1a3e] hover:border-[#ff00ff] hover:text-[#ff00ff] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
+          className="flex-1 px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base font-bold rounded text-[var(--cyber-cyan)] border border-[var(--cyber-cyan)] border-opacity-30 hover:bg-[var(--bg-card)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)] focus:outline-none transition-all duration-200 uppercase tracking-wider text-center"
         >
           Cancel
         </Link>

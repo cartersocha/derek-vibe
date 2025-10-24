@@ -254,12 +254,12 @@ export default function CreatableSelect({
         ref={buttonRef}
         type="button"
         onClick={toggleDropdown}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] ${
           open
-            ? 'border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[#ff00ff]/30'
+            ? 'border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[var(--cyber-magenta)]/30'
             : value
               ? 'border-[var(--cyber-cyan)] text-[var(--cyber-cyan)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]'
-              : 'border-[var(--cyber-cyan)] text-gray-500 hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]'
+              : 'border-[var(--cyber-cyan)] text-[var(--text-muted)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]'
         }`}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -273,24 +273,24 @@ export default function CreatableSelect({
         <div
           id={`${id}-dropdown`}
           role="listbox"
-          className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[#00ffff]/20"
+          className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[var(--cyber-cyan)]/20"
         >
-          <div className="border-b border-[#1a1a3e] px-3 py-2">
+          <div className="border-b border-[var(--bg-card)] px-3 py-2">
             <input
               type="text"
               autoFocus
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search or create"
-              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)]"
             />
           </div>
 
           <div className="max-h-56 overflow-y-auto">
             {filteredOptions.length === 0 && !canCreate ? (
-              <p className="px-4 py-6 text-center text-xs font-mono text-gray-500">No matches</p>
+              <p className="px-4 py-6 text-center text-xs font-mono text-[var(--text-muted)]">No matches</p>
             ) : (
-              <ul className="divide-y divide-[#1a1a3e]">
+              <ul className="divide-y divide-[var(--bg-card)]">
                 {filteredOptions.map((option) => (
                   <li key={option}>
                     <button
@@ -335,7 +335,7 @@ export default function CreatableSelect({
             {allowClear ? (
               <button
                 type="button"
-                className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--cyber-magenta)] hover:text-[#cc00cc]"
+                className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]/80"
                 onClick={handleClear}
               >
                 Clear

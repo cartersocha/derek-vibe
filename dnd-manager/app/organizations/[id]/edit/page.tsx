@@ -90,14 +90,14 @@ export default async function EditOrganizationPage({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href={`/organizations/${id}`}
-          className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider"
+          className="text-[var(--cyber-cyan)] hover:text-[var(--cyber-magenta)] font-mono uppercase tracking-wider"
         >
           ← Back to Group
         </Link>
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-xl sm:text-2xl font-bold text-[#00ffff] uppercase tracking-wider break-words">Edit Group</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider break-words">Edit Group</h2>
       </div>
 
       <OrganizationForm

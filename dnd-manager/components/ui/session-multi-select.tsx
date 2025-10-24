@@ -290,8 +290,8 @@ export default function SessionMultiSelect({
                       <button
                         type="button"
                         onClick={() => toggleSelection(option.value)}
-                        className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[#1a1a3e]/60 ${
-                          checked ? 'text-[#ff00ff]' : 'text-[#00ffff]'
+                        className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[var(--bg-card)]/60 ${
+                          checked ? 'text-[var(--cyber-magenta)]' : 'text-[var(--cyber-cyan)]'
                         }`}
                       >
                         <span className="truncate">
@@ -310,12 +310,12 @@ export default function SessionMultiSelect({
             )}
 
             {canCreateNew ? (
-              <div className="border-t border-[#1a1a3e]">
+              <div className="border-t border-[var(--bg-card)]">
                 <button
                   type="button"
                   onClick={handleCreateNewSession}
                   disabled={isPending}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[#ff00ff] transition-colors duration-150 hover:bg-[#1a1a3e]/60 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[var(--cyber-magenta)] transition-colors duration-150 hover:bg-[var(--bg-card)]/60 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="truncate">Create {trimmedSearch}</span>
                   <span className="text-xs uppercase tracking-wider">New Session</span>
@@ -324,9 +324,9 @@ export default function SessionMultiSelect({
             ) : null}
           </div>
 
-          <div className="border-t border-[#00ffff]/20 bg-[#050517] px-3 py-2 flex flex-col gap-2">
+          <div className="border-t border-[var(--cyber-cyan)]/20 bg-[var(--bg-dark)] px-3 py-2 flex flex-col gap-2">
             {creationError ? (
-              <p className="text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5]">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)]">
                 {creationError}
               </p>
             ) : null}
@@ -334,7 +334,7 @@ export default function SessionMultiSelect({
               <button
                 type="button"
                 onClick={clearSelections}
-                className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#00ffff] transition hover:text-[#ff00ff] disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-magenta)] disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isPending}
               >
                 Clear
@@ -342,7 +342,7 @@ export default function SessionMultiSelect({
               <button
                 type="button"
                 onClick={applyAndClose}
-                className="rounded bg-[#ff00ff] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[#cc00cc] disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded bg-[var(--cyber-magenta)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isPending}
               >
                 {isPending ? "Working…" : "Done"}

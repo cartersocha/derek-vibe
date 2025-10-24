@@ -240,9 +240,9 @@ export default function OrganizationMultiSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={`${id}-dropdown`}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] ${
           open
-            ? "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[#ff00ff]/30"
+            ? "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[var(--cyber-magenta)]/30"
             : normalizedSelections.length > 0
               ? "border-[var(--cyber-cyan)] text-[var(--cyber-cyan)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
               : "border-[var(--cyber-cyan)] text-[var(--text-muted)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
@@ -256,9 +256,9 @@ export default function OrganizationMultiSelect({
         <div
           id={`${id}-dropdown`}
           role="listbox"
-          className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[#00ffff]/20"
+          className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[var(--cyber-cyan)]/20"
         >
-          <div className="border-b border-[#1a1a3e] px-3 py-2">
+          <div className="border-b border-[var(--bg-card)] px-3 py-2">
             <input
               type="text"
               autoFocus
@@ -270,7 +270,7 @@ export default function OrganizationMultiSelect({
                 setSearch(event.target.value)
               }}
               placeholder="Search organizations"
-              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)]"
               disabled={isPending}
             />
           </div>
@@ -281,7 +281,7 @@ export default function OrganizationMultiSelect({
                 <p className="px-4 py-6 text-center text-xs font-mono text-[var(--text-muted)]">{emptyMessage}</p>
               )
             ) : (
-              <ul className="divide-y divide-[#1a1a3e]">
+              <ul className="divide-y divide-[var(--bg-card)]">
                 {filteredOptions.map((option) => {
                   const checked = normalizedSelections.includes(option.value)
                   return (
@@ -304,7 +304,7 @@ export default function OrganizationMultiSelect({
             )}
 
             {canCreateNew ? (
-              <div className="border-t border-[#1a1a3e]">
+              <div className="border-t border-[var(--bg-card)]">
                 <button
                   type="button"
                   onClick={handleCreateNewOrganization}
@@ -318,9 +318,9 @@ export default function OrganizationMultiSelect({
             ) : null}
           </div>
 
-          <div className="border-t border-[var(--cyber-cyan)]/20 bg-[#050517] px-3 py-2 flex flex-col gap-2">
+          <div className="border-t border-[var(--cyber-cyan)]/20 bg-[var(--bg-dark)] px-3 py-2 flex flex-col gap-2">
             {creationError ? (
-              <p className="text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5]">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)]">
                 {creationError}
               </p>
             ) : null}
@@ -336,7 +336,7 @@ export default function OrganizationMultiSelect({
               <button
                 type="button"
                 onClick={applyAndClose}
-                className="rounded bg-[#ff00ff] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[#cc00cc] disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded bg-[var(--cyber-magenta)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isPending}
               >
                 {isPending ? "Working…" : "Done"}

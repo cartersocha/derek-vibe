@@ -153,14 +153,14 @@ body {
 
 .glitch::before {
   left: 2px;
-  text-shadow: -2px 0 #ff00ff;
+  text-shadow: -2px 0 var(--cyber-magenta);
   clip: rect(44px, 450px, 56px, 0);
   animation: glitch-anim 5s infinite linear alternate-reverse;
 }
 
 .glitch::after {
   left: -2px;
-  text-shadow: -2px 0 #00ffff, 2px 2px #ff00ff;
+  text-shadow: -2px 0 var(--cyber-cyan), 2px 2px var(--cyber-magenta);
   animation: glitch-anim2 1s infinite linear alternate-reverse;
 }
 

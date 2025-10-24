@@ -831,31 +831,31 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
               }
             }}
             placeholder="Campaign name"
-            className="w-full rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] px-3 py-2 text-sm font-mono text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+            className="w-full rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] px-3 py-2 text-sm font-mono text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)]"
           />
           <textarea
             value={newCampaignDescription}
             onChange={(event) => setNewCampaignDescription(event.target.value)}
             rows={3}
             placeholder="Optional description"
-            className="w-full rounded border border-[#00ffff] border-opacity-20 bg-[#0a0a1f] px-3 py-2 text-xs font-mono text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#ff00ff]"
+            className="w-full rounded border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-dark)] px-3 py-2 text-xs font-mono text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--cyber-magenta)]"
           />
           {campaignCreationError ? (
-            <p className="text-xs font-mono text-[#ff6b35]">{campaignCreationError}</p>
+            <p className="text-xs font-mono text-[var(--cyber-magenta)]">{campaignCreationError}</p>
           ) : null}
           <div className="flex flex-col gap-2 sm:flex-row">
             <button
               type="button"
               onClick={() => void handleCampaignCreateInline()}
               disabled={disableCampaignCreate}
-              className="flex-1 rounded border border-[#ff00ff] bg-[#ff00ff] px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-black transition-colors duration-200 hover:bg-[#cc00cc] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded border border-[var(--cyber-magenta)] bg-[var(--cyber-magenta)] px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-black transition-colors duration-200 hover:bg-[var(--cyber-magenta)]/80 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isCreatingCampaignInline ? 'Creating…' : 'Save Campaign'}
             </button>
             <button
               type="button"
               onClick={handleCancelCampaignInline}
-              className="flex-1 rounded border border-[#00ffff] border-opacity-30 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#00ffff] transition-colors duration-200 hover:border-[#ff00ff] hover:text-[#ff00ff]"
+              className="flex-1 rounded border border-[var(--cyber-cyan)] border-opacity-30 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[var(--cyber-cyan)] transition-colors duration-200 hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
             >
               Cancel
             </button>
@@ -868,7 +868,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
             setIsCampaignCreatorOpen(true)
             setCampaignCreationError(null)
           }}
-          className="w-full rounded border border-dashed border-[#00ffff] border-opacity-40 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#00ffff] transition-colors duration-200 hover:border-solid hover:border-[#ff00ff] hover:text-[#ff00ff]"
+          className="w-full rounded border border-dashed border-[var(--cyber-cyan)] border-opacity-40 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[var(--cyber-cyan)] transition-colors duration-200 hover:border-solid hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
         >
           + New Campaign
         </button>
@@ -923,7 +923,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     <form
       action={action}
       onSubmit={handleFormSubmit}
-      className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-6 space-y-6"
+      className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl p-6 space-y-6"
     >
       {/* Header Image Upload */}
       <ImageUpload
@@ -937,7 +937,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
 
       {/* Session Name */}
       <div>
-        <label htmlFor="name" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+        <label htmlFor="name" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
           Session Name *
         </label>
         <input
@@ -947,14 +947,14 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
           required
           value={nameDraft}
           onChange={handleNameChange}
-          className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+          className="w-full px-4 py-3 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono"
           placeholder="Enter session name"
         />
       </div>
 
       {/* Campaign Selection */}
       <div>
-        <label htmlFor="campaign_id" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+        <label htmlFor="campaign_id" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
           Campaign
         </label>
         <SynthwaveDropdown
@@ -972,7 +972,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
 
       {/* Session Date */}
       <div>
-        <label htmlFor="session_date" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+        <label htmlFor="session_date" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
           Session Date
         </label>
         <input
@@ -980,13 +980,13 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
           id="session_date"
           name="session_date"
           defaultValue={initialData?.session_date || today}
-          className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+          className="w-full px-4 py-3 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono"
         />
       </div>
 
       {/* Session Notes */}
       <div style={{ minHeight: 0, overflow: 'visible', contain: 'layout' }}>
-        <label htmlFor="notes" className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
+        <label htmlFor="notes" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
           Session Notes
         </label>
         <MentionableTextarea
@@ -998,12 +998,12 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
           onValueChange={handleNotesValueChange}
           onMentionInsert={handleMentionInsert}
           onMentionCreate={handleMentionInsert}
-          className="w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+          className="w-full px-4 py-3 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono"
           placeholder="What happened in this session..."
           spellCheck
           data-testid="session-notes-textarea"
         />
-        <p className="mt-2 text-xs text-gray-500 font-mono uppercase tracking-wider">
+        <p className="mt-2 text-xs text-[var(--text-muted)] font-mono uppercase tracking-wider">
           Use @ to mention characters, sessions, or groups. Mentioned items are linked automatically.
         </p>
       </div>
@@ -1012,7 +1012,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <label className="text-sm font-bold text-[#00ffff] uppercase tracking-wider">
+            <label className="text-sm font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">
               Related Characters
             </label>
           </div>
@@ -1029,7 +1029,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
         </div>
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <label className="text-sm font-bold text-[#00ffff] uppercase tracking-wider">
+            <label className="text-sm font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">
               Related Groups
             </label>
           </div>
@@ -1049,13 +1049,13 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
       <div className="flex flex-col gap-4 sm:flex-row">
         <button
           type="submit"
-          className="flex-1 bg-[#ff00ff] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+          className="flex-1 bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[var(--cyber-magenta)]/80 transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50"
         >
           {submitLabel}
         </button>
         <Link
           href={cancelHref}
-          className="flex-1 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 text-[#00ffff] px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded hover:border-[#ff00ff] hover:text-[#ff00ff] transition-all duration-200 text-center font-bold uppercase tracking-wider"
+          className="flex-1 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)] transition-all duration-200 text-center font-bold uppercase tracking-wider"
         >
           Cancel
         </Link>

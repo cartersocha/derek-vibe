@@ -135,7 +135,7 @@ export default function CharactersPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="retro-title text-base sm:text-lg md:text-xl font-bold text-[#00ffff] break-words">Characters</h1>
+        <h1 className="retro-title text-base sm:text-lg md:text-xl font-bold text-[var(--cyber-cyan)] break-words">Characters</h1>
       </div>
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {characters.map((character) => (

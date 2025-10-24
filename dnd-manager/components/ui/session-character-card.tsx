@@ -22,14 +22,14 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
 
   const isPlayer = character.player_type === 'player';
   const badgeClasses = isPlayer
-    ? 'border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] group-hover:border-[#00ffff] group-hover:text-[#ff00ff]'
-    : 'border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] group-hover:border-[#ff6ad5] group-hover:text-[#ff9de6]';
+    ? 'border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] group-hover:border-[var(--cyber-cyan)] group-hover:text-[var(--cyber-magenta)]'
+    : 'border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--bg-card)] text-[var(--cyber-magenta)] group-hover:border-[var(--cyber-magenta)] group-hover:text-[var(--cyber-magenta)]';
   const cardClasses = isPlayer
-    ? 'border border-[#00ffff] border-opacity-20 bg-[#0f0f23]/70 hover:border-[#ff00ff] hover:bg-[#0f0f23] focus-visible:ring-[#00ffff]'
-    : 'border border-[#ff00ff] border-opacity-30 bg-[#1a0220] hover:border-[#ff6ad5] hover:bg-[#1a0220] focus-visible:ring-[#ff6ad5]';
+    ? 'border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-dark)]/70 hover:border-[var(--cyber-magenta)] hover:bg-[var(--bg-dark)] focus-visible:ring-[var(--cyber-cyan)]'
+    : 'border border-[var(--cyber-magenta)] border-opacity-30 bg-[var(--bg-dark)] hover:border-[var(--cyber-magenta)] hover:bg-[var(--bg-dark)] focus-visible:ring-[var(--cyber-magenta)]';
   const nameClasses = isPlayer
-    ? 'font-medium text-[#00ffff] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
-    : 'font-medium text-[#ff6ad5] font-mono text-sm sm:text-base transition-colors group-hover:text-[#ff9de6] focus-visible:ring-[#ff6ad5]';
+    ? 'font-medium text-[var(--cyber-cyan)] font-mono text-sm sm:text-base transition-colors group-hover:text-[var(--cyber-magenta)] focus-visible:ring-[var(--cyber-cyan)]'
+    : 'font-medium text-[var(--cyber-magenta)] font-mono text-sm sm:text-base transition-colors group-hover:text-[var(--cyber-magenta)] focus-visible:ring-[var(--cyber-magenta)]';
   const organizationChipClasses = 'inline-flex items-center rounded-full border border-[var(--semantic)]/70 bg-[var(--semantic)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--semantic)] transition-colors hover-brightness focus-visible:ring-[var(--semantic)] whitespace-nowrap';
   const showMoreButtonBaseClasses = 'inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--semantic)] transition-colors focus-visible:outline-none focus-visible:ring-2 whitespace-nowrap';
   const levelLabel = character.level

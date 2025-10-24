@@ -341,7 +341,7 @@ export default function Topbar() {
                           addToSearchHistory(historyItem);
                           performSearch(historyItem);
                         }}
-                        className="w-full px-4 py-2 text-left hover:bg-[#2a2a4e] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0"
+                        className="w-full px-4 py-2 text-left hover:bg-[var(--bg-card)] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0"
                       >
                         <div className="flex items-center space-x-3">
                           <svg className="h-4 w-4 text-[var(--cyber-cyan)] opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -368,7 +368,7 @@ export default function Topbar() {
                       case 'session': return 'text-blue-400';
                       case 'character': return 'text-green-400';
                       case 'organization': return 'text-purple-400';
-                      default: return 'text-[#ff00ff]';
+                      default: return 'text-[var(--cyber-magenta)]';
                     }
                   };
 
@@ -378,7 +378,7 @@ export default function Topbar() {
                       case 'session': return 'bg-blue-400/10 border-blue-400/20';
                       case 'character': return 'bg-green-400/10 border-green-400/20';
                       case 'organization': return 'bg-purple-400/10 border-purple-400/20';
-                      default: return 'bg-[#ff00ff]/10 border-[var(--cyber-magenta)]/20';
+                      default: return 'bg-[var(--cyber-magenta)]/10 border-[var(--cyber-magenta)]/20';
                     }
                   };
 
@@ -386,7 +386,7 @@ export default function Topbar() {
                     <button
                       key={`${result.type}-${result.id}-${index}`}
                       onClick={() => handleResultClick(result.url, result.name)}
-                      className={`w-full px-4 py-3 text-left hover:bg-[#2a2a4e] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
+                      className={`w-full px-4 py-3 text-left hover:bg-[var(--bg-card)] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-24 flex-shrink-0">
@@ -419,7 +419,7 @@ export default function Topbar() {
               onClick={handleCreateClick}
               aria-expanded={showCreateMenu}
               aria-label="Create new item"
-              className="inline-flex items-center justify-center rounded border border-[var(--cyber-magenta)] p-1.5 text-black hover:bg-[#ff00ff]/80 transition-colors min-h-[32px] min-w-[32px] bg-[#ff00ff]"
+              className="inline-flex items-center justify-center rounded border border-[var(--cyber-magenta)] p-1.5 text-black hover:bg-[var(--cyber-magenta)]/80 transition-colors min-h-[32px] min-w-[32px] bg-[var(--cyber-magenta)]"
             >
               <span className="sr-only">Create new item</span>
               <svg
@@ -443,7 +443,7 @@ export default function Topbar() {
                     <button
                       key={option.href}
                       onClick={() => handleCreateOptionClick(option.href)}
-                      className="w-full px-4 py-2 text-left hover:bg-[#2a2a4e] transition-colors text-sm whitespace-nowrap"
+                      className="w-full px-4 py-2 text-left hover:bg-[var(--bg-card)] transition-colors text-sm whitespace-nowrap"
                     >
                       <span className="text-[var(--cyber-cyan)] font-medium">{option.label}</span>
                     </button>
@@ -460,7 +460,7 @@ export default function Topbar() {
       <div
         id="mobile-nav"
         className={cn(
-          "md:hidden bg-[#0a0a1f] shadow-lg shadow-[#00ffff]/10",
+          "md:hidden bg-[var(--bg-dark)] shadow-lg shadow-[var(--cyber-cyan)]/10",
           isMobileMenuOpen ? "block" : "hidden"
         )}
       >
@@ -522,7 +522,7 @@ export default function Topbar() {
               <>
                 {/* Mobile Search History - show when no query or no results */}
                 {(!searchQuery.trim() || searchResults.length === 0) && searchHistory.length > 0 && (
-                  <div className="mt-2 bg-[#0a0a1f] border border-[var(--cyber-cyan)] border-opacity-30 rounded shadow-lg max-h-48 overflow-y-auto">
+                  <div className="mt-2 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded shadow-lg max-h-48 overflow-y-auto">
                     <div className="px-3 py-2 border-b border-[var(--cyber-cyan)] border-opacity-20">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Recent Searches</span>
@@ -542,7 +542,7 @@ export default function Topbar() {
                           addToSearchHistory(historyItem);
                           performSearch(historyItem);
                         }}
-                        className="w-full px-3 py-2 text-left hover:bg-[#2a2a4e] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0"
+                        className="w-full px-3 py-2 text-left hover:bg-[var(--bg-card)] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0"
                       >
                         <div className="flex items-center space-x-2">
                           <svg className="h-4 w-4 text-[var(--cyber-cyan)] opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -558,7 +558,7 @@ export default function Topbar() {
                 
                 {/* Mobile Search Results */}
                 {searchResults.length > 0 && (
-              <div className="mt-2 bg-[#0a0a1f] border border-[var(--cyber-cyan)] border-opacity-30 rounded shadow-lg max-h-48 overflow-y-auto">
+              <div className="mt-2 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded shadow-lg max-h-48 overflow-y-auto">
                 {searchResults.map((result, index) => {
                   const getTypeColor = (type: string) => {
                     switch (type) {
@@ -566,7 +566,7 @@ export default function Topbar() {
                       case 'session': return 'text-blue-400';
                       case 'character': return 'text-green-400';
                       case 'organization': return 'text-purple-400';
-                      default: return 'text-[#ff00ff]';
+                      default: return 'text-[var(--cyber-magenta)]';
                     }
                   };
                   const getTypeBgColor = (type: string) => {
@@ -575,14 +575,14 @@ export default function Topbar() {
                       case 'session': return 'bg-blue-400/10 border-blue-400/20';
                       case 'character': return 'bg-green-400/10 border-green-400/20';
                       case 'organization': return 'bg-purple-400/10 border-purple-400/20';
-                      default: return 'bg-[#ff00ff]/10 border-[var(--cyber-magenta)]/20';
+                      default: return 'bg-[var(--cyber-magenta)]/10 border-[var(--cyber-magenta)]/20';
                     }
                   };
                   return (
                     <button
                       key={`${result.type}-${result.id}-${index}`}
                       onClick={() => handleResultClick(result.url, result.name)}
-                      className={`w-full px-3 py-2 text-left hover:bg-[#2a2a4e] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
+                      className={`w-full px-3 py-2 text-left hover:bg-[var(--bg-card)] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
                     >
                       <div className="flex flex-col space-y-1">
                         <div className="flex items-center justify-between">
@@ -614,7 +614,7 @@ export default function Topbar() {
                 className={cn(
                   "block w-full px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors duration-200 min-h-[36px] flex items-center",
                   isActive
-                    ? "bg-[#ff00ff] text-black shadow-lg shadow-[#ff00ff]/50"
+                    ? "bg-[var(--cyber-magenta)] text-black shadow-lg shadow-[var(--cyber-magenta)]/50"
                     : "text-[var(--cyber-cyan)] hover:bg-[var(--bg-card)] hover-cyber"
                 )}
               >

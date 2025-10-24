@@ -200,8 +200,8 @@ export default function ImageUpload({
 
   return (
     <div className={className}>
-      <label className="block text-sm font-bold text-[#00ffff] mb-2 uppercase tracking-wider">
-        {label} {required && <span className="text-[#ff00ff]">*</span>}
+      <label className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
+        {label} {required && <span className="text-[var(--cyber-magenta)]">*</span>}
       </label>
 
       <input
@@ -223,7 +223,7 @@ export default function ImageUpload({
 
       {preview ? (
         <div className="relative">
-          <div className="relative w-full h-48 sm:h-64 rounded border-2 border-[#00ffff] border-opacity-30 overflow-hidden bg-[#0f0f23]">
+          <div className="relative w-full h-48 sm:h-64 rounded border-2 border-[var(--cyber-cyan)] border-opacity-30 overflow-hidden bg-[var(--bg-dark)]">
             <Image
               src={preview}
               alt="Preview"
@@ -234,14 +234,14 @@ export default function ImageUpload({
           </div>
           <div className="mt-3 flex items-center gap-4">
             {fileName && (
-              <span className="text-sm text-[#00ffff] font-mono truncate">
+              <span className="text-sm text-[var(--cyber-cyan)] font-mono truncate">
                 {fileName}
               </span>
             )}
             <button
               type="button"
               onClick={handleRemove}
-              className="ml-auto px-4 py-2 text-sm font-bold uppercase tracking-wider text-black bg-[#ff00ff] hover:bg-[#cc00cc] rounded transition-all duration-200 shadow-lg shadow-[#ff00ff]/50"
+              className="ml-auto px-4 py-2 text-sm font-bold uppercase tracking-wider text-black bg-[var(--cyber-magenta)] hover:bg-[var(--cyber-magenta)]/80 rounded transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50"
             >
               Remove
             </button>
@@ -256,13 +256,13 @@ export default function ImageUpload({
           onClick={() => inputRef.current?.click()}
           className={`relative w-full h-48 sm:h-64 rounded border-2 border-dashed cursor-pointer transition-all duration-200 ${
             dragActive
-              ? "border-[#ff00ff] bg-[#1a1a3e]"
-              : "border-[#00ffff] border-opacity-30 hover:border-opacity-60 hover:bg-[#0f0f23]"
-          } flex flex-col items-center justify-center bg-[#0a0a1f]`}
+              ? "border-[var(--cyber-magenta)] bg-[var(--bg-card)]"
+              : "border-[var(--cyber-cyan)] border-opacity-30 hover:border-opacity-60 hover:bg-[var(--bg-dark)]"
+          } flex flex-col items-center justify-center bg-[var(--bg-dark)]`}
         >
           <div className="text-center p-6">
             <svg
-              className="mx-auto h-12 w-12 text-[#00ffff] opacity-50"
+              className="mx-auto h-12 w-12 text-[var(--cyber-cyan)] opacity-50"
               stroke="currentColor"
               fill="none"
               viewBox="0 0 48 48"
@@ -275,8 +275,8 @@ export default function ImageUpload({
                 strokeLinejoin="round"
               />
             </svg>
-            <p className="mt-2 text-sm text-[#00ffff] font-mono">
-              <span className="font-bold text-[#ff00ff]">Click to upload</span>{" "}
+            <p className="mt-2 text-sm text-[var(--cyber-cyan)] font-mono">
+              <span className="font-bold text-[var(--cyber-magenta)]">Click to upload</span>{" "}
               or drag and drop
             </p>
             <p className="mt-1 text-xs text-gray-400 font-mono">
@@ -287,7 +287,7 @@ export default function ImageUpload({
       )}
 
       {error && (
-        <p className="mt-2 text-sm text-[#ff00ff] font-mono">{error}</p>
+        <p className="mt-2 text-sm text-[var(--cyber-magenta)] font-mono">{error}</p>
       )}
     </div>
   );

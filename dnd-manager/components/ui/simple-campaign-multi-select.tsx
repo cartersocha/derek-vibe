@@ -140,9 +140,9 @@ export default function SimpleCampaignMultiSelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-2 text-left font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-2 text-left font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] ${
           open
-            ? 'border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[#ff00ff]/30'
+            ? 'border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[var(--cyber-magenta)]/30'
             : 'border-[var(--cyber-cyan)] text-[var(--cyber-cyan)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]'
         }`}
       >
@@ -152,14 +152,14 @@ export default function SimpleCampaignMultiSelect({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[#00ffff]/20">
-          <div className="border-b border-[#1a1a3e] px-3 py-2">
+        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[var(--cyber-cyan)]/20">
+          <div className="border-b border-[var(--bg-card)] px-3 py-2">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search campaigns..."
-              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)]"
               autoFocus
             />
           </div>
@@ -170,7 +170,7 @@ export default function SimpleCampaignMultiSelect({
                 {emptyMessage}
               </div>
             ) : (
-              <ul className="divide-y divide-[#1a1a3e]">
+              <ul className="divide-y divide-[var(--bg-card)]">
                 {filteredOptions.map((option) => {
                   const isSelected = normalizedSelections.includes(option.value)
                   return (
@@ -214,7 +214,7 @@ export default function SimpleCampaignMultiSelect({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-2 border-t border-[var(--cyber-cyan)]/20 bg-[#050517] px-3 py-2">
+          <div className="flex items-center justify-between gap-2 border-t border-[var(--cyber-cyan)]/20 bg-[var(--bg-dark)] px-3 py-2">
             <button
               type="button"
               className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-magenta)]"
@@ -224,7 +224,7 @@ export default function SimpleCampaignMultiSelect({
             </button>
             <button
               type="button"
-              className="rounded bg-[#ff00ff] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[#cc00cc]"
+              className="rounded bg-[var(--cyber-magenta)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80"
               onClick={() => setOpen(false)}
             >
               Done

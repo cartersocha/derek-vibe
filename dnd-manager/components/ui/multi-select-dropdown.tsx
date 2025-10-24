@@ -145,9 +145,9 @@ export default function MultiSelectDropdown({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={`${label.toLowerCase().replace(/\s+/g, '-')}-dropdown`}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] disabled:cursor-not-allowed disabled:opacity-60 ${
           open
-            ? "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[#ff00ff]/30"
+            ? "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[var(--cyber-magenta)]/30"
             : selected.size > 0
               ? "border-[var(--cyber-cyan)] text-[var(--cyber-cyan)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
               : "border-[var(--cyber-cyan)] text-[var(--text-muted)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
@@ -161,16 +161,16 @@ export default function MultiSelectDropdown({
         <div
           id={`${label.toLowerCase().replace(/\s+/g, '-')}-dropdown`}
           role="listbox"
-          className={`absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[#00ffff]/20 ${menuWidth} max-w-[calc(100vw-2rem)] sm:max-w-none`}
+          className={`absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[var(--cyber-cyan)]/20 ${menuWidth} max-w-[calc(100vw-2rem)] sm:max-w-none`}
         >
-          <div className="border-b border-[#1a1a3e] px-3 py-2">
+          <div className="border-b border-[var(--bg-card)] px-3 py-2">
             <input
               type="text"
               autoFocus
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search sessions"
-              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)]"
               disabled={loading}
             />
           </div>
@@ -179,7 +179,7 @@ export default function MultiSelectDropdown({
             {filteredOptions.length === 0 ? (
               <p className="px-4 py-6 text-center text-xs font-mono text-[var(--text-muted)]">{emptyMessage}</p>
             ) : (
-              <ul className="divide-y divide-[#1a1a3e]">
+              <ul className="divide-y divide-[var(--bg-card)]">
                 {filteredOptions.map((option) => {
                   const checked = selected.has(option.id)
                   return (
@@ -202,7 +202,7 @@ export default function MultiSelectDropdown({
             )}
           </div>
 
-          <div className="border-t border-[var(--cyber-cyan)]/20 bg-[#050517] px-3 py-2 flex flex-col gap-2">
+          <div className="border-t border-[var(--cyber-cyan)]/20 bg-[var(--bg-dark)] px-3 py-2 flex flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
               <button
                 type="button"
@@ -215,7 +215,7 @@ export default function MultiSelectDropdown({
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="rounded bg-[#ff00ff] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[#cc00cc] disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded bg-[var(--cyber-magenta)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={loading}
               >
                 {loading ? "Working…" : submitLabel}

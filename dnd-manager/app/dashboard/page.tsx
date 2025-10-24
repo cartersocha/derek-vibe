@@ -117,41 +117,41 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6 sm:space-y-8">
       <div>
-        <h1 className="retro-title glitch-subtle text-base sm:text-lg md:text-xl font-bold text-[#00ffff] break-words" data-text="DASHBOARD">Dashboard</h1>
+        <h1 className="retro-title glitch-subtle text-base sm:text-lg md:text-xl font-bold text-[var(--cyber-cyan)] break-words" data-text="DASHBOARD">Dashboard</h1>
       </div>
 
       {/* Statistics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <Link
           href="/campaigns"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center"
+          className="group block rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[var(--cyber-magenta)] hover:shadow-[var(--cyber-magenta)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)] focus:ring-offset-2 focus:ring-offset-[var(--bg-dark)] min-h-[100px] flex flex-col justify-center"
         >
           <h3 className="text-xs sm:text-sm font-medium text-[var(--semantic)] uppercase tracking-wider font-mono">Total Campaigns</h3>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{campaignsCount || 0}</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[var(--cyber-cyan)]">{campaignsCount || 0}</p>
         </Link>
 
         <Link
           href="/sessions"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center"
+          className="group block rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[var(--cyber-magenta)] hover:shadow-[var(--cyber-magenta)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)] focus:ring-offset-2 focus:ring-offset-[var(--bg-dark)] min-h-[100px] flex flex-col justify-center"
         >
           <h3 className="text-xs sm:text-sm font-medium text-[var(--semantic)] uppercase tracking-wider font-mono">Total Sessions</h3>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{sessionsCount || 0}</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[var(--cyber-cyan)]">{sessionsCount || 0}</p>
         </Link>
 
         <Link
           href="/characters"
-          className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center sm:col-span-2 lg:col-span-1"
+          className="group block rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[var(--cyber-magenta)] hover:shadow-[var(--cyber-magenta)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)] focus:ring-offset-2 focus:ring-offset-[var(--bg-dark)] min-h-[100px] flex flex-col justify-center sm:col-span-2 lg:col-span-1"
         >
           <h3 className="text-xs sm:text-sm font-medium text-[var(--semantic)] uppercase tracking-wider font-mono">Total Characters</h3>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{charactersCount || 0}</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-[var(--cyber-cyan)]">{charactersCount || 0}</p>
         </Link>
       </div>
 
       {/* Recent Sessions */}
       {recentSessions && recentSessions.length > 0 && (
-        <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl p-4 sm:p-6 lg:p-8">
+        <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl p-4 sm:p-6 lg:p-8">
           <div className="mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-[#00ffff] uppercase tracking-wider">Recent Sessions</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Recent Sessions</h2>
             <p className="text-xs sm:text-sm text-gray-400 font-mono">Your latest adventures at a glance</p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:gap-5">
