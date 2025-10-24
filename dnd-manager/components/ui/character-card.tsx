@@ -142,9 +142,10 @@ export function CharacterCard({ character }: CharacterCardProps) {
       {/* Player Type Tag - Bottom Right */}
       {character.player_type && (
         <div className="absolute bottom-4 right-4 z-20">
-          <span className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-mono uppercase tracking-widest ${
-            character.player_type === 'player' ? 'border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--cyber-cyan)]/10 text-[var(--cyber-cyan)]' :
-            'border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 text-[var(--cyber-magenta)]'
+          <span className={`inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] transition-colors focus:outline-none focus-visible:ring-2 ${
+            character.player_type === 'player' 
+              ? 'border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] hover-cyber focus-visible:ring-[var(--cyber-cyan)]'
+              : 'border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 text-[var(--cyber-magenta)] hover-brightness focus-visible:ring-[var(--cyber-magenta)]'
           }`}>
             {character.player_type}
           </span>
