@@ -132,7 +132,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
             const isPlayerCharacter = character.player_type === "player";
             const headingClasses = isPlayerCharacter
               ? "text-[var(--cyber-cyan)] hover-cyber"
-              : "text-[var(--cyber-magenta)] hover-cyber";
+              : "text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10";
             const detailLabelClass = cn(
               "mr-1 align-middle text-[10px] font-semibold uppercase tracking-widest",
               isPlayerCharacter ? "text-[var(--cyber-cyan)]" : "text-[var(--cyber-magenta)]"
@@ -185,7 +185,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
 
             const borderStyle = isPlayerCharacter
               ? "border-[var(--cyber-cyan)] hover-cyber focus-visible:ring-[var(--cyber-cyan)]"
-              : "border-[var(--cyber-magenta)] hover-cyber focus-visible:ring-[var(--cyber-magenta)]";
+              : "border-[var(--cyber-magenta)] hover:border-[var(--cyber-cyan)] focus-visible:ring-[var(--cyber-magenta)]";
 
             return (
               <article
@@ -235,7 +235,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                           <Link
                             key={`${character.id}-org-${organization.id}`}
                             href={`/organizations/${organization.id}`}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                           >
                             {organization.name}
                           </Link>
@@ -243,7 +243,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {!expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
                           <button
                             onClick={() => toggleCharacterGroups(character.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                           >
                             +{character.organization_characters.length - 4} more
                           </button>
@@ -251,7 +251,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
                           <button
                             onClick={() => toggleCharacterGroups(character.id)}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                           >
                             Show less
                           </button>
@@ -295,7 +295,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {expandedCharacters.has(character.id) && character.session_characters.length > 3 && (
                           <button
                             onClick={() => toggleCharacterSessions(character.id)}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                           >
                             Show less
                           </button>

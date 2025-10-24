@@ -86,7 +86,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                   <h3 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider transition-colors hover-cyber break-words flex-1">
                     {campaign.name}
                   </h3>
-                  <span className="inline-block rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] flex-shrink-0">
+                  <span className="inline-block rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] flex-shrink-0">
                     {formatTimestampForDisplay(campaign.created_at) ?? "Unknown"}
                   </span>
                 </div>
@@ -125,7 +125,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {expandedCampaigns.has(campaign.id) && (campaign.sessionCount ?? campaign.sessions.length) > 3 && (
                           <button
                             onClick={() => toggleCampaignSessions(campaign.id)}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                           >
                             Show less
                           </button>
@@ -146,7 +146,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                           <Link
                             key={`${campaign.id}-org-${organization.id}`}
                             href={`/organizations/${organization.id}`}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                           >
                             {organization.name}
                           </Link>
@@ -154,7 +154,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {!expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
                           <button
                             onClick={() => toggleCampaignGroups(campaign.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                           >
                             +{campaign.organizations.length - 6} more
                           </button>
@@ -162,7 +162,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
                           <button
                             onClick={() => toggleCampaignGroups(campaign.id)}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
                           >
                             Show less
                           </button>
@@ -181,10 +181,10 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                             key={`${campaign.id}-char-${character.id}`}
                             href={`/characters/${character.id}`}
                             className={cn(
-                              "inline-flex items-center rounded px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2",
+                              "inline-flex items-center rounded px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-[9px] sm:text-[10px] font-mono uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2",
                               character.player_type === "player"
                                 ? "border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] hover-cyber focus-visible:ring-[var(--cyber-cyan)]"
-                                : "border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--bg-card)] text-[var(--cyber-magenta)] hover-cyber focus-visible:ring-[var(--cyber-magenta)]"
+                                : "border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--bg-card)] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)] hover:bg-[var(--cyber-cyan)]/10 focus-visible:ring-[var(--cyber-magenta)]"
                             )}
                           >
                             {character.name}

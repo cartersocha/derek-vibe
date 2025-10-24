@@ -389,6 +389,17 @@ CREATE TABLE organization_characters (
 - **Grid layouts**: 1/3/5 column responsive grids for cards
 - **Mobile navigation**: Sticky header with hamburger menu
 
+### CSS Variables & Design System
+```css
+/* Pill size variables */
+--pill-padding-x-small: 0.5rem;  /* px-2 */
+--pill-padding-y-small: 0.25rem; /* py-1 */
+--pill-padding-x-medium: 0.75rem; /* px-3 */
+--pill-padding-y-medium: 0.25rem; /* py-1 */
+--pill-padding-x-tiny: 0.5rem;    /* px-2 */
+--pill-padding-y-tiny: 0.125rem;  /* py-0.5 */
+```
+
 ### CSS Optimizations
 ```css
 /* Mobile-specific optimizations */
@@ -516,6 +527,7 @@ SESSION_SECRET=your-32-character-random-string
 65. ✅ CSS class utilities for consistent styling
 66. ✅ Auto-capitalization provider for text inputs
 67. ✅ Sidebar provider for state management
+68. ✅ Standardized pill size variables for consistent UI components
 
 #### Security Features
 68. ✅ Comprehensive input sanitization system

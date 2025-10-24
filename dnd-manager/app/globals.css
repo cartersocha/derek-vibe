@@ -79,6 +79,14 @@
   --cyber-purple: var(--bg-card);
   --cyber-dark: var(--bg-dark);
   
+  /* Pill size variables */
+  --pill-padding-x-small: 0.5rem;  /* px-2 */
+  --pill-padding-y-small: 0.25rem; /* py-1 */
+  --pill-padding-x-medium: 0.75rem; /* px-3 */
+  --pill-padding-y-medium: 0.25rem; /* py-1 */
+  --pill-padding-x-tiny: 0.5rem;    /* px-2 */
+  --pill-padding-y-tiny: 0.125rem;  /* py-0.5 */
+  
   /* Semantic aliases for backward compatibility */
   --success: var(--cyber-magenta);
   --warning: var(--cyber-magenta);
@@ -414,6 +422,13 @@ body {
   color: var(--cyber-magenta);
   border-color: var(--cyber-magenta);
   box-shadow: 0 0 10px var(--cyber-magenta);
+  transition: all 0.2s ease;
+}
+
+.hover-magenta-to-cyan:hover {
+  color: var(--cyber-cyan);
+  border-color: var(--cyber-cyan);
+  background-color: var(--cyber-cyan);
   transition: all 0.2s ease;
 }
 

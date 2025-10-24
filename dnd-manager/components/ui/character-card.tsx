@@ -87,7 +87,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                   <Link
                     key={index}
                     href={`/organizations/${org.organization?.id}`}
-                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                   >
                     {org.organization?.name || 'Unknown Org'}
                   </Link>
@@ -99,7 +99,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                       e.stopPropagation();
                       toggleExpansion();
                     }}
-                    className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                    className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-magenta-to-cyan transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                   >
                     +{character.organization_characters.length - 3} more
                   </button>
@@ -111,7 +111,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                       e.stopPropagation();
                       toggleExpansion();
                     }}
-                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-brightness transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
                   >
                     Show less
                   </button>
@@ -142,10 +142,10 @@ export function CharacterCard({ character }: CharacterCardProps) {
       {/* Player Type Tag - Bottom Right */}
       {character.player_type && (
         <div className="absolute bottom-4 right-4 z-20">
-          <span className={`inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] transition-colors focus:outline-none focus-visible:ring-2 ${
+          <span className={`inline-flex items-center rounded px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-[10px] font-mono uppercase tracking-[0.3em] transition-colors focus:outline-none focus-visible:ring-2 ${
             character.player_type === 'player' 
               ? 'border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] hover-cyber focus-visible:ring-[var(--cyber-cyan)]'
-              : 'border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 text-[var(--cyber-magenta)] hover-brightness focus-visible:ring-[var(--cyber-magenta)]'
+              : 'border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)] hover:bg-[var(--cyber-cyan)]/10 focus-visible:ring-[var(--cyber-magenta)]'
           }`}>
             {character.player_type}
           </span>
