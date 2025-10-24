@@ -126,7 +126,7 @@ export default async function DashboardPage() {
           href="/campaigns"
           className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center"
         >
-          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Campaigns</h3>
+          <h3 className="text-xs sm:text-sm font-medium text-[var(--semantic)] uppercase tracking-wider font-mono">Total Campaigns</h3>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{campaignsCount || 0}</p>
         </Link>
 
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
           href="/sessions"
           className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center"
         >
-          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Sessions</h3>
+          <h3 className="text-xs sm:text-sm font-medium text-[var(--semantic)] uppercase tracking-wider font-mono">Total Sessions</h3>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{sessionsCount || 0}</p>
         </Link>
 
@@ -142,7 +142,7 @@ export default async function DashboardPage() {
           href="/characters"
           className="group block rounded-lg border border-[#00ffff] border-opacity-20 bg-[#1a1a3e]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[#ff00ff] hover:shadow-[#ff00ff]/40 focus:outline-none focus:ring-2 focus:ring-[#ff00ff] focus:ring-offset-2 focus:ring-offset-[#050517] min-h-[100px] flex flex-col justify-center sm:col-span-2 lg:col-span-1"
         >
-          <h3 className="text-xs sm:text-sm font-medium text-[#fcee0c] uppercase tracking-wider font-mono">Total Characters</h3>
+          <h3 className="text-xs sm:text-sm font-medium text-[var(--semantic)] uppercase tracking-wider font-mono">Total Characters</h3>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#00ffff]">{charactersCount || 0}</p>
         </Link>
       </div>

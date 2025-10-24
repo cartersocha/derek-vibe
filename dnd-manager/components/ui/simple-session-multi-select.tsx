@@ -144,33 +144,33 @@ export default function SimpleSessionMultiSelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-2 text-left font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-2 text-left font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
           open
-            ? 'border-[#ff00ff] text-[#ff00ff] shadow-lg shadow-[#ff00ff]/30'
-            : 'border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]'
+            ? 'border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[#ff00ff]/30'
+            : 'border-[var(--cyber-cyan)] text-[var(--cyber-cyan)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]'
         }`}
       >
         <span className="truncate">{selectedLabels || placeholder}</span>
-        <span className="text-xs text-[#ff00ff]">{open ? "▲" : "▼"}</span>
+        <span className="text-xs text-[var(--cyber-magenta)]">{open ? "▲" : "▼"}</span>
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20">
+        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[#00ffff]/20">
           <div className="border-b border-[#1a1a3e] px-3 py-2">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search sessions..."
-              className="w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
               autoFocus
             />
           </div>
 
           <div className="max-h-60 overflow-y-auto">
             {filteredOptions.length === 0 && !canCreateNew ? (
-              <div className="px-4 py-3 text-gray-500 text-sm font-mono">
+              <div className="px-4 py-3 text-[var(--text-muted)] text-sm font-mono">
                 {emptyMessage}
               </div>
             ) : (
@@ -182,8 +182,8 @@ export default function SimpleSessionMultiSelect({
                       <button
                         type="button"
                         onClick={() => handleToggle(option.value)}
-                        className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[#1a1a3e]/60 ${
-                          isSelected ? 'text-[#ff00ff]' : 'text-[#00ffff]'
+                        className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[var(--bg-card)]/60 ${
+                          isSelected ? 'text-[var(--cyber-magenta)]' : 'text-[var(--cyber-cyan)]'
                         }`}
                       >
                         <span className="truncate">
@@ -205,7 +205,7 @@ export default function SimpleSessionMultiSelect({
                       type="button"
                       onClick={handleCreateNew}
                       disabled={isPending}
-                      className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[#ff00ff] transition-colors duration-150 hover:bg-[#1a1a3e]/60"
+                      className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[var(--cyber-magenta)] transition-colors duration-150 hover:bg-[var(--bg-card)]/60"
                     >
                       <span className="truncate">
                         {isPending ? "Creating..." : `Create "${trimmedSearch}"`}
@@ -218,10 +218,10 @@ export default function SimpleSessionMultiSelect({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-2 border-t border-[#00ffff]/20 bg-[#050517] px-3 py-2">
+          <div className="flex items-center justify-between gap-2 border-t border-[var(--cyber-cyan)]/20 bg-[#050517] px-3 py-2">
             <button
               type="button"
-              className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#00ffff] transition hover:text-[#ff00ff]"
+              className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-magenta)]"
               onClick={() => setOpen(false)}
             >
               Cancel

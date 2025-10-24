@@ -223,15 +223,15 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="space-y-6">
-      <div className="bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-8">
+      <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/campaigns" className="text-[#00ffff] hover:text-[#ff00ff] font-mono uppercase tracking-wider">
+          <Link href="/campaigns" className="text-[var(--cyber-cyan)] hover-cyber font-mono uppercase tracking-wider">
             ← Back to Campaigns
           </Link>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href={`/campaigns/${id}/edit`}
-              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
+              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"
             >
               Edit Campaign
             </Link>
@@ -242,9 +242,9 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         </div>
         {/* Campaign Name and Description */}
         <div>
-          <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[#00ffff] mb-4 text-center break-words">{campaign.name}</h1>
+          <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--cyber-cyan)] mb-4 text-center break-words">{campaign.name}</h1>
           {campaign.description && (
-            <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-6">
+            <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-6">
               <div className="text-gray-300 whitespace-pre-wrap font-mono">
                 {renderNotesWithMentions(campaign.description, mentionTargets)}
               </div>
@@ -254,13 +254,13 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
 
         {/* Campaign Stats */}
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Sessions</div>
-            <div className="text-3xl font-bold text-[#00ffff]">{rawSessions.length}</div>
+          <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-4">
+            <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Total Sessions</div>
+            <div className="text-3xl font-bold text-[var(--cyber-cyan)]">{rawSessions.length}</div>
           </div>
-          <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Created</div>
-            <div className="text-lg font-bold text-[#00ffff]">
+          <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-4">
+            <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Created</div>
+            <div className="text-lg font-bold text-[var(--cyber-cyan)]">
               {formatTimestampForDisplay(
                 campaign.created_at,
                 'en-US',
@@ -268,9 +268,9 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
               ) ?? 'Unknown'}
             </div>
           </div>
-          <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-4">
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Last Updated</div>
-            <div className="text-lg font-bold text-[#00ffff]">
+          <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-4">
+            <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Last Updated</div>
+            <div className="text-lg font-bold text-[var(--cyber-cyan)]">
               {formatTimestampForDisplay(
                 campaign.updated_at,
                 'en-US',
@@ -283,9 +283,9 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         {/* Campaign Characters */}
         <div className="space-y-4">
           <div>
-            <h2 className="mb-4 text-xl font-bold uppercase tracking-wider text-[#00ffff]">Characters</h2>
+            <h2 className="mb-4 text-xl font-bold uppercase tracking-wider text-[var(--cyber-cyan)]">Characters</h2>
             {combinedCharacters.length === 0 ? (
-              <p className="text-sm font-mono text-gray-400">
+              <p className="text-sm font-mono text-[var(--text-muted)]">
                 No characters have been linked to this campaign yet.
               </p>
             ) : (
@@ -299,9 +299,9 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           </div>
 
           <div>
-            <h3 className="mb-3 text-lg font-semibold uppercase tracking-[0.3em] text-[#00ffff]">Groups</h3>
+            <h3 className="mb-3 text-lg font-semibold uppercase tracking-[0.3em] text-[var(--cyber-cyan)]">Groups</h3>
             {combinedOrganizations.length === 0 ? (
-              <p className="text-sm font-mono text-gray-400">
+              <p className="text-sm font-mono text-[var(--text-muted)]">
                 No groups have been linked to this campaign yet.
               </p>
             ) : (
@@ -310,7 +310,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] whitespace-nowrap"
+                    className="inline-flex items-center rounded-full border border-[var(--semantic)]/70 bg-[var(--semantic)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--semantic)] transition hover-brightness whitespace-nowrap"
                   >
                     {organization.name}
                   </Link>
@@ -323,21 +323,21 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         {/* Sessions */}
         <div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-            <h2 className="text-xl font-bold text-[#00ffff] uppercase tracking-wider">Sessions</h2>
+            <h2 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Sessions</h2>
             <Link
               href={`/sessions/new?campaign_id=${id}`}
-              className="w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 text-sm shadow-lg shadow-[#ff00ff]/50 text-center"
+              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 text-sm shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"
             >
               + Add Session
             </Link>
           </div>
 
           {rawSessions.length === 0 ? (
-            <div className="bg-[#0f0f23] border border-[#00ffff] border-opacity-30 rounded p-8 text-center">
-              <p className="text-gray-400 font-mono mb-4">No sessions yet for this campaign</p>
+            <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-8 text-center">
+              <p className="text-[var(--text-muted)] font-mono mb-4">No sessions yet for this campaign</p>
               <Link
                 href={`/sessions/new?campaign_id=${id}`}
-                className="inline-block w-full sm:w-auto bg-[#ff00ff] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[#cc00cc] transition-all duration-200 shadow-lg shadow-[#ff00ff]/50 text-center"
+                className="inline-block w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"
               >
                 Create First Session
               </Link>

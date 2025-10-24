@@ -34,8 +34,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0a1f]">
-      <div className="max-w-md w-full space-y-8 p-12 bg-[#1a1a3e] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[#00ffff] border-opacity-20 shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-dark)]">
+      <div className="max-w-md w-full space-y-8 p-12 bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl">
         <div>
           <h2
             className="mt-6 text-center text-4xl font-bold glitch tracking-[0.15em]"
@@ -54,7 +54,7 @@ export default function LoginPage() {
               name="password"
               type="password"
               required
-              className="appearance-none relative block w-full px-4 py-3 bg-[#0f0f23] border border-[#00ffff] border-opacity-30 placeholder-gray-500 text-[#00ffff] rounded focus:outline-none focus:ring-2 focus:ring-[#00ffff] focus:border-transparent font-mono"
+              className="appearance-none relative block w-full px-4 py-3 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 placeholder-gray-500 text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(sanitizePassword(e.target.value))}
@@ -63,7 +63,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="text-[#ff00ff] text-sm text-center font-mono">
+            <div className="text-[var(--cyber-magenta)] text-sm text-center font-mono">
               {error}
             </div>
           )}
@@ -72,7 +72,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-bold rounded text-black bg-[#ff00ff] hover:bg-[#cc00cc] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ff00ff] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[#ff00ff]/50"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-bold rounded text-black bg-[var(--cyber-magenta)] hover-brightness focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--cyber-magenta)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[var(--cyber-magenta)]/50"
             >
               {loading ? "ACCESSING..." : "ENTER"}
             </button>

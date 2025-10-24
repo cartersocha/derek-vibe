@@ -241,25 +241,25 @@ export default function SessionMultiSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={`${id}-dropdown`}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] ${
           open
-            ? "border-[#ff00ff] text-[#ff00ff] shadow-lg shadow-[#ff00ff]/30"
+            ? "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[var(--cyber-magenta)]/30"
             : normalizedSelections.length > 0
-              ? "border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]"
-              : "border-[#00ffff] text-gray-500 hover:border-[#ff00ff] hover:text-[#ff00ff]"
+              ? "border-[var(--cyber-cyan)] text-[var(--cyber-cyan)] hover-cyber"
+              : "border-[var(--cyber-cyan)] text-[var(--text-muted)] hover-cyber"
         }`}
       >
         <span className="truncate text-left">{summaryLabel}</span>
-        <span className="text-xs text-[#ff00ff]">{open ? "▲" : "▼"}</span>
+        <span className="text-xs text-[var(--cyber-magenta)]">{open ? "▲" : "▼"}</span>
       </button>
 
       {open ? (
         <div
           id={`${id}-dropdown`}
           role="listbox"
-          className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20"
+          className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[var(--cyber-cyan)]/20"
         >
-          <div className="border-b border-[#1a1a3e] px-3 py-2">
+          <div className="border-b border-[var(--bg-card)] px-3 py-2">
             <input
               type="text"
               autoFocus
@@ -271,7 +271,7 @@ export default function SessionMultiSelect({
                 setSearch(event.target.value)
               }}
               placeholder="Search sessions"
-              className="w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)]"
               disabled={isPending}
             />
           </div>
@@ -282,7 +282,7 @@ export default function SessionMultiSelect({
                 <p className="px-4 py-6 text-center text-xs font-mono text-gray-500">{emptyMessage}</p>
               )
             ) : (
-              <ul className="divide-y divide-[#1a1a3e]">
+              <ul className="divide-y divide-[var(--bg-card)]">
                 {filteredOptions.map((option) => {
                   const checked = normalizedSelections.includes(option.value)
                   return (

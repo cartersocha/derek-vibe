@@ -66,8 +66,8 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
         className={cn(
           'inline-flex items-center rounded px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] transition-colors focus:outline-none focus-visible:ring-2',
           player.player_type === 'player'
-            ? 'border border-[#00ffff] border-opacity-40 bg-[#0f0f23] text-[#00ffff] hover:border-[#00ffff] hover:text-[#ff00ff] focus-visible:ring-[#00ffff]'
-            : 'border border-[#ff00ff] border-opacity-40 bg-[#211027] text-[#ff6ad5] hover:border-[#ff6ad5] hover:text-[#ff9de6] focus-visible:ring-[#ff00ff]'
+            ? 'border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] hover-cyber focus-visible:ring-[var(--cyber-cyan)]'
+            : 'border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 text-[var(--cyber-magenta)] hover-brightness focus-visible:ring-[var(--cyber-magenta)]'
         )}
       >
         {player.name}
@@ -80,7 +80,7 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
         <Link
           key={`${sessionId}-org-${organization.id}`}
           href={`/organizations/${organization.id}`}
-          className="inline-flex items-center rounded-full border border-[#fcee0c]/70 bg-[#1a1400] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[#fcee0c] transition hover:border-[#ffd447] hover:text-[#ffd447] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd447]"
+          className="inline-flex items-center rounded-full border border-[var(--semantic)]/70 bg-[var(--semantic)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--semantic)] transition hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--semantic)]"
         >
           {organization.name}
         </Link>

@@ -58,22 +58,22 @@ function MentionKindLabel({ kind }: MentionKindLabelProps) {
   const colorClasses = (() => {
     switch (kind) {
       case "character":
-        return "border-[#2de2e6] text-[#2de2e6]"
+        return "border-[var(--cyber-cyan)] text-[var(--cyber-cyan)]"
       case "session":
-        return "border-[#ff6ad5] text-[#ff6ad5]"
+        return "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)]"
       case "organization":
-        return "border-[#fcee0c] text-[#fcee0c]"
+        return "border-[var(--semantic)] text-[var(--semantic)]"
       case "campaign":
-        return "border-[#ff6b35] text-[#ff6b35]"
+        return "border-[var(--semantic)] text-[var(--semantic)]"
       default:
-        return "border-[#94a3b8] text-[#94a3b8]"
+        return "border-[var(--text-muted)] text-[var(--text-muted)]"
     }
   })()
 
   return (
     <span
       className={cn(
-        "rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-[#11112b]",
+        "rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-[var(--bg-dark)]",
         colorClasses
       )}
     >
@@ -912,7 +912,7 @@ export default function MentionableTextarea({
         createPortal(
           <div
             id={mentionListId}
-            className="fixed overflow-y-auto rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20 max-w-[calc(100vw-2rem)] sm:max-w-none"
+            className="fixed overflow-y-auto rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[var(--cyber-cyan)]/20 max-w-[calc(100vw-2rem)] sm:max-w-none"
             role="listbox"
             style={{
               ...mentionDropdownStyle,
@@ -921,7 +921,7 @@ export default function MentionableTextarea({
             }}
           >
           {mentionOptions.length === 0 && !showCreateCharacterOption && !showCreateOrganizationOption && !showCreateSessionOption && !showCreateCampaignOption ? (
-            <p className="px-3 py-2 text-xs font-mono uppercase tracking-widest text-gray-500">
+            <p className="px-3 py-2 text-xs font-mono uppercase tracking-widest text-[var(--text-muted)]">
               No matches
             </p>
           ) : (
@@ -932,27 +932,27 @@ export default function MentionableTextarea({
                   switch (option.kind) {
                     case "character":
                       return {
-                        baseTextColor: "text-[#2de2e6]",
-                        activeTextColor: "text-[#65f8ff]",
+                        baseTextColor: "text-[var(--cyber-cyan)]",
+                        activeTextColor: "text-[var(--cyber-cyan)]",
                       }
                     case "session":
                       return {
-                        baseTextColor: "text-[#ff6ad5]",
-                        activeTextColor: "text-[#ff94e3]",
+                        baseTextColor: "text-[var(--cyber-magenta)]",
+                        activeTextColor: "text-[var(--cyber-magenta)]",
                       }
                     case "organization":
                       return {
-                        baseTextColor: "text-[#fcee0c]",
-                        activeTextColor: "text-[#fff89c]",
+                        baseTextColor: "text-[var(--semantic)]",
+                        activeTextColor: "text-[var(--semantic)]",
                       }
                     case "campaign":
                       return {
-                        baseTextColor: "text-[#ff6b35]",
-                        activeTextColor: "text-[#ff8a5b]",
+                        baseTextColor: "text-[var(--semantic)]",
+                        activeTextColor: "text-[var(--semantic)]",
                       }
                     default:
                       return {
-                        baseTextColor: "text-[#94a3b8]",
+                        baseTextColor: "text-[var(--text-muted)]",
                         activeTextColor: "text-white",
                       }
                   }
@@ -967,7 +967,7 @@ export default function MentionableTextarea({
                     onClick={() => handleMentionClick(option)}
                     onMouseEnter={() => handleMentionHover(index)}
                     className={`flex w-full items-center justify-between gap-2 px-3 py-3 text-left font-mono text-sm transition-colors min-h-[44px] ${
-                      isActive ? `bg-[#1a1a3e] ${activeTextColor}` : `${baseTextColor} hover:bg-[#11112b]`
+                      isActive ? `bg-[var(--bg-card)] ${activeTextColor}` : `${baseTextColor} hover:bg-[var(--bg-dark)]`
                     }`}
                   >
                     <span className="font-semibold break-words flex-1 text-left">{option.name}</span>
@@ -986,14 +986,14 @@ export default function MentionableTextarea({
                   disabled={isCreatingMentionCharacter}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
                     mentionHighlightIndex === mentionOptions.length
-                      ? "bg-[#1a1a3e] text-[#65f8ff]"
-                      : "text-[#2de2e6] hover:bg-[#11112b]"
+                      ? "bg-[var(--bg-card)] text-[var(--cyber-cyan)]"
+                      : "text-[var(--cyber-cyan)] hover:bg-[var(--bg-dark)]"
                   } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
                 >
                   <span className="font-semibold">
                     {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
                   </span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#2de2e6]">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--cyber-cyan)]">
                     New Character
                   </span>
                 </button>
@@ -1009,14 +1009,14 @@ export default function MentionableTextarea({
                   disabled={isCreatingMentionCharacter}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
                     mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0))
-                      ? "bg-[#1a1a3e] text-[#fff89c]"
-                      : "text-[#fcee0c] hover:bg-[#11112b]"
+                      ? "bg-[var(--bg-card)] text-[var(--semantic)]"
+                      : "text-[var(--semantic)] hover:bg-[var(--bg-dark)]"
                   } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
                 >
                   <span className="font-semibold">
                     {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
                   </span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#fcee0c]">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--semantic)]">
                     New Organization
                   </span>
                 </button>
@@ -1032,14 +1032,14 @@ export default function MentionableTextarea({
                   disabled={isCreatingMentionCharacter}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
                     mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0))
-                      ? "bg-[#1a1a3e] text-[#ff94e3]"
-                      : "text-[#ff6ad5] hover:bg-[#11112b]"
+                      ? "bg-[var(--bg-card)] text-[var(--cyber-magenta)]"
+                      : "text-[var(--cyber-magenta)] hover:bg-[var(--bg-dark)]"
                   } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
                 >
                   <span className="font-semibold">
                     {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
                   </span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#ff6ad5]">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--cyber-magenta)]">
                     New Session
                   </span>
                 </button>
@@ -1055,14 +1055,14 @@ export default function MentionableTextarea({
                   disabled={isCreatingMentionCharacter}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
                     mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0))
-                      ? "bg-[#1a1a3e] text-[#ff8a5b]"
-                      : "text-[#ff6b35] hover:bg-[#11112b]"
+                      ? "bg-[var(--bg-card)] text-[var(--semantic)]"
+                      : "text-[var(--semantic)] hover:bg-[var(--bg-dark)]"
                   } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
                 >
                   <span className="font-semibold">
                     {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
                   </span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#ff6b35]">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--semantic)]">
                     New Campaign
                   </span>
                 </button>
@@ -1073,7 +1073,7 @@ export default function MentionableTextarea({
           document.body
         )}
       {mentionCreationError ? (
-        <p className="mt-2 text-xs font-mono text-[#ff6ad5]">
+        <p className="mt-2 text-xs font-mono text-[var(--cyber-magenta)]">
           {mentionCreationError}
         </p>
       ) : null}

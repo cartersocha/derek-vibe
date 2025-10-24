@@ -235,23 +235,23 @@ export default function CharacterMultiSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={`${id}-dropdown`}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[#0f0f23] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
+        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-3 font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ffff] ${
           open
-            ? "border-[#ff00ff] text-[#ff00ff] shadow-lg shadow-[#ff00ff]/30"
+            ? "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[#ff00ff]/30"
             : normalizedSelections.length > 0
-              ? "border-[#00ffff] text-[#00ffff] hover:border-[#ff00ff] hover:text-[#ff00ff]"
-              : "border-[#00ffff] text-gray-500 hover:border-[#ff00ff] hover:text-[#ff00ff]"
+              ? "border-[var(--cyber-cyan)] text-[var(--cyber-cyan)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
+              : "border-[var(--cyber-cyan)] text-[var(--text-muted)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
         }`}
       >
         <span className="truncate text-left">{summaryLabel}</span>
-        <span className="text-xs text-[#ff00ff]">{open ? "▲" : "▼"}</span>
+        <span className="text-xs text-[var(--cyber-magenta)]">{open ? "▲" : "▼"}</span>
       </button>
 
       {open ? (
         <div
           id={`${id}-dropdown`}
           role="listbox"
-          className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[#00ffff] border-opacity-30 bg-[#0f0f23] shadow-2xl shadow-[#00ffff]/20"
+          className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[#00ffff]/20"
         >
           <div className="border-b border-[#1a1a3e] px-3 py-2">
             <input
@@ -265,7 +265,7 @@ export default function CharacterMultiSelect({
                 setSearch(event.target.value)
               }}
               placeholder="Search characters"
-              className="w-full rounded bg-[#0a0a1f] px-3 py-2 text-sm text-[#00ffff] placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
+              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[#ff00ff]"
               disabled={isPending}
             />
           </div>
@@ -273,7 +273,7 @@ export default function CharacterMultiSelect({
           <div className="max-h-60 overflow-y-auto">
             {filteredOptions.length === 0 ? (
               canCreateNew ? null : (
-                <p className="px-4 py-6 text-center text-xs font-mono text-gray-500">{emptyMessage}</p>
+                <p className="px-4 py-6 text-center text-xs font-mono text-[var(--text-muted)]">{emptyMessage}</p>
               )
             ) : (
               <ul className="divide-y divide-[#1a1a3e]">
@@ -284,8 +284,8 @@ export default function CharacterMultiSelect({
                       <button
                         type="button"
                         onClick={() => toggleSelection(option.value)}
-                        className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[#1a1a3e]/60 ${
-                          checked ? 'text-[#ff00ff]' : 'text-[#00ffff]'
+                        className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[var(--bg-card)]/60 ${
+                          checked ? 'text-[var(--cyber-magenta)]' : 'text-[var(--cyber-cyan)]'
                         }`}
                       >
                         <span className="truncate">
@@ -309,7 +309,7 @@ export default function CharacterMultiSelect({
                   type="button"
                   onClick={handleCreateNewCharacter}
                   disabled={isPending}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[#ff00ff] transition-colors duration-150 hover:bg-[#1a1a3e]/60 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[var(--cyber-magenta)] transition-colors duration-150 hover:bg-[var(--bg-card)]/60 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="truncate">Create {trimmedSearch}</span>
                   <span className="text-xs uppercase tracking-wider">New Character</span>
@@ -318,7 +318,7 @@ export default function CharacterMultiSelect({
             ) : null}
           </div>
 
-          <div className="border-t border-[#00ffff]/20 bg-[#050517] px-3 py-2 flex flex-col gap-2">
+          <div className="border-t border-[var(--cyber-cyan)]/20 bg-[#050517] px-3 py-2 flex flex-col gap-2">
             {creationError ? (
               <p className="text-[10px] font-mono uppercase tracking-widest text-[#ff6ad5]">
                 {creationError}
@@ -328,7 +328,7 @@ export default function CharacterMultiSelect({
               <button
                 type="button"
                 onClick={clearSelections}
-                className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#00ffff] transition hover:text-[#ff00ff] disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-magenta)] disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isPending}
               >
                 Clear
