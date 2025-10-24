@@ -250,7 +250,7 @@ const hasAppliedAutoWidthRef = useRef(false);
                 className={cn(
                   "group relative flex items-center rounded transition-all duration-200 uppercase tracking-wider font-bold overflow-hidden h-12 p-2 touch-target",
                   shouldShowIconsOnly
-                    ? "justify-center w-14 text-base" // Icons: narrow width, centered, larger text
+                    ? "justify-center items-center w-14 text-base" // Icons: narrow width, centered, larger text
                     : "justify-start w-full text-xs", // Text: full width, left-aligned, smaller text
                   isActive
                     ? "bg-[var(--cyber-magenta)] text-black shadow-lg shadow-[var(--cyber-magenta)]/50"
@@ -269,7 +269,7 @@ const hasAppliedAutoWidthRef = useRef(false);
                   // Collapsed state: only icon
                   <span
                     aria-hidden
-                    className="text-2xl leading-none text-[var(--cyber-cyan)] drop-shadow-[0_0_6px_rgba(0,255,255,0.45)] hover-cyber"
+                    className="flex items-center justify-center text-3xl leading-none text-[var(--cyber-cyan)] drop-shadow-[0_0_6px_rgba(0,255,255,0.45)] -mt-2.5"
                   >
                     {link.symbol}
                   </span>

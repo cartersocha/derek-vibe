@@ -150,11 +150,15 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                       </div>
                     )}
                   </div>
-                  <div className="relative z-10 pointer-events-none text-xs text-[var(--text-muted)] font-mono uppercase tracking-wider sm:text-right sm:ml-4">
+                  <div className="relative z-10 pointer-events-none sm:text-right sm:ml-4">
                     {sessionDateLabel ? (
-                      <div>{sessionDateLabel}</div>
+                      <span className="inline-block rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+                        {sessionDateLabel}
+                      </span>
                     ) : (
-                      <div>No date set</div>
+                      <span className="inline-block rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--text-muted)] border border-[var(--text-muted)]/40 bg-[var(--bg-dark)]">
+                        No date set
+                      </span>
                     )}
                   </div>
                 </div>

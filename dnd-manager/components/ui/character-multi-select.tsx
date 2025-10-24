@@ -291,7 +291,7 @@ export default function CharacterMultiSelect({
                         <span className="truncate">
                           {checked ? "✓ " : ""}{option.label}
                           {option.hint && (
-                            <span className="ml-2 text-gray-400 text-xs">
+                            <span className="ml-2 text-[var(--gray-400)] text-xs">
                               {option.hint}
                             </span>
                           )}

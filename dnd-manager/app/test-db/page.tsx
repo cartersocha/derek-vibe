@@ -28,7 +28,7 @@ export default async function TestDbPage() {
           <h2 className="text-xl font-semibold">Sessions</h2>
           <p>Error: {sessionsError?.message || 'None'}</p>
           <p>Count: {sessions?.length || 0}</p>
-          <pre className="bg-gray-100 p-2 rounded text-sm">
+          <pre className="bg-[var(--gray-100)] p-2 rounded text-sm">
             {JSON.stringify(sessions, null, 2)}
           </pre>
         </div>
@@ -37,7 +37,7 @@ export default async function TestDbPage() {
           <h2 className="text-xl font-semibold">Characters</h2>
           <p>Error: {charactersError?.message || 'None'}</p>
           <p>Count: {characters?.length || 0}</p>
-          <pre className="bg-gray-100 p-2 rounded text-sm">
+          <pre className="bg-[var(--gray-100)] p-2 rounded text-sm">
             {JSON.stringify(characters, null, 2)}
           </pre>
         </div>
@@ -46,7 +46,7 @@ export default async function TestDbPage() {
           <h2 className="text-xl font-semibold">Session Characters</h2>
           <p>Error: {sessionCharsError?.message || 'None'}</p>
           <p>Count: {sessionCharacters?.length || 0}</p>
-          <pre className="bg-gray-100 p-2 rounded text-sm">
+          <pre className="bg-[var(--gray-100)] p-2 rounded text-sm">
             {JSON.stringify(sessionCharacters, null, 2)}
           </pre>
         </div>

@@ -242,12 +242,10 @@ export default async function OrganizationDetailPage({
 
           <section className="flex-1 space-y-3 text-[var(--text-primary)] font-mono leading-relaxed text-sm sm:text-base lg:text-lg">
             <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Overview</h2>
-            {organization.description ? (
+            {organization.description && (
               <div className="whitespace-pre-wrap leading-relaxed break-words">
                 {renderNotesWithMentions(organization.description, mentionTargets)}
               </div>
-            ) : (
-              <p className="text-[var(--text-muted)] italic">No description available for this group yet.</p>
             )}
           </section>
 
@@ -321,7 +319,7 @@ export default async function OrganizationDetailPage({
                       <span className="font-medium text-[var(--cyber-cyan)] font-mono text-sm sm:text-base transition-colors hover-cyber break-words flex-1">
                         {session.name}
                       </span>
-                      <span className="rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-cyan)] border border-[var(--cyber-cyan)]/40 bg-[var(--bg-dark)] flex-shrink-0">
+                      <span className="rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] flex-shrink-0">
                         {formatDateStringForDisplay(session.session_date) ?? "Date TBD"}
                       </span>
                     </div>

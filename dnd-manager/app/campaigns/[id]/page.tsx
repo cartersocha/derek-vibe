@@ -245,7 +245,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--cyber-cyan)] mb-4 text-center break-words">{campaign.name}</h1>
           {campaign.description && (
             <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-6">
-              <div className="text-gray-300 whitespace-pre-wrap font-mono">
+              <div className="text-[var(--gray-300)] whitespace-pre-wrap font-mono">
                 {renderNotesWithMentions(campaign.description, mentionTargets)}
               </div>
             </div>
@@ -260,22 +260,26 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           </div>
           <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Created</div>
-            <div className="text-lg font-bold text-[var(--cyber-cyan)]">
-              {formatTimestampForDisplay(
-                campaign.created_at,
-                'en-US',
-                { month: 'short', day: 'numeric', year: 'numeric' }
-              ) ?? 'Unknown'}
+            <div className="text-lg font-bold">
+              <span className="inline-block rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+                {formatTimestampForDisplay(
+                  campaign.created_at,
+                  'en-US',
+                  { month: 'short', day: 'numeric', year: 'numeric' }
+                ) ?? 'Unknown'}
+              </span>
             </div>
           </div>
           <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Last Updated</div>
-            <div className="text-lg font-bold text-[var(--cyber-cyan)]">
-              {formatTimestampForDisplay(
-                campaign.updated_at,
-                'en-US',
-                { month: 'short', day: 'numeric', year: 'numeric' }
-              ) ?? 'Unknown'}
+            <div className="text-lg font-bold">
+              <span className="inline-block rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+                {formatTimestampForDisplay(
+                  campaign.updated_at,
+                  'en-US',
+                  { month: 'short', day: 'numeric', year: 'numeric' }
+                ) ?? 'Unknown'}
+              </span>
             </div>
           </div>
         </div>

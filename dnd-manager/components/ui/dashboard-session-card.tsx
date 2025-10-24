@@ -124,11 +124,15 @@ export function DashboardSessionCard({ session, sessionNumber, players, organiza
             </div>
           )}
         </div>
-        <div className="relative z-10 pointer-events-none text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] sm:ml-4 sm:text-right">
+        <div className="relative z-10 pointer-events-none sm:ml-4 sm:text-right">
           {sessionDateLabel ? (
-            <div>{sessionDateLabel}</div>
+            <span className="inline-block rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+              {sessionDateLabel}
+            </span>
           ) : (
-            <div>No date set</div>
+            <span className="inline-block rounded px-3 py-1 text-xs font-mono uppercase tracking-widest text-[var(--text-muted)] border border-[var(--text-muted)]/40 bg-[var(--bg-dark)]">
+              No date set
+            </span>
           )}
         </div>
       </div>

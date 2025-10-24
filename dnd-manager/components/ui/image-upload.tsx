@@ -279,7 +279,7 @@ export default function ImageUpload({
               <span className="font-bold text-[var(--cyber-magenta)]">Click to upload</span>{" "}
               or drag and drop
             </p>
-            <p className="mt-1 text-xs text-gray-400 font-mono">
+            <p className="mt-1 text-xs text-[var(--gray-400)] font-mono">
               PNG, JPG, WebP up to {maxSize}MB
             </p>
           </div>
