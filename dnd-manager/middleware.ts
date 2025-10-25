@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getIronSession } from "iron-session";
 import { sessionOptions, SessionData } from "./lib/auth/session";
+import { setCacheHeaders } from "./lib/edge-cache";
 
 const protectedRoutes = [
   "/dashboard",
@@ -18,24 +19,40 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
 
-  // Optimize: Only check session once for both protected routes and login redirect
-  if (isProtectedRoute || pathname === "/login") {
+  // Optimize: Only check session for protected routes and login redirect
+  if (isProtectedRoute) {
     const session = await getIronSession<SessionData>(
       request,
       NextResponse.next(),
       sessionOptions
     );
 
-    if (isProtectedRoute && !session.isAuthenticated) {
+    if (!session.isAuthenticated) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
+  } else if (pathname === "/login") {
+    // Only check session for login redirect, not for every login page load
+    const session = await getIronSession<SessionData>(
+      request,
+      NextResponse.next(),
+      sessionOptions
+    );
 
-    if (pathname === "/login" && session.isAuthenticated) {
+    if (session.isAuthenticated) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  
+  // Add edge caching headers for static routes
+  if (pathname === '/login') {
+    setCacheHeaders(response, 'login');
+  } else if (pathname.startsWith('/_next/static/')) {
+    setCacheHeaders(response, 'static');
+  }
+  
+  return response;
 }
 
 export const config = {

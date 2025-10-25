@@ -10,11 +10,15 @@ import ConditionalTopbar from "@/components/layout/conditional-topbar";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 const pressStart = Press_Start_2P({
@@ -22,6 +26,7 @@ const pressStart = Press_Start_2P({
   subsets: ["latin"],
   weight: "400",
   display: "swap",
+  preload: false, // Don't preload this heavy font
 });
 
 export const metadata: Metadata = {

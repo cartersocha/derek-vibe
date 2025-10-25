@@ -7,19 +7,20 @@ import { sessionOptions, SessionData } from "./session";
 
 export async function login(password: string) {
   try {
+    // Optimize: Early validation to avoid session creation for invalid passwords
+    if (!password || password !== process.env.APP_PASSWORD) {
+      return { error: "Invalid password" };
+    }
+
     const cookieStore = await cookies();
     const session = await getIronSession<SessionData>(
       cookieStore,
       sessionOptions
     );
 
-    if (password === process.env.APP_PASSWORD) {
-      session.isAuthenticated = true;
-      await session.save();
-      redirect("/dashboard");
-    }
-
-    return { error: "Invalid password" };
+    session.isAuthenticated = true;
+    await session.save();
+    redirect("/dashboard");
   } catch (error) {
     // redirect() throws a NEXT_REDIRECT error which is expected behavior
     // Re-throw it so Next.js can handle the redirect

@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { login } from "@/lib/auth/actions";
 import { sanitizePassword } from "@/lib/security/sanitize";
 
-export default function LoginPage() {
+// Static generation with edge caching
+export const dynamic = 'force-static';
+export const fetchCache = 'force-cache';
+export const runtime = 'edge';
+
+const LoginPage = memo(function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -81,4 +86,6 @@ export default function LoginPage() {
       </div>
     </div>
   );
-}
+});
+
+export default LoginPage;

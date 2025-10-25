@@ -225,7 +225,20 @@ export function sanitizeSearchQuery(value: string): string {
 }
 
 export function sanitizePassword(value: string): string {
-  return sanitizeWithLengthLimit(value, MAX_LENGTHS.password, true);
+  // Optimize: Simple password sanitization for login performance
+  if (!value || typeof value !== 'string') {
+    return '';
+  }
+  
+  // Basic sanitization - remove only dangerous characters
+  const sanitized = value
+    .replace(/[<>\"'&]/g, '') // Remove basic XSS characters
+    .trim();
+  
+  // Length limit
+  return sanitized.length > MAX_LENGTHS.password 
+    ? sanitized.substring(0, MAX_LENGTHS.password)
+    : sanitized;
 }
 
 export function sanitizeMentionQuery(value: string): string {
