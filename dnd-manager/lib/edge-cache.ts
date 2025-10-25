@@ -83,8 +83,52 @@ export function generateCacheKey(
 }
 
 // Edge cache invalidation
-export function invalidateEdgeCache(tags: string[]) {
-  // This would integrate with your edge provider's invalidation API
-  console.log('Invalidating edge cache for tags:', tags)
-  // Implementation depends on your edge provider (Vercel, Cloudflare, etc.)
+export async function invalidateEdgeCache(tags: string[]) {
+  try {
+    // Call the revalidation API
+    const response = await fetch('/api/revalidate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tag: tags[0] })
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to invalidate cache')
+    }
+    
+    console.log('Successfully invalidated edge cache for tags:', tags)
+    return true
+  } catch (error) {
+    console.error('Cache invalidation error:', error)
+    return false
+  }
+}
+
+// Cache warming for critical data
+export async function warmCache() {
+  try {
+    // Pre-warm critical API endpoints
+    const endpoints = [
+      '/api/dashboard',
+      '/api/sessions',
+      '/api/characters'
+    ]
+    
+    await Promise.all(
+      endpoints.map(endpoint => 
+        fetch(endpoint, { 
+          method: 'GET',
+          headers: { 'Cache-Control': 'no-cache' }
+        })
+      )
+    )
+    
+    console.log('Cache warmed successfully')
+    return true
+  } catch (error) {
+    console.error('Cache warming error:', error)
+    return false
+  }
 }

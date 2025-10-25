@@ -4,10 +4,9 @@ import { useState, memo } from "react";
 import { login } from "@/lib/auth/actions";
 import { sanitizePassword } from "@/lib/security/sanitize";
 
-// Static generation with edge caching
+// Static generation for login page (no edge runtime needed)
 export const dynamic = 'force-static';
 export const fetchCache = 'force-cache';
-export const runtime = 'edge';
 
 const LoginPage = memo(function LoginPage() {
   const [password, setPassword] = useState("");

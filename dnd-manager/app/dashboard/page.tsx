@@ -2,11 +2,10 @@ import Link from 'next/link'
 import { DashboardSessionCard } from '@/components/ui/dashboard-session-card'
 import { getDashboardData } from '@/lib/dashboard-data'
 
-// Cache configuration for edge caching
+// Cache configuration for dashboard
 export const revalidate = 300 // Revalidate every 5 minutes
 export const dynamic = 'force-dynamic' // Ensure fresh data for authenticated users
 export const fetchCache = 'force-cache' // Enable edge caching
-export const runtime = 'edge' // Use edge runtime for better performance
 
 export default async function DashboardPage() {
   // Use optimized data fetching
