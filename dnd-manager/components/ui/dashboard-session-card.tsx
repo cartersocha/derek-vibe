@@ -1,9 +1,9 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills';
-import { extractPlayerSummaries, formatDateStringForDisplay, type SessionCharacterRelation } from '@/lib/utils';
+import { formatDateStringForDisplay, type SessionCharacterRelation } from '@/lib/utils';
 
 type DashboardSessionCardProps = {
   session: {
@@ -30,7 +30,7 @@ type DashboardSessionCardProps = {
   organizations: Array<{ id: string; name: string }>;
 };
 
-export function DashboardSessionCard({ session, sessionNumber, players, organizations }: DashboardSessionCardProps) {
+export const DashboardSessionCard = memo(function DashboardSessionCard({ session, sessionNumber, players, organizations }: DashboardSessionCardProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const toggleSessionGroups = (sessionId: string) => {
@@ -138,4 +138,4 @@ export function DashboardSessionCard({ session, sessionNumber, players, organiza
       </div>
     </article>
   );
-}
+});

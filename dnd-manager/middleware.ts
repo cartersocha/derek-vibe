@@ -18,28 +18,19 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
 
-  if (isProtectedRoute) {
-    // Use iron-session to properly decrypt and read the session
+  // Optimize: Only check session once for both protected routes and login redirect
+  if (isProtectedRoute || pathname === "/login") {
     const session = await getIronSession<SessionData>(
       request,
       NextResponse.next(),
       sessionOptions
     );
 
-    if (!session.isAuthenticated) {
+    if (isProtectedRoute && !session.isAuthenticated) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
-  }
 
-  // Redirect authenticated users away from login page
-  if (pathname === "/login") {
-    const session = await getIronSession<SessionData>(
-      request,
-      NextResponse.next(),
-      sessionOptions
-    );
-
-    if (session.isAuthenticated) {
+    if (pathname === "/login" && session.isAuthenticated) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
