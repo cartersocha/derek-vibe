@@ -23,7 +23,7 @@ const pressStart = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: "Login - Rat Palace Adventures",
+  title: "Login - D&D Campaign Manager",
   description: "Access your D&D campaign manager",
   robots: "noindex, nofollow", // Prevent indexing of login page
 };
