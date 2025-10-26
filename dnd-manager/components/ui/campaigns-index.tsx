@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { cn, formatTimestampForDisplay } from "@/lib/utils";
+import { cn, formatTimestampForDisplay, getPillClasses, getDashedPillClasses } from "@/lib/utils";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 import { IndexEmptyState, IndexHeader } from "@/components/ui/index-utility";
 
@@ -83,10 +83,10 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
               </Link>
               <div className="relative z-10 flex h-full flex-col pointer-events-none">
                 <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
-                  <h3 className="text-lg sm:text-xl font-bold text-[var(--orange-400)] uppercase tracking-wider transition-colors hover:text-[var(--orange-500)] break-words flex-1">
+                  <h3 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider transition-colors hover:text-[var(--cyber-cyan)] break-words flex-1">
                     {campaign.name}
                   </h3>
-                  <span className="inline-block rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] flex-shrink-0">
+                  <span className={getPillClasses('date', 'small')}>
                     {formatTimestampForDisplay(campaign.created_at) ?? "Unknown"}
                   </span>
                 </div>
@@ -109,7 +109,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                           <Link
                             key={`${campaign.id}-session-${session.id}`}
                             href={`/sessions/${session.id}`}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-cyan)]/70 bg-[var(--cyber-cyan)]/10 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-cyan)] transition hover-cyber focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)] whitespace-nowrap"
+                            className={cn(getPillClasses('session', 'small'), 'whitespace-nowrap')}
                           >
                             {session.name}
                           </Link>
@@ -117,7 +117,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {!expandedCampaigns.has(campaign.id) && (campaign.sessionCount ?? campaign.sessions.length) > 3 && (
                           <button
                             onClick={() => toggleCampaignSessions(campaign.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-cyan)]/50 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-cyan)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)] whitespace-nowrap"
+                            className={cn(getDashedPillClasses('session', 'small'), 'whitespace-nowrap')}
                           >
                             +{(campaign.sessionCount ?? campaign.sessions.length) - 3} more
                           </button>
@@ -125,7 +125,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {expandedCampaigns.has(campaign.id) && (campaign.sessionCount ?? campaign.sessions.length) > 3 && (
                           <button
                             onClick={() => toggleCampaignSessions(campaign.id)}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
                           >
                             Show less
                           </button>
@@ -146,7 +146,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                           <Link
                             key={`${campaign.id}-org-${organization.id}`}
                             href={`/organizations/${organization.id}`}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
                           >
                             {organization.name}
                           </Link>
@@ -154,7 +154,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {!expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
                           <button
                             onClick={() => toggleCampaignGroups(campaign.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
                           >
                             +{campaign.organizations.length - 6} more
                           </button>
@@ -162,7 +162,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
                           <button
                             onClick={() => toggleCampaignGroups(campaign.id)}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
                           >
                             Show less
                           </button>

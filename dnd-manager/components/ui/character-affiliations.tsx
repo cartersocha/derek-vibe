@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getPillClasses } from '@/lib/utils';
 
 interface Affiliation {
   id: string;
@@ -23,7 +24,7 @@ export function CharacterAffiliations({ affiliations }: CharacterAffiliationsPro
             <Link
               key={affiliation.id}
               href={`/organizations/${affiliation.id}`}
-              className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+              className={getPillClasses('organization', 'small')}
             >
               <span className="font-semibold">{affiliation.name}</span>
             </Link>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { getPillClasses, getDashedPillClasses } from '@/lib/utils';
 
 interface CharacterCardProps {
   character: {
@@ -32,7 +33,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
 
   return (
     <article
-      className={`group relative overflow-hidden rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover-cyber ${
+      className={`group relative overflow-hidden rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 p-4 pb-12 shadow-2xl backdrop-blur-sm transition-all duration-200 hover-cyber ${
         character.player_type === 'npc' 
           ? 'bg-[var(--cyber-magenta)]/10 border-[var(--cyber-magenta)] border-opacity-30' 
           : 'bg-[var(--bg-card)] bg-opacity-50'
@@ -45,7 +46,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
       >
         <span aria-hidden="true" />
       </Link>
-      <div className="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:justify-between sm:items-start">
+      <div className="flex flex-col gap-1.5 sm:gap-2 sm:flex-row sm:justify-between sm:items-start">
         <div className="relative z-10 flex-1 pointer-events-none">
           <div className="mb-2">
             <span className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider transition-colors hover-cyber">
@@ -54,7 +55,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
           </div>
 
           {/* Character Attributes as Key-Value Pairs */}
-          <div className="mb-3 space-y-0.5">
+          <div className="mb-2 space-y-0.5">
             {character.race && (
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)]">Race:</span>
@@ -77,8 +78,8 @@ export function CharacterCard({ character }: CharacterCardProps) {
 
           {/* Organizations */}
           {character.organization_characters && character.organization_characters.length > 0 && (
-            <div className="mb-3 pointer-events-auto">
-              <div className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)] mb-2">Groups:</div>
+            <div className="mb-2 pointer-events-auto">
+              <div className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)] mb-1.5">Groups:</div>
               <div className="flex flex-wrap gap-2">
                 {(isExpanded 
                   ? character.organization_characters 
@@ -87,7 +88,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                   <Link
                     key={index}
                     href={`/organizations/${org.organization?.id}`}
-                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                    className={getPillClasses('organization', 'small')}
                   >
                     {org.organization?.name || 'Unknown Org'}
                   </Link>
@@ -99,7 +100,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                       e.stopPropagation();
                       toggleExpansion();
                     }}
-                    className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover-magenta-to-cyan transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                    className={getDashedPillClasses('organization', 'small')}
                   >
                     +{character.organization_characters.length - 3} more
                   </button>
@@ -111,7 +112,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                       e.stopPropagation();
                       toggleExpansion();
                     }}
-                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                    className={getPillClasses('organization', 'small')}
                   >
                     Show less
                   </button>
@@ -122,7 +123,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
           
           {/* Location */}
           {character.last_known_location && (
-            <div className="mb-3">
+            <div className="mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)]">Location:</span>
                 <span className="text-sm font-mono text-[var(--text-primary)]">{character.last_known_location}</span>
@@ -141,13 +142,12 @@ export function CharacterCard({ character }: CharacterCardProps) {
       
       {/* Player Type Tag - Bottom Right */}
       {character.player_type && (
-        <div className="absolute bottom-4 right-4 z-20">
-          <span className={`inline-flex items-center rounded px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-[10px] font-mono uppercase tracking-[0.3em] transition-colors focus:outline-none focus-visible:ring-2 ${
-            character.player_type === 'player' 
-              ? 'border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] hover-cyber focus-visible:ring-[var(--cyber-cyan)]'
-              : 'border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)] hover:bg-[var(--cyber-cyan)]/10 focus-visible:ring-[var(--cyber-magenta)]'
-          }`}>
-            {character.player_type}
+        <div className="absolute bottom-4 right-4 z-20 pointer-events-auto">
+          <span className={getPillClasses(
+            character.player_type === 'player' ? 'player' : 'npc',
+            'small'
+          )}>
+            {character.player_type === 'player' ? 'Player' : 'NPC'}
           </span>
         </div>
       )}

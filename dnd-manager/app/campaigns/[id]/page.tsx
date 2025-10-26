@@ -9,6 +9,8 @@ import {
   formatDateStringForDisplay,
   formatTimestampForDisplay,
   type SessionCharacterRelation,
+  getPillClasses,
+  cn,
 } from '@/lib/utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
 import { CampaignSessionCard } from '@/components/ui/campaign-session-card'
@@ -261,7 +263,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Created</div>
             <div className="text-lg font-bold">
-              <span className="inline-block rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+              <span className={getPillClasses('date', 'small')}>
                 {formatTimestampForDisplay(
                   campaign.created_at,
                   'en-US',
@@ -314,7 +316,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition whitespace-nowrap"
+                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
                   >
                     {organization.name}
                   </Link>

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
-import { cn } from "@/lib/utils";
+import { cn, getPillClasses, getDashedPillClasses } from "@/lib/utils";
 import { IndexEmptyState, IndexHeader } from "@/components/ui/index-utility";
 
 export type OrganizationRecord = {
@@ -123,18 +123,16 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                 {organization.organization_characters && organization.organization_characters.length > 0 && (
                   <div className="pointer-events-auto mt-2 flex flex-wrap gap-2">
                     {organization.organization_characters.map(({ character }) => (
-                      <Link
-                        key={`${organization.id}-char-${character.id}`}
-                        href={`/characters/${character.id}`}
-                        className={cn(
-                          'inline-flex items-center rounded px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-[10px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2',
-                          character.player_type === 'player'
-                            ? 'border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] hover-cyber focus-visible:ring-[var(--cyber-cyan)]'
-                            : 'border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 focus-visible:ring-[var(--cyber-magenta)]'
-                        )}
-                      >
-                        {character.name}
-                      </Link>
+                        <Link
+                          key={`${organization.id}-char-${character.id}`}
+                          href={`/characters/${character.id}`}
+                          className={getPillClasses(
+                            character.player_type === 'player' ? 'player' : 'npc',
+                            'small'
+                          )}
+                        >
+                          {character.name}
+                        </Link>
                     ))}
                   </div>
                 )}
@@ -159,7 +157,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                         <Link
                           key={`${organization.id}-session-${sessionRelation.session.id}`}
                           href={`/sessions/${sessionRelation.session.id}`}
-                          className="inline-flex items-center rounded-full border border-[var(--cyber-cyan)]/70 bg-[var(--cyber-cyan)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-cyan)] transition hover-cyber focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)] whitespace-nowrap"
+                          className={cn(getPillClasses('session', 'small'), 'whitespace-nowrap')}
                         >
                           {sessionRelation.session.name}
                         </Link>
@@ -167,7 +165,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                       {!expandedOrganizations.has(organization.id) && organization.organization_sessions.length > 3 && (
                         <button
                           onClick={() => toggleOrganizationSessions(organization.id)}
-                          className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-cyan)]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-cyan)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)] whitespace-nowrap"
+                          className={cn(getDashedPillClasses('session', 'small'), 'whitespace-nowrap')}
                         >
                           +{organization.organization_sessions.length - 3} more
                         </button>
@@ -175,7 +173,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                       {expandedOrganizations.has(organization.id) && organization.organization_sessions.length > 3 && (
                         <button
                           onClick={() => toggleOrganizationSessions(organization.id)}
-                          className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                          className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
                         >
                           Show less
                         </button>

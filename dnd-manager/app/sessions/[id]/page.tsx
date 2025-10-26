@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { deleteSession } from '@/lib/actions/sessions'
 import { DeleteSessionButton } from '@/components/ui/delete-session-button'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
-import { formatDateStringForDisplay } from '@/lib/utils'
+import { formatDateStringForDisplay, getPillClasses } from '@/lib/utils'
 import { SessionCharacterCard } from '@/components/ui/session-character-card'
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
@@ -297,7 +297,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
                 <Link
                   key={group.id}
                   href={`/organizations/${group.id}`}
-                  className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                  className={getPillClasses('organization', 'small')}
                 >
                   {group.name}
                 </Link>

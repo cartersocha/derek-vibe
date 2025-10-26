@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils';
-import { formatDateStringForDisplay } from '@/lib/utils';
+import { formatDateStringForDisplay, getPillClasses, getDashedPillClasses, cn } from '@/lib/utils';
 
 type CharacterSessionCardProps = {
   session: {
@@ -63,7 +63,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
               {session.name}
             </span>
             {sessionNumber !== undefined && sessionNumber !== null && (
-              <span className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] w-fit">
+              <span className={cn(getPillClasses('organization', 'small'), 'w-fit')}>
                 Session #{sessionNumber}
               </span>
             )}
@@ -85,7 +85,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                 {players.map((player) => (
                   <span
                     key={player.id}
-                    className="inline-flex items-center rounded border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-cyan)]"
+                    className={getPillClasses('player', 'small')}
                   >
                     {player.name}
                   </span>
@@ -106,7 +106,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className="inline-flex items-center rounded border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
                   >
                     {organization.name}
                   </Link>
@@ -114,7 +114,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                 {!expandedGroups.has(session.id) && groups.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className="inline-flex items-center rounded border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                    className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
                   >
                     +{groups.length - 4} more
                   </button>
@@ -122,7 +122,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                 {expandedGroups.has(session.id) && groups.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className="inline-flex items-center rounded border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
                   >
                     Show less
                   </button>
@@ -133,11 +133,11 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
         </div>
         <div className="relative z-10 pointer-events-none sm:text-right sm:ml-4">
           {sessionDateLabel ? (
-            <span className="inline-block rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+            <span className={getPillClasses('date', 'small')}>
               {sessionDateLabel}
             </span>
           ) : (
-            <span className="inline-block rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--text-muted)] border border-[var(--text-muted)]/40 bg-[var(--bg-dark)]">
+            <span className={cn(getPillClasses('date', 'small'), 'text-[var(--text-muted)] border-[var(--text-muted)]/40')}>
               No date set
             </span>
           )}

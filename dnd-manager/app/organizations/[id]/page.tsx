@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { DeleteOrganizationButton } from "@/components/ui/delete-organization-button";
 import { deleteOrganization } from "@/lib/actions/organizations";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateStringForDisplay, formatTimestampForDisplay } from "@/lib/utils";
+import { formatDateStringForDisplay, formatTimestampForDisplay, getPillClasses, cn } from "@/lib/utils";
 import { mapEntitiesToMentionTargets, mergeMentionTargets, renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 
 interface OrganizationRecord {
@@ -286,7 +286,10 @@ export default async function OrganizationDetailPage({
                   <Link
                     key={character.id}
                     href={`/characters/${character.id}`}
-                    className={`inline-flex items-center rounded px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-[10px] font-mono uppercase tracking-[0.3em] transition-colors focus:outline-none focus-visible:ring-2 ${pillClasses}`}
+                    className={cn(getPillClasses(
+                      character.player_type === 'player' ? 'player' : 'npc',
+                      'small'
+                    ))}
                   >
                     {character.name}
                   </Link>
@@ -319,7 +322,7 @@ export default async function OrganizationDetailPage({
                       <span className="font-medium text-[var(--cyber-cyan)] font-mono text-sm sm:text-base transition-colors hover-cyber break-words flex-1">
                         {session.name}
                       </span>
-                      <span className="rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] flex-shrink-0">
+                      <span className={getPillClasses('date', 'small')}>
                         {formatDateStringForDisplay(session.session_date) ?? "Date TBD"}
                       </span>
                     </div>
@@ -335,7 +338,7 @@ export default async function OrganizationDetailPage({
                         <div />
                       )}
                       {session.session_number && (
-                        <span className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] min-h-[24px]">
+                        <span className={cn(getPillClasses('organization', 'small'), 'min-h-[24px]')}>
                           Session {session.session_number}
                         </span>
                       )}
