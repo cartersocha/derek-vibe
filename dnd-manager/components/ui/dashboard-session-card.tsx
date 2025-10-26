@@ -65,7 +65,7 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
               {session.name}
             </span>
             {sessionNumber !== undefined && sessionNumber !== null && (
-              <span className="inline-flex items-center rounded border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 px-2 py-0.5 text-xs font-mono uppercase tracking-widest text-[var(--cyber-magenta)] flex-shrink-0">
+              <span className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] flex-shrink-0">
                 Session #{sessionNumber}
               </span>
             )}
@@ -73,7 +73,7 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
           {session.campaign?.name && session.campaign.id && (
             <Link
               href={`/campaigns/${session.campaign.id}`}
-              className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest semantic-warning transition-colors hover-brightness focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
+              className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] hover:text-[var(--orange-500)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
             >
               Campaign: {session.campaign.name}
             </Link>
@@ -126,7 +126,7 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
         </div>
         <div className="relative z-10 pointer-events-none sm:ml-4 sm:text-right">
           {sessionDateLabel ? (
-            <span className="inline-block rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+            <span className="inline-block rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
               {sessionDateLabel}
             </span>
           ) : (

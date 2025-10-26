@@ -189,8 +189,8 @@ export default function CampaignMultiSelect({
                         key={option.value}
                         type="button"
                         onClick={() => handleToggle(option.value)}
-                        className={`w-full px-4 py-2 text-left hover:bg-[var(--cyber-cyan)] hover:bg-opacity-10 font-mono text-sm ${
-                          isSelected ? "bg-[var(--cyber-cyan)] bg-opacity-20 text-[var(--cyber-cyan)]" : "text-[var(--cyber-cyan)]"
+                        className={`w-full px-4 py-2 text-left hover:bg-[var(--orange-400)] hover:bg-opacity-10 font-mono text-sm ${
+                          isSelected ? "bg-[var(--orange-400)] bg-opacity-20 text-[var(--orange-400)]" : "text-[var(--orange-400)]"
                         }`}
                       >
                         {option.label}
@@ -208,7 +208,7 @@ export default function CampaignMultiSelect({
                       type="button"
                       onClick={handleCreateNew}
                       disabled={isPending}
-                      className="w-full px-4 py-2 text-left hover:bg-[var(--cyber-cyan)] hover:bg-opacity-10 text-[var(--cyber-cyan)] font-mono text-sm border-t border-[var(--cyber-cyan)] border-opacity-30"
+                      className="w-full px-4 py-2 text-left hover:bg-[var(--orange-400)] hover:bg-opacity-10 text-[var(--orange-400)] font-mono text-sm border-t border-[var(--orange-400)] border-opacity-30"
                     >
                       {isPending ? "Creating..." : `+ Create "${trimmedSearch}"`}
                     </button>

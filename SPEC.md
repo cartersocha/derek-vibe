@@ -1,4 +1,4 @@
-# D&D Campaign Manager - Technical Specification
+# Rat Palace Adventures - Technical Specification
 
 ## 1. Project Overview
 
@@ -590,7 +590,7 @@ The application is production-ready and optimized for deployment to:
 
 ## Summary
 
-The D&D Campaign Manager is a comprehensive, production-ready application featuring:
+The Rat Palace Adventures is a comprehensive, production-ready application featuring:
 
 - **Full CRUD operations** for campaigns, sessions, characters, and organizations
 - **Advanced mention system** with inline creation and color-coded references

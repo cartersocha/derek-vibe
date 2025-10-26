@@ -1,4 +1,4 @@
-# D&D Campaign Manager
+# Rat Palace Adventures
 
 A full-stack web application for managing D&D campaigns, sessions, and characters built with Next.js 14, TypeScript, Tailwind CSS, and Supabase.
 

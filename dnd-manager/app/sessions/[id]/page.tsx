@@ -264,13 +264,13 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             {session.campaign && (
               <Link 
                 href={`/campaigns/${session.campaign.id}`}
-                className="text-[var(--cyber-magenta)] hover-cyber font-mono uppercase tracking-wider"
+                className="text-[var(--orange-400)] hover:text-[var(--orange-500)] font-mono uppercase tracking-wider"
               >
                 Campaign: {session.campaign.name}
               </Link>
             )}
             {sessionDateLabel && (
-              <span className="inline-block rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+              <span className="inline-block rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
                 {sessionDateLabel}
               </span>
             )}

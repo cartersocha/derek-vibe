@@ -30,7 +30,7 @@ const pressStart = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: "D&D Campaign Manager",
+  title: "Rat Palace Adventures",
   description: "Manage your D&D campaigns, characters, and sessions",
   icons: {
     icon: '/favicon.ico',

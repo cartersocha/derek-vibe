@@ -431,7 +431,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                   <Link
                     key={campaign.id}
                     href={`/campaigns/${campaign.id}`}
-                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                    className="inline-flex items-center rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] whitespace-nowrap"
                   >
                     <span className="font-semibold">{campaign.name}</span>
                   </Link>

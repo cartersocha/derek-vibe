@@ -1,6 +1,6 @@
-# Color Documentation - Derek Vibe D&D Manager (FINAL SYNTHWAVE PALETTE)
+# Color Documentation - Rat Palace Adventures (FINAL SYNTHWAVE PALETTE)
 
-This document provides a comprehensive overview of the **final synthwave color palette** used in the Derek Vibe D&D Manager project, including their hex values, usage patterns, and semantic meanings.
+This document provides a comprehensive overview of the **final synthwave color palette** used in the Rat Palace Adventures project, including their hex values, usage patterns, and semantic meanings.
 
 ## Color Palette Overview
 

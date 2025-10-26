@@ -76,17 +76,17 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
             >
               <Link
                 href={`/campaigns/${campaign.id}`}
-                className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
+                className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
                 aria-label={`View campaign ${campaign.name}`}
               >
                 <span aria-hidden="true" />
               </Link>
               <div className="relative z-10 flex h-full flex-col pointer-events-none">
                 <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
-                  <h3 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider transition-colors hover-cyber break-words flex-1">
+                  <h3 className="text-lg sm:text-xl font-bold text-[var(--orange-400)] uppercase tracking-wider transition-colors hover:text-[var(--orange-500)] break-words flex-1">
                     {campaign.name}
                   </h3>
-                  <span className="inline-block rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] flex-shrink-0">
+                  <span className="inline-block rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] flex-shrink-0">
                     {formatTimestampForDisplay(campaign.created_at) ?? "Unknown"}
                   </span>
                 </div>
