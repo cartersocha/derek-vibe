@@ -7,7 +7,6 @@ import { login } from "@/lib/auth/actions";
 // Optimized static generation for login page
 export const dynamic = 'force-static';
 export const fetchCache = 'force-cache';
-export const revalidate = 3600; // Cache for 1 hour
 
 const LoginPage = memo(function LoginPage() {
   const [password, setPassword] = useState("");
