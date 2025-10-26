@@ -64,7 +64,7 @@ function MentionKindLabel({ kind }: MentionKindLabelProps) {
       case "organization":
         return "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)]"
       case "campaign":
-        return "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)]"
+        return "border-[var(--orange-400)] text-[var(--orange-400)]"
       default:
         return "border-[var(--text-muted)] text-[var(--text-muted)]"
     }

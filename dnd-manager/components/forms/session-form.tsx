@@ -954,7 +954,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
 
       {/* Campaign Selection */}
       <div>
-        <label htmlFor="campaign_id" className="block text-sm font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider">
+        <label htmlFor="campaign_id" className="block text-sm font-bold text-[var(--orange-400)] mb-2 uppercase tracking-wider">
           Campaign
         </label>
         <SynthwaveDropdown

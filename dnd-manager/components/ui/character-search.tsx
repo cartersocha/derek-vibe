@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn, getPillClasses, getDashedPillClasses } from "@/lib/utils";
 import { sanitizeSearchQuery } from "@/lib/security/sanitize";
 import { IndexEmptyState, IndexHeader, IndexSearchEmptyState } from "@/components/ui/index-utility";
 import type { Character } from "@/types/database";
@@ -235,7 +235,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                           <Link
                             key={`${character.id}-org-${organization.id}`}
                             href={`/organizations/${organization.id}`}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
                           >
                             {organization.name}
                           </Link>
@@ -243,7 +243,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {!expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
                           <button
                             onClick={() => toggleCharacterGroups(character.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-magenta)]/50 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] whitespace-nowrap"
+                            className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
                           >
                             +{character.organization_characters.length - 4} more
                           </button>
@@ -251,7 +251,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
                           <button
                             onClick={() => toggleCharacterGroups(character.id)}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                            className={getPillClasses('organization', 'small')}
                           >
                             Show less
                           </button>
@@ -279,7 +279,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                           <Link
                             key={`${character.id}-session-${sessionRelation.session.id}`}
                             href={`/sessions/${sessionRelation.session.id}`}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-cyan)]/70 bg-[var(--cyber-cyan)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-cyan)] transition hover-cyber focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)] whitespace-nowrap"
+                            className={cn(getPillClasses('session', 'small'), 'whitespace-nowrap')}
                           >
                             {sessionRelation.session.name}
                           </Link>
@@ -287,7 +287,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {!expandedCharacters.has(character.id) && character.session_characters.length > 3 && (
                           <button
                             onClick={() => toggleCharacterSessions(character.id)}
-                            className="inline-flex items-center rounded-full border border-dashed border-[var(--cyber-cyan)]/50 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-cyan)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)] whitespace-nowrap"
+                            className={cn(getDashedPillClasses('session', 'small'), 'whitespace-nowrap')}
                           >
                             +{character.session_characters.length - 3} more
                           </button>
@@ -295,7 +295,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {expandedCharacters.has(character.id) && character.session_characters.length > 3 && (
                           <button
                             onClick={() => toggleCharacterSessions(character.id)}
-                            className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                            className={getPillClasses('organization', 'small')}
                           >
                             Show less
                           </button>

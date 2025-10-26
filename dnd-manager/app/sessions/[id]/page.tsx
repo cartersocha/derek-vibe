@@ -5,8 +5,9 @@ import { createClient } from '@/lib/supabase/server'
 import { deleteSession } from '@/lib/actions/sessions'
 import { DeleteSessionButton } from '@/components/ui/delete-session-button'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
-import { formatDateStringForDisplay } from '@/lib/utils'
+import { formatDateStringForDisplay, getPillClasses } from '@/lib/utils'
 import { SessionCharacterCard } from '@/components/ui/session-character-card'
+import { SessionRelatedGroups } from '@/components/ui/session-related-groups'
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -264,13 +265,13 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             {session.campaign && (
               <Link 
                 href={`/campaigns/${session.campaign.id}`}
-                className="text-[var(--cyber-magenta)] hover-cyber font-mono uppercase tracking-wider"
+                className="text-[var(--orange-400)] hover:text-[var(--orange-500)] font-mono uppercase tracking-wider"
               >
                 Campaign: {session.campaign.name}
               </Link>
             )}
             {sessionDateLabel && (
-              <span className="inline-block rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+              <span className="inline-block rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
                 {sessionDateLabel}
               </span>
             )}
@@ -289,22 +290,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           </div>
         )}
 
-        {sessionGroups.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-xl font-bold text-[var(--cyber-cyan)] mb-4 uppercase tracking-wider">Related Groups</h3>
-            <div className="flex flex-wrap gap-2">
-              {sessionGroups.map((group) => (
-                <Link
-                  key={group.id}
-                  href={`/organizations/${group.id}`}
-                  className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
-                >
-                  {group.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
+        <SessionRelatedGroups sessionId={session.id} groups={sessionGroups} />
 
         {/* Characters Present */}
         {sessionChars.length > 0 && (

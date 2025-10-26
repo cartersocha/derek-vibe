@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getIronSession } from "iron-session";
 import { sessionOptions, SessionData } from "./lib/auth/session";
+import { setCacheHeaders } from "./lib/edge-cache";
 
 const protectedRoutes = [
   "/dashboard",
@@ -18,8 +19,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
 
+  // Optimize: Only check session for protected routes
   if (isProtectedRoute) {
-    // Use iron-session to properly decrypt and read the session
     const session = await getIronSession<SessionData>(
       request,
       NextResponse.next(),
@@ -29,10 +30,9 @@ export async function middleware(request: NextRequest) {
     if (!session.isAuthenticated) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
-  }
-
-  // Redirect authenticated users away from login page
-  if (pathname === "/login") {
+  } else if (pathname === "/login" && request.method === "GET") {
+    // Only check session for GET requests to login (not POST submissions)
+    // This prevents session checks during login form submissions
     const session = await getIronSession<SessionData>(
       request,
       NextResponse.next(),
@@ -44,9 +44,25 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  
+  // Add edge caching headers for static routes
+  if (pathname === '/login') {
+    setCacheHeaders(response, 'login');
+  } else if (pathname.startsWith('/_next/static/')) {
+    setCacheHeaders(response, 'static');
+  }
+  
+  return response;
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    // Match all request paths except for the ones starting with:
+    // - api (API routes)
+    // - _next/static (static files)
+    // - _next/image (image optimization files)
+    // - favicon.ico (favicon file)
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+  ],
 };

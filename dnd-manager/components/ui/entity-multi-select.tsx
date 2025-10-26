@@ -212,7 +212,7 @@ export function EntityMultiSelect({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded bg-[var(--cyber-magenta)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80"
+              className="rounded bg-[var(--cyber-magenta)] px-3 py-2 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80"
             >
               Done
             </button>

@@ -117,6 +117,23 @@ export default function CampaignMultiSelect({
     onChange(normalizedSelections.filter((id) => id !== optionValue))
   }, [normalizedSelections, onChange])
 
+  const summaryLabel = useMemo(() => {
+    if (normalizedSelections.length === 0) {
+      return placeholder
+    }
+
+    const selectedLabels = normalizedSelections
+      .map(id => options.find(opt => opt.value === id)?.label)
+      .filter(Boolean)
+
+    if (selectedLabels.length <= 4) {
+      return selectedLabels.join(", ")
+    }
+
+    const [first, second, third, fourth] = selectedLabels
+    return `${first}, ${second}, ${third}, ${fourth} +${selectedLabels.length - 4}`
+  }, [normalizedSelections, options, placeholder])
+
   return (
     <div ref={containerRef} className={`relative ${className}`} id={id}>
       {/* Sentinel input to indicate this field was provided (even if empty) */}
@@ -158,7 +175,7 @@ export default function CampaignMultiSelect({
           onClick={() => setOpen(!open)}
           className="w-full px-4 py-3 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono text-left"
         >
-          {placeholder}
+          <span>{summaryLabel}</span>
         </button>
 
         {/* Dropdown */}
@@ -189,8 +206,8 @@ export default function CampaignMultiSelect({
                         key={option.value}
                         type="button"
                         onClick={() => handleToggle(option.value)}
-                        className={`w-full px-4 py-2 text-left hover:bg-[var(--cyber-cyan)] hover:bg-opacity-10 font-mono text-sm ${
-                          isSelected ? "bg-[var(--cyber-cyan)] bg-opacity-20 text-[var(--cyber-cyan)]" : "text-[var(--cyber-cyan)]"
+                        className={`w-full px-4 py-2 text-left hover:bg-[var(--orange-400)] hover:bg-opacity-10 font-mono text-sm ${
+                          isSelected ? "bg-[var(--orange-400)] bg-opacity-20 text-[var(--orange-400)]" : "text-[var(--orange-400)]"
                         }`}
                       >
                         {option.label}
@@ -208,7 +225,7 @@ export default function CampaignMultiSelect({
                       type="button"
                       onClick={handleCreateNew}
                       disabled={isPending}
-                      className="w-full px-4 py-2 text-left hover:bg-[var(--cyber-cyan)] hover:bg-opacity-10 text-[var(--cyber-cyan)] font-mono text-sm border-t border-[var(--cyber-cyan)] border-opacity-30"
+                      className="w-full px-4 py-2 text-left hover:bg-[var(--orange-400)] hover:bg-opacity-10 text-[var(--orange-400)] font-mono text-sm border-t border-[var(--orange-400)] border-opacity-30"
                     >
                       {isPending ? "Creating..." : `+ Create "${trimmedSearch}"`}
                     </button>

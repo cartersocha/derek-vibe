@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { DeleteOrganizationButton } from "@/components/ui/delete-organization-button";
 import { deleteOrganization } from "@/lib/actions/organizations";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateStringForDisplay, formatTimestampForDisplay } from "@/lib/utils";
+import { formatDateStringForDisplay, formatTimestampForDisplay, getPillClasses, cn } from "@/lib/utils";
 import { mapEntitiesToMentionTargets, mergeMentionTargets, renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 
 interface OrganizationRecord {
@@ -241,7 +241,12 @@ export default async function OrganizationDetailPage({
           )}
 
           <section className="flex-1 space-y-3 text-[var(--text-primary)] font-mono leading-relaxed text-sm sm:text-base lg:text-lg">
-            <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Overview</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider"
+              style={{
+                fontFamily: 'var(--font-press-start), monospace',
+                WebkitFontSmoothing: 'none',
+                fontSmoothing: 'never'
+              } as React.CSSProperties}>Overview</h2>
             {organization.description && (
               <div className="whitespace-pre-wrap leading-relaxed break-words">
                 {renderNotesWithMentions(organization.description, mentionTargets)}
@@ -252,7 +257,12 @@ export default async function OrganizationDetailPage({
         </div>
 
         <section className="space-y-4">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Campaigns</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider"
+            style={{
+              fontFamily: 'var(--font-press-start), monospace',
+              WebkitFontSmoothing: 'none',
+              fontSmoothing: 'never'
+            } as React.CSSProperties}>Campaigns</h2>
           {campaigns.length === 0 ? (
             <p className="text-[var(--text-muted)] font-mono italic text-sm sm:text-base">No campaigns are linked to this group yet.</p>
           ) : (
@@ -261,7 +271,7 @@ export default async function OrganizationDetailPage({
                 <Link
                   key={campaign.id}
                   href={`/campaigns/${campaign.id}`}
-                  className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]"
+                  className={getPillClasses('campaign', 'small')}
                 >
                   <span className="font-semibold">{campaign.name}</span>
                 </Link>
@@ -271,7 +281,12 @@ export default async function OrganizationDetailPage({
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Characters</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider"
+            style={{
+              fontFamily: 'var(--font-press-start), monospace',
+              WebkitFontSmoothing: 'none',
+              fontSmoothing: 'never'
+            } as React.CSSProperties}>Members</h2>
           {characters.length === 0 ? (
             <p className="text-[var(--text-muted)] font-mono italic text-sm sm:text-base">No characters are affiliated with this group yet.</p>
           ) : (
@@ -286,7 +301,10 @@ export default async function OrganizationDetailPage({
                   <Link
                     key={character.id}
                     href={`/characters/${character.id}`}
-                    className={`inline-flex items-center rounded px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-[10px] font-mono uppercase tracking-[0.3em] transition-colors focus:outline-none focus-visible:ring-2 ${pillClasses}`}
+                    className={cn(getPillClasses(
+                      character.player_type === 'player' ? 'player' : 'npc',
+                      'small'
+                    ))}
                   >
                     {character.name}
                   </Link>
@@ -297,7 +315,12 @@ export default async function OrganizationDetailPage({
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Sessions</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider"
+            style={{
+              fontFamily: 'var(--font-press-start), monospace',
+              WebkitFontSmoothing: 'none',
+              fontSmoothing: 'never'
+            } as React.CSSProperties}>Sessions</h2>
           {sessionsWithNumbers.length === 0 ? (
             <p className="text-[var(--text-muted)] font-mono italic text-sm sm:text-base">No sessions are linked to this group yet.</p>
           ) : (
@@ -319,7 +342,7 @@ export default async function OrganizationDetailPage({
                       <span className="font-medium text-[var(--cyber-cyan)] font-mono text-sm sm:text-base transition-colors hover-cyber break-words flex-1">
                         {session.name}
                       </span>
-                      <span className="rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] flex-shrink-0">
+                      <span className={getPillClasses('date', 'tiny')}>
                         {formatDateStringForDisplay(session.session_date) ?? "Date TBD"}
                       </span>
                     </div>
@@ -327,7 +350,7 @@ export default async function OrganizationDetailPage({
                       {session.campaign?.name ? (
                         <Link
                           href={`/campaigns/${session.campaign.id}`}
-                          className="pointer-events-auto inline-flex items-center rounded border border-[var(--cyber-magenta)]/40 bg-[var(--bg-card)] px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/40 hover:bg-[var(--cyber-cyan)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] min-h-[24px]"
+                          className={cn(getPillClasses('campaign', 'tiny'), 'pointer-events-auto min-h-[24px]')}
                         >
                           {session.campaign.name}
                         </Link>
@@ -335,7 +358,7 @@ export default async function OrganizationDetailPage({
                         <div />
                       )}
                       {session.session_number && (
-                        <span className="inline-flex items-center rounded border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-[var(--cyber-magenta)] min-h-[24px]">
+                        <span className={cn(getPillClasses('session', 'tiny'), 'min-h-[24px]')}>
                           Session {session.session_number}
                         </span>
                       )}

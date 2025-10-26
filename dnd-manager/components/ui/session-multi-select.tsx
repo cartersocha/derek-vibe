@@ -249,7 +249,7 @@ export default function SessionMultiSelect({
               : "border-[var(--cyber-cyan)] text-[var(--text-muted)] hover-cyber"
         }`}
       >
-        <span className="truncate text-left">{summaryLabel}</span>
+        <span className="text-left">{summaryLabel}</span>
         <span className="text-xs text-[var(--cyber-magenta)]">{open ? "▲" : "▼"}</span>
       </button>
 
@@ -271,6 +271,7 @@ export default function SessionMultiSelect({
                 setSearch(event.target.value)
               }}
               placeholder="Search sessions"
+              aria-label="Search sessions"
               className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)]"
               disabled={isPending}
             />
@@ -335,6 +336,11 @@ export default function SessionMultiSelect({
                 type="button"
                 onClick={clearSelections}
                 className="rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-magenta)] disabled:cursor-not-allowed disabled:opacity-60"
+                style={{
+                  fontFamily: 'var(--font-press-start), monospace',
+                  WebkitFontSmoothing: 'none',
+                  fontSmoothing: 'never'
+                } as React.CSSProperties}
                 disabled={isPending}
               >
                 Clear
@@ -342,7 +348,7 @@ export default function SessionMultiSelect({
               <button
                 type="button"
                 onClick={applyAndClose}
-                className="rounded bg-[var(--cyber-magenta)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded bg-[var(--cyber-magenta)] px-3 py-2 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isPending}
               >
                 {isPending ? "Working…" : "Done"}

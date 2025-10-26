@@ -1,22 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { login } from "@/lib/auth/actions";
-import { sanitizePassword } from "@/lib/security/sanitize";
+// Removed sanitizePassword import for performance - sanitization handled server-side
 
-export default function LoginPage() {
+// Optimized static generation for login page
+export const dynamic = 'force-static';
+export const fetchCache = 'force-cache';
+
+const LoginPage = memo(function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (loading) return;
+    
     setError("");
     setLoading(true);
 
     try {
-      const sanitizedPassword = sanitizePassword(password);
-      const result = await login(sanitizedPassword);
+      // Direct password submission - sanitization handled server-side for performance
+      const result = await login(password);
       if (result?.error) {
         setError(result.error);
         setLoading(false);
@@ -57,7 +65,7 @@ export default function LoginPage() {
               className="appearance-none relative block w-full px-4 py-3 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 placeholder-[var(--gray-500)] text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(sanitizePassword(e.target.value))}
+              onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
             />
           </div>
@@ -81,4 +89,6 @@ export default function LoginPage() {
       </div>
     </div>
   );
-}
+});
+
+export default LoginPage;

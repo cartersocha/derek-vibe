@@ -54,7 +54,7 @@ export function CharacterOrganizationField({
         </div>
         <Link
           href="/organizations/new"
-          className="inline-flex items-center justify-center rounded border border-[var(--cyber-cyan)]/30 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)] transition hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
+          className="inline-flex items-center justify-center rounded border border-[var(--cyber-cyan)]/30 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)] transition hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
         >
           New Organization
         </Link>

@@ -248,7 +248,7 @@ export default function OrganizationMultiSelect({
               : "border-[var(--cyber-cyan)] text-[var(--text-muted)] hover:border-[var(--cyber-magenta)] hover:text-[var(--cyber-magenta)]"
         }`}
       >
-        <span className="truncate text-left">{summaryLabel}</span>
+        <span className="text-left">{summaryLabel}</span>
         <span className="text-xs text-[var(--cyber-magenta)]">{open ? "▲" : "▼"}</span>
       </button>
 
@@ -336,7 +336,7 @@ export default function OrganizationMultiSelect({
               <button
                 type="button"
                 onClick={applyAndClose}
-                className="rounded bg-[var(--cyber-magenta)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded bg-[var(--cyber-magenta)] px-3 py-2 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isPending}
               >
                 {isPending ? "Working…" : "Done"}

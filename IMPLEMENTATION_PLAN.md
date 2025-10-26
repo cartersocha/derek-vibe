@@ -1,8 +1,8 @@
-# D&D Campaign Manager - Implementation Plan
+# Rat Palace Adventures - Implementation Plan
 
 ## Current Status: ✅ COMPLETED
 
-This document outlines the implementation plan for the D&D Campaign Manager application. All core features have been successfully implemented and the application is production-ready.
+This document outlines the implementation plan for the Rat Palace Adventures application. All core features have been successfully implemented and the application is production-ready.
 
 ---
 
@@ -454,7 +454,7 @@ SESSION_SECRET=
 
 ## Development Complete
 
-This implementation successfully delivers a fully functional D&D Campaign Manager with all planned core features and recent enhancements:
+This implementation successfully delivers a fully functional Rat Palace Adventures with all planned core features and recent enhancements:
 
 ### ✅ All Core Features Implemented
 
@@ -559,7 +559,7 @@ The application follows Next.js 15 best practices with proper Server/Client Comp
 
 ## Summary
 
-The D&D Campaign Manager is now a comprehensive, production-ready application featuring:
+The Rat Palace Adventures is now a comprehensive, production-ready application featuring:
 
 - **Full CRUD operations** for campaigns, sessions, characters, and organizations
 - **Advanced mention system** with inline creation and color-coded references  

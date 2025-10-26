@@ -9,6 +9,8 @@ import {
   formatDateStringForDisplay,
   formatTimestampForDisplay,
   type SessionCharacterRelation,
+  getPillClasses,
+  cn,
 } from '@/lib/utils'
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
 import { CampaignSessionCard } from '@/components/ui/campaign-session-card'
@@ -225,7 +227,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     <div className="space-y-6">
       <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/campaigns" className="text-[var(--cyber-cyan)] hover-cyber font-mono uppercase tracking-wider">
+          <Link href="/campaigns" className="text-[var(--orange-400)] hover:text-[var(--orange-500)] font-mono uppercase tracking-wider">
             ← Back to Campaigns
           </Link>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -261,7 +263,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Created</div>
             <div className="text-lg font-bold">
-              <span className="inline-block rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+              <span className={getPillClasses('date', 'small')}>
                 {formatTimestampForDisplay(
                   campaign.created_at,
                   'en-US',
@@ -273,7 +275,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Last Updated</div>
             <div className="text-lg font-bold">
-              <span className="inline-block rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+              <span className={getPillClasses('date', 'small')}>
                 {formatTimestampForDisplay(
                   campaign.updated_at,
                   'en-US',
@@ -287,7 +289,12 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         {/* Campaign Characters */}
         <div className="space-y-4">
           <div>
-            <h2 className="mb-4 text-xl font-bold uppercase tracking-wider text-[var(--cyber-cyan)]">Characters</h2>
+            <h2 className="mb-4 text-xl font-bold uppercase tracking-wider text-[var(--cyber-cyan)]"
+              style={{
+                fontFamily: 'var(--font-press-start), monospace',
+                WebkitFontSmoothing: 'none',
+                fontSmoothing: 'never'
+              } as React.CSSProperties}>Characters</h2>
             {combinedCharacters.length === 0 ? (
               <p className="text-sm font-mono text-[var(--text-muted)]">
                 No characters have been linked to this campaign yet.
@@ -303,7 +310,12 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           </div>
 
           <div>
-            <h3 className="mb-3 text-lg font-semibold uppercase tracking-[0.3em] text-[var(--cyber-cyan)]">Groups</h3>
+            <h2 className="mb-4 text-xl font-bold uppercase tracking-wider text-[var(--cyber-cyan)]"
+              style={{
+                fontFamily: 'var(--font-press-start), monospace',
+                WebkitFontSmoothing: 'none',
+                fontSmoothing: 'never'
+              } as React.CSSProperties}>Groups</h2>
             {combinedOrganizations.length === 0 ? (
               <p className="text-sm font-mono text-[var(--text-muted)]">
                 No groups have been linked to this campaign yet.
@@ -314,7 +326,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className="inline-flex items-center rounded-full border border-[var(--cyber-magenta)]/70 bg-[var(--cyber-magenta)]/10 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 transition whitespace-nowrap"
+                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
                   >
                     {organization.name}
                   </Link>
@@ -327,7 +339,12 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         {/* Sessions */}
         <div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-            <h2 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Sessions</h2>
+            <h2 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider"
+              style={{
+                fontFamily: 'var(--font-press-start), monospace',
+                WebkitFontSmoothing: 'none',
+                fontSmoothing: 'never'
+              } as React.CSSProperties}>Sessions</h2>
             <Link
               href={`/sessions/new?campaign_id=${id}`}
               className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 text-sm shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"

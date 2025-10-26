@@ -253,8 +253,8 @@ export default function Topbar() {
           {/* Website Title - always next to hamburger like YouTube */}
           <Link
             href="/dashboard"
-            className="retro-title text-base sm:text-lg md:text-xl font-bold text-[var(--cyber-cyan)] hover-cyber transition-colors duration-200"
-            style={{ "--retro-letter-spacing": "0.1em" } as React.CSSProperties}
+            className="retro-title glitch-subtle text-sm sm:text-base md:text-lg font-bold text-[var(--cyber-cyan)] hover-cyber transition-colors duration-200"
+            data-text="RAT PALACE"
           >
             RAT PALACE
           </Link>
@@ -277,6 +277,8 @@ export default function Topbar() {
               }}
               onBlur={() => setTimeout(() => setShowResults(false), 300)}
               className="w-full px-4 py-2 pl-10 text-sm bg-[var(--bg-card)] border border-[var(--cyber-cyan)] border-opacity-30 rounded text-[var(--cyber-cyan)] focus:outline-none focus:border-[var(--cyber-magenta)] focus:border-opacity-60 transition-colors"
+              placeholder="Search campaigns, characters, sessions..."
+              aria-label="Search campaigns, characters, and sessions"
             />
             <svg
               className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--cyber-cyan)] opacity-60"
@@ -512,7 +514,8 @@ export default function Topbar() {
                 onKeyPress={handleSearchKeyPress}
                 onFocus={() => setShowResults(true)}
                 onBlur={() => setTimeout(() => setShowResults(false), 200)}
-                placeholder="Search..."
+                placeholder="Search campaigns, characters, sessions..."
+                aria-label="Search campaigns, characters, and sessions"
                 className="w-full px-3 py-2 pl-10 text-sm bg-[var(--bg-card)] border border-[var(--cyber-cyan)] border-opacity-30 rounded text-[var(--cyber-cyan)] focus:outline-none focus:border-[var(--cyber-magenta)] focus:border-opacity-60 transition-colors"
               />
               <svg

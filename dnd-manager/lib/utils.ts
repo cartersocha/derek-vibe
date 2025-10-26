@@ -239,3 +239,6 @@ export function coerceDateInputValue(value: string | null | undefined): string {
   const day = String(date.getUTCDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
+
+// Re-export pill styling utilities
+export * from './utils/pill-styles'

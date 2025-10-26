@@ -79,13 +79,28 @@
   --cyber-purple: var(--bg-card);
   --cyber-dark: var(--bg-dark);
   
-  /* Pill size variables */
-  --pill-padding-x-small: 0.5rem;  /* px-2 */
-  --pill-padding-y-small: 0.25rem; /* py-1 */
-  --pill-padding-x-medium: 0.75rem; /* px-3 */
-  --pill-padding-y-medium: 0.25rem; /* py-1 */
-  --pill-padding-x-tiny: 0.5rem;    /* px-2 */
-  --pill-padding-y-tiny: 0.125rem;  /* py-0.5 */
+  /* Pill size variables - Standardized sizing system */
+  --pill-padding-x-small: 0.5rem;   /* px-2 - Standard pill padding */
+  --pill-padding-y-small: 0.5rem;   /* py-2 - Minimum 24px touch target */
+  --pill-padding-x-medium: 0.75rem;  /* px-3 - Medium pill padding */
+  --pill-padding-y-medium: 0.5rem;  /* py-2 - Minimum 24px touch target */
+  --pill-padding-x-large: 1rem;      /* px-4 - Large pill padding */
+  --pill-padding-y-large: 0.625rem;  /* py-2.5 - Larger touch target */
+  
+  /* Pill font sizes - Standardized typography */
+  --pill-font-size-small: 0.75rem;  /* text-xs - Standard pill font (matching campaign pills) */
+  --pill-font-size-medium: 0.75rem;  /* text-xs - Medium pill font (matching campaign pills) */
+  --pill-font-size-large: 0.875rem;  /* text-sm - Large pill font */
+  
+  /* Pill border radius - Standardized shapes */
+  --pill-radius-small: 0.25rem;     /* rounded - Standard pill radius */
+  --pill-radius-medium: 0.375rem;    /* rounded-md - Medium pill radius */
+  --pill-radius-large: 9999px;       /* rounded-full - Large pill radius */
+  
+  /* Pill letter spacing - Standardized tracking */
+  --pill-tracking-small: 0.1em;     /* tracking-widest - Standard tracking (matching campaign pills) */
+  --pill-tracking-medium: 0.1em;   /* tracking-widest - Medium tracking (matching campaign pills) */
+  --pill-tracking-large: 0.4em;      /* tracking-[0.4em] - Large tracking */
   
   /* Semantic aliases for backward compatibility */
   --success: var(--cyber-magenta);
