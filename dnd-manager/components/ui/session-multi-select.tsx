@@ -335,6 +335,11 @@ export default function SessionMultiSelect({
                 type="button"
                 onClick={clearSelections}
                 className="rounded px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-magenta)] disabled:cursor-not-allowed disabled:opacity-60"
+                style={{
+                  fontFamily: 'var(--font-press-start), monospace',
+                  WebkitFontSmoothing: 'none',
+                  fontSmoothing: 'never'
+                } as React.CSSProperties}
                 disabled={isPending}
               >
                 Clear

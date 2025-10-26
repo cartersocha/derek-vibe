@@ -241,7 +241,12 @@ export default async function OrganizationDetailPage({
           )}
 
           <section className="flex-1 space-y-3 text-[var(--text-primary)] font-mono leading-relaxed text-sm sm:text-base lg:text-lg">
-            <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Overview</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider"
+              style={{
+                fontFamily: 'var(--font-press-start), monospace',
+                WebkitFontSmoothing: 'none',
+                fontSmoothing: 'never'
+              } as React.CSSProperties}>Overview</h2>
             {organization.description && (
               <div className="whitespace-pre-wrap leading-relaxed break-words">
                 {renderNotesWithMentions(organization.description, mentionTargets)}
@@ -252,7 +257,12 @@ export default async function OrganizationDetailPage({
         </div>
 
         <section className="space-y-4">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Campaigns</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider"
+            style={{
+              fontFamily: 'var(--font-press-start), monospace',
+              WebkitFontSmoothing: 'none',
+              fontSmoothing: 'never'
+            } as React.CSSProperties}>Campaigns</h2>
           {campaigns.length === 0 ? (
             <p className="text-[var(--text-muted)] font-mono italic text-sm sm:text-base">No campaigns are linked to this group yet.</p>
           ) : (
@@ -271,7 +281,12 @@ export default async function OrganizationDetailPage({
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Characters</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider"
+            style={{
+              fontFamily: 'var(--font-press-start), monospace',
+              WebkitFontSmoothing: 'none',
+              fontSmoothing: 'never'
+            } as React.CSSProperties}>Characters</h2>
           {characters.length === 0 ? (
             <p className="text-[var(--text-muted)] font-mono italic text-sm sm:text-base">No characters are affiliated with this group yet.</p>
           ) : (
@@ -300,7 +315,12 @@ export default async function OrganizationDetailPage({
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Sessions</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider"
+            style={{
+              fontFamily: 'var(--font-press-start), monospace',
+              WebkitFontSmoothing: 'none',
+              fontSmoothing: 'never'
+            } as React.CSSProperties}>Sessions</h2>
           {sessionsWithNumbers.length === 0 ? (
             <p className="text-[var(--text-muted)] font-mono italic text-sm sm:text-base">No sessions are linked to this group yet.</p>
           ) : (

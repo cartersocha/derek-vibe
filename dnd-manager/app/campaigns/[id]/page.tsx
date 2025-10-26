@@ -289,7 +289,12 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         {/* Campaign Characters */}
         <div className="space-y-4">
           <div>
-            <h2 className="mb-4 text-xl font-bold uppercase tracking-wider text-[var(--cyber-cyan)]">Characters</h2>
+            <h2 className="mb-4 text-xl font-bold uppercase tracking-wider text-[var(--cyber-cyan)]"
+              style={{
+                fontFamily: 'var(--font-press-start), monospace',
+                WebkitFontSmoothing: 'none',
+                fontSmoothing: 'never'
+              } as React.CSSProperties}>Characters</h2>
             {combinedCharacters.length === 0 ? (
               <p className="text-sm font-mono text-[var(--text-muted)]">
                 No characters have been linked to this campaign yet.
@@ -329,7 +334,12 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
         {/* Sessions */}
         <div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-            <h2 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Sessions</h2>
+            <h2 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider"
+              style={{
+                fontFamily: 'var(--font-press-start), monospace',
+                WebkitFontSmoothing: 'none',
+                fontSmoothing: 'never'
+              } as React.CSSProperties}>Sessions</h2>
             <Link
               href={`/sessions/new?campaign_id=${id}`}
               className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 text-sm shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"

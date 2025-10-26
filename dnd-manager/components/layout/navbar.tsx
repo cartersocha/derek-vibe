@@ -224,7 +224,7 @@ const hasAppliedAutoWidthRef = useRef(false);
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden sm:flex sm:flex-1 sm:flex-col sm:overflow-hidden",
+          "hidden sm:flex sm:flex-1 sm:flex-col sm:overflow-hidden transition-all duration-300 ease-in-out",
           shouldShowIconsOnly && "items-center"
         )}
         role="presentation"
@@ -235,8 +235,8 @@ const hasAppliedAutoWidthRef = useRef(false);
           className={cn(
             "flex-1 py-1", // Remove excessive top padding
             shouldShowIconsOnly
-              ? "px-4 overflow-y-visible space-y-0 flex flex-col items-center" // No spacing, centered icons
-              : "px-4 overflow-y-auto space-y-1"
+              ? "px-4 overflow-hidden space-y-0 flex flex-col items-center" // No spacing, centered icons, no overflow
+              : "px-4 overflow-hidden space-y-1"
           )}
         >
           {NAV_LINKS.map((link) => {
@@ -250,17 +250,14 @@ const hasAppliedAutoWidthRef = useRef(false);
                 className={cn(
                   "group relative flex items-center rounded transition-all duration-200 uppercase tracking-wider font-bold overflow-hidden h-12 p-2 touch-target",
                   shouldShowIconsOnly
-                    ? "justify-center items-center w-14 text-base" // Icons: narrow width, centered, larger text
-                    : "justify-start w-full text-sm", // Text: full width, left-aligned, medium text
+                    ? "justify-center items-center w-14 text-sm" // Icons: narrow width, centered, smaller text
+                    : "justify-start w-full text-xs", // Text: full width, left-aligned, smaller text
                   isActive
                     ? "bg-[var(--cyber-magenta)] text-white shadow-lg shadow-[var(--cyber-magenta)]/50"
                     : "text-[var(--cyber-cyan)] hover:bg-[var(--bg-card)] hover-cyber"
                 )}
                 style={{
                   fontFamily: 'var(--font-press-start), var(--font-geist-mono), monospace',
-                  textShadow: isActive 
-                    ? 'none' 
-                    : '0 0 8px var(--cyber-cyan), 0 0 16px var(--cyber-cyan), 1px 1px 0px var(--cyber-magenta)',
                   WebkitFontSmoothing: 'none',
                   fontSmoothing: 'never'
                 } as React.CSSProperties}
@@ -283,7 +280,6 @@ const hasAppliedAutoWidthRef = useRef(false);
                   <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-[var(--cyber-cyan)] opacity-0 shadow-lg shadow-[var(--cyber-cyan)]/20 transition-opacity duration-150 group-hover:opacity-100"
                     style={{
                       fontFamily: 'var(--font-press-start), monospace',
-                      textShadow: '0 0 6px var(--cyber-cyan), 0 0 12px var(--cyber-cyan)',
                       WebkitFontSmoothing: 'none',
                       fontSmoothing: 'never'
                     } as React.CSSProperties}>

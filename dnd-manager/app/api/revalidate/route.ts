@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag, revalidatePath } from 'next/cache'
 
-// Edge runtime for fast cache invalidation
-export const runtime = 'edge'
+// Node.js runtime for cache invalidation
+export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {

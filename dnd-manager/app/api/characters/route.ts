@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { setCacheHeaders } from '@/lib/edge-cache'
 
-// Edge runtime for fast API responses
-export const runtime = 'edge'
+// Node.js runtime for API responses
+export const runtime = 'nodejs'
 export const revalidate = 240 // 4 minutes
 export const dynamic = 'force-dynamic'
 
