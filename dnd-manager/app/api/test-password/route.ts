@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       storedPassword: appPassword,
       inputLength: password?.length,
       storedLength: appPassword?.length,
-      verificationResult: verifyPassword(password, appPassword),
+      verificationResult: appPassword ? verifyPassword(password, appPassword) : false,
       directComparison: password === appPassword,
       trimmedComparison: password?.trim() === appPassword?.trim(),
       normalizedComparison: password?.trim().replace(/\s+/g, ' ') === appPassword?.trim().replace(/\s+/g, ' ')
