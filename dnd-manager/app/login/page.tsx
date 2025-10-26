@@ -19,8 +19,9 @@ const LoginPage = memo(function LoginPage() {
     setLoading(true);
 
     try {
-      const sanitizedPassword = sanitizePassword(password);
-      const result = await login(sanitizedPassword);
+      // Temporarily disable sanitization to test
+      // const sanitizedPassword = sanitizePassword(password);
+      const result = await login(password);
       if (result?.error) {
         setError(result.error);
         setLoading(false);
@@ -61,7 +62,7 @@ const LoginPage = memo(function LoginPage() {
               className="appearance-none relative block w-full px-4 py-3 bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 placeholder-[var(--gray-500)] text-[var(--cyber-cyan)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] focus:border-transparent font-mono"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(sanitizePassword(e.target.value))}
+              onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
             />
           </div>
