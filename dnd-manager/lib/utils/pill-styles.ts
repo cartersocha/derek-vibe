@@ -4,7 +4,7 @@ import { cn } from '../utils'
  * Standardized pill styling system for consistent sizing throughout the application
  */
 
-export type PillSize = 'small' | 'medium' | 'large'
+export type PillSize = 'tiny' | 'small' | 'medium' | 'large'
 export type PillVariant = 'default' | 'player' | 'npc' | 'organization' | 'session' | 'date' | 'campaign'
 
 /**
@@ -12,6 +12,7 @@ export type PillVariant = 'default' | 'player' | 'npc' | 'organization' | 'sessi
  */
 export const getPillBaseClasses = (size: PillSize = 'small') => {
   const sizeClasses = {
+    tiny: 'px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-[10px] tracking-widest',
     small: 'px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-xs tracking-widest',
     medium: 'px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs tracking-widest',
     large: 'px-[var(--pill-padding-x-large)] py-[var(--pill-padding-y-large)] text-sm tracking-[var(--pill-tracking-large)]'
@@ -39,7 +40,7 @@ export const getPillVariantClasses = (variant: PillVariant, size: PillSize = 'sm
       radiusClass
     ),
     npc: cn(
-      'border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 focus-visible:ring-[var(--cyber-magenta)]',
+      'border border-[var(--cyber-magenta)]/40 bg-[var(--bg-dark)] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]',
       radiusClass
     ),
     organization: cn(

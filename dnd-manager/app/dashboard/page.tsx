@@ -23,7 +23,7 @@ export default async function DashboardPage() {
           href="/campaigns"
           className="group block rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[var(--cyber-magenta)] hover:shadow-[var(--cyber-magenta)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)] focus:ring-offset-2 focus:ring-offset-[var(--bg-dark)] min-h-[100px] flex flex-col justify-center"
         >
-          <h3 className="text-xs sm:text-sm font-medium text-[var(--cyber-magenta)] uppercase tracking-wider font-mono">Total Campaigns</h3>
+          <h2 className="text-xs sm:text-sm font-medium text-[var(--cyber-magenta)] uppercase tracking-wider font-mono">Total Campaigns</h2>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-[var(--cyber-cyan)]">{stats.campaignsCount}</p>
         </Link>
 
@@ -31,7 +31,7 @@ export default async function DashboardPage() {
           href="/sessions"
           className="group block rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[var(--cyber-magenta)] hover:shadow-[var(--cyber-magenta)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)] focus:ring-offset-2 focus:ring-offset-[var(--bg-dark)] min-h-[100px] flex flex-col justify-center"
         >
-          <h3 className="text-xs sm:text-sm font-medium text-[var(--cyber-magenta)] uppercase tracking-wider font-mono">Total Sessions</h3>
+          <h2 className="text-xs sm:text-sm font-medium text-[var(--cyber-magenta)] uppercase tracking-wider font-mono">Total Sessions</h2>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-[var(--cyber-cyan)]">{stats.sessionsCount}</p>
         </Link>
 
@@ -39,7 +39,7 @@ export default async function DashboardPage() {
           href="/characters"
           className="group block rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)]/80 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover:border-[var(--cyber-magenta)] hover:shadow-[var(--cyber-magenta)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)] focus:ring-offset-2 focus:ring-offset-[var(--bg-dark)] min-h-[100px] flex flex-col justify-center sm:col-span-2 lg:col-span-1"
         >
-          <h3 className="text-xs sm:text-sm font-medium text-[var(--cyber-magenta)] uppercase tracking-wider font-mono">Total Characters</h3>
+          <h2 className="text-xs sm:text-sm font-medium text-[var(--cyber-magenta)] uppercase tracking-wider font-mono">Total Characters</h2>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-[var(--cyber-cyan)]">{stats.charactersCount}</p>
         </Link>
       </div>
@@ -48,7 +48,7 @@ export default async function DashboardPage() {
       {recentSessions && recentSessions.length > 0 && (
         <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl p-4 sm:p-6 lg:p-8">
           <div className="mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Recent Sessions</h2>
+            <h3 className="text-xl sm:text-2xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Recent Sessions</h3>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:gap-5">
             {recentSessions.map((session) => (

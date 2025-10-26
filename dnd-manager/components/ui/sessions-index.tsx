@@ -105,12 +105,17 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                       </Link>
                     )}
                     {players.length > 0 && (
-                      <SessionParticipantPills
-                        sessionId={session.id}
-                        players={players}
-                        className={`pointer-events-auto ${groups.length > 0 ? "mt-3" : "mt-4"}`}
-                        showOrganizations={false}
-                      />
+                      <div className={`pointer-events-auto ${groups.length > 0 ? "mt-3" : "mt-4"}`}>
+                        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
+                          Participants
+                        </div>
+                        <SessionParticipantPills
+                          sessionId={session.id}
+                          players={players}
+                          className=""
+                          showOrganizations={false}
+                        />
+                      </div>
                     )}
                     {groups.length > 0 && (
                       <div className={`pointer-events-auto ${players.length > 0 ? "mt-2" : "mt-3"}`}>
@@ -134,6 +139,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                             <button
                               onClick={() => toggleSessionGroups(session.id)}
                               className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                              aria-label={`Show ${groups.length - 6} more organizations`}
                             >
                               +{groups.length - 6} more
                             </button>
@@ -142,6 +148,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                             <button
                               onClick={() => toggleSessionGroups(session.id)}
                               className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                              aria-label="Show fewer organizations"
                             >
                               Show less
                             </button>

@@ -215,7 +215,7 @@ export default function MultiSelectDropdown({
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="rounded bg-[var(--cyber-magenta)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded bg-[var(--cyber-magenta)] px-3 py-2 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={loading}
               >
                 {loading ? "Working…" : submitLabel}

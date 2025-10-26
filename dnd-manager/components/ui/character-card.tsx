@@ -101,6 +101,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                       toggleExpansion();
                     }}
                     className={getDashedPillClasses('organization', 'small')}
+                    aria-label={`Show ${character.organization_characters.length - 3} more organizations`}
                   >
                     +{character.organization_characters.length - 3} more
                   </button>
@@ -113,6 +114,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                       toggleExpansion();
                     }}
                     className={getPillClasses('organization', 'small')}
+                    aria-label="Show fewer organizations"
                   >
                     Show less
                   </button>

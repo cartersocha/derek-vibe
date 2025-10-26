@@ -224,7 +224,7 @@ export default function SimpleCampaignMultiSelect({
             </button>
             <button
               type="button"
-              className="rounded bg-[var(--orange-500)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--orange-500)]/80"
+              className="rounded bg-[var(--orange-500)] px-3 py-2 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--orange-500)]/80"
               onClick={() => setOpen(false)}
             >
               Done

@@ -140,6 +140,8 @@ export default function SimpleCharacterMultiSelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
+        aria-label={`${open ? 'Close' : 'Open'} character selection dropdown`}
+        aria-expanded={open}
         className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-2 text-left font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)] ${
           open
             ? 'border-[var(--cyber-magenta)] text-[var(--cyber-magenta)] shadow-lg shadow-[var(--cyber-magenta)]/30'
@@ -159,6 +161,7 @@ export default function SimpleCharacterMultiSelect({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search characters..."
+              aria-label="Search characters"
               className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)]"
               autoFocus
             />
@@ -224,7 +227,7 @@ export default function SimpleCharacterMultiSelect({
             </button>
             <button
               type="button"
-              className="rounded bg-[var(--cyber-magenta)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80"
+              className="rounded bg-[var(--cyber-magenta)] px-3 py-2 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-magenta)]/80"
               onClick={() => setOpen(false)}
             >
               Done

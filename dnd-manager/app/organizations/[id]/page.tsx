@@ -271,7 +271,7 @@ export default async function OrganizationDetailPage({
                 <Link
                   key={campaign.id}
                   href={`/campaigns/${campaign.id}`}
-                  className="inline-flex items-center rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)]"
+                  className={getPillClasses('campaign', 'small')}
                 >
                   <span className="font-semibold">{campaign.name}</span>
                 </Link>
@@ -286,7 +286,7 @@ export default async function OrganizationDetailPage({
               fontFamily: 'var(--font-press-start), monospace',
               WebkitFontSmoothing: 'none',
               fontSmoothing: 'never'
-            } as React.CSSProperties}>Characters</h2>
+            } as React.CSSProperties}>Members</h2>
           {characters.length === 0 ? (
             <p className="text-[var(--text-muted)] font-mono italic text-sm sm:text-base">No characters are affiliated with this group yet.</p>
           ) : (
@@ -342,7 +342,7 @@ export default async function OrganizationDetailPage({
                       <span className="font-medium text-[var(--cyber-cyan)] font-mono text-sm sm:text-base transition-colors hover-cyber break-words flex-1">
                         {session.name}
                       </span>
-                      <span className={getPillClasses('date', 'small')}>
+                      <span className={getPillClasses('date', 'tiny')}>
                         {formatDateStringForDisplay(session.session_date) ?? "Date TBD"}
                       </span>
                     </div>
@@ -350,7 +350,7 @@ export default async function OrganizationDetailPage({
                       {session.campaign?.name ? (
                         <Link
                           href={`/campaigns/${session.campaign.id}`}
-                          className="pointer-events-auto inline-flex items-center rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] min-h-[24px]"
+                          className={cn(getPillClasses('campaign', 'tiny'), 'pointer-events-auto min-h-[24px]')}
                         >
                           {session.campaign.name}
                         </Link>
@@ -358,7 +358,7 @@ export default async function OrganizationDetailPage({
                         <div />
                       )}
                       {session.session_number && (
-                        <span className={cn(getPillClasses('organization', 'small'), 'min-h-[24px]')}>
+                        <span className={cn(getPillClasses('session', 'tiny'), 'min-h-[24px]')}>
                           Session {session.session_number}
                         </span>
                       )}

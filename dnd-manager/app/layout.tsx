@@ -6,6 +6,7 @@ import "./globals.css";
 import AutoCapitalizeProvider from "@/components/providers/auto-capitalize-provider";
 import { SidebarProvider } from "@/components/providers/sidebar-provider";
 import ConditionalTopbar from "@/components/layout/conditional-topbar";
+import { MainContentWrapper } from "@/components/layout/main-content-wrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,7 +59,9 @@ export default function RootLayout({
         <AutoCapitalizeProvider>
           <SidebarProvider>
             <ConditionalTopbar />
-            {children}
+            <MainContentWrapper>
+              {children}
+            </MainContentWrapper>
           </SidebarProvider>
         </AutoCapitalizeProvider>
         <Analytics />

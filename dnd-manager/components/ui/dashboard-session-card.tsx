@@ -79,12 +79,17 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
             </Link>
           )}
           {players.length > 0 && (
-            <SessionParticipantPills
-              sessionId={session.id}
-              players={players}
-              className={`pointer-events-auto ${organizations.length > 0 ? 'mt-3' : 'mt-3'}`}
-              showOrganizations={false}
-            />
+            <div className={`pointer-events-auto ${organizations.length > 0 ? 'mt-3' : 'mt-3'}`}>
+              <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
+                Participants
+              </div>
+              <SessionParticipantPills
+                sessionId={session.id}
+                players={players}
+                className=""
+                showOrganizations={false}
+              />
+            </div>
           )}
           {organizations.length > 0 && (
             <div className={`pointer-events-auto ${players.length > 0 ? 'mt-2' : 'mt-3'}`}>

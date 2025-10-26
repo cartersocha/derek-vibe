@@ -275,7 +275,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-4">
             <div className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Last Updated</div>
             <div className="text-lg font-bold">
-              <span className="inline-block rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
+              <span className={getPillClasses('date', 'small')}>
                 {formatTimestampForDisplay(
                   campaign.updated_at,
                   'en-US',
@@ -310,7 +310,12 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           </div>
 
           <div>
-            <h3 className="mb-3 text-lg font-semibold uppercase tracking-[0.3em] text-[var(--cyber-cyan)]">Groups</h3>
+            <h2 className="mb-4 text-xl font-bold uppercase tracking-wider text-[var(--cyber-cyan)]"
+              style={{
+                fontFamily: 'var(--font-press-start), monospace',
+                WebkitFontSmoothing: 'none',
+                fontSmoothing: 'never'
+              } as React.CSSProperties}>Groups</h2>
             {combinedOrganizations.length === 0 ? (
               <p className="text-sm font-mono text-[var(--text-muted)]">
                 No groups have been linked to this campaign yet.

@@ -121,19 +121,24 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                 
                 {/* Character Pills */}
                 {organization.organization_characters && organization.organization_characters.length > 0 && (
-                  <div className="pointer-events-auto mt-2 flex flex-wrap gap-2">
-                    {organization.organization_characters.map(({ character }) => (
-                        <Link
-                          key={`${organization.id}-char-${character.id}`}
-                          href={`/characters/${character.id}`}
-                          className={getPillClasses(
-                            character.player_type === 'player' ? 'player' : 'npc',
-                            'small'
-                          )}
-                        >
-                          {character.name}
-                        </Link>
-                    ))}
+                  <div className="pointer-events-auto mt-2">
+                    <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
+                      Members
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {organization.organization_characters.map(({ character }) => (
+                          <Link
+                            key={`${organization.id}-char-${character.id}`}
+                            href={`/characters/${character.id}`}
+                            className={getPillClasses(
+                              character.player_type === 'player' ? 'player' : 'npc',
+                              'small'
+                            )}
+                          >
+                            {character.name}
+                          </Link>
+                      ))}
+                    </div>
                   </div>
                 )}
 

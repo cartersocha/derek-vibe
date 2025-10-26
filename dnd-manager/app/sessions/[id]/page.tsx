@@ -7,6 +7,7 @@ import { DeleteSessionButton } from '@/components/ui/delete-session-button'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
 import { formatDateStringForDisplay, getPillClasses } from '@/lib/utils'
 import { SessionCharacterCard } from '@/components/ui/session-character-card'
+import { SessionRelatedGroups } from '@/components/ui/session-related-groups'
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -289,22 +290,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           </div>
         )}
 
-        {sessionGroups.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-xl font-bold text-[var(--cyber-cyan)] mb-4 uppercase tracking-wider">Related Groups</h3>
-            <div className="flex flex-wrap gap-2">
-              {sessionGroups.map((group) => (
-                <Link
-                  key={group.id}
-                  href={`/organizations/${group.id}`}
-                  className={getPillClasses('organization', 'small')}
-                >
-                  {group.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
+        <SessionRelatedGroups sessionId={session.id} groups={sessionGroups} />
 
         {/* Characters Present */}
         {sessionChars.length > 0 && (
