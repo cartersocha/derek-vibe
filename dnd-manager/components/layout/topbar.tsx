@@ -253,8 +253,14 @@ export default function Topbar() {
           {/* Website Title - always next to hamburger like YouTube */}
           <Link
             href="/dashboard"
-            className="retro-title text-base sm:text-lg md:text-xl font-bold text-[var(--cyber-cyan)] hover-cyber transition-colors duration-200"
-            style={{ "--retro-letter-spacing": "0.1em" } as React.CSSProperties}
+            className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--cyber-cyan)] hover-cyber transition-colors duration-200"
+            style={{ 
+              fontFamily: 'var(--font-press-start), monospace',
+              textShadow: '0 0 10px var(--cyber-cyan), 0 0 20px var(--cyber-cyan), 2px 2px 0px var(--cyber-magenta)',
+              WebkitFontSmoothing: 'none',
+              fontSmoothing: 'never',
+              letterSpacing: '0.1em'
+            } as React.CSSProperties}
           >
             RAT PALACE
           </Link>
