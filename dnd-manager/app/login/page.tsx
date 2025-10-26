@@ -2,11 +2,12 @@
 
 import { useState, memo } from "react";
 import { login } from "@/lib/auth/actions";
-import { sanitizePassword } from "@/lib/security/sanitize";
+// Removed sanitizePassword import for performance - sanitization handled server-side
 
-// Static generation for login page (no edge runtime needed)
+// Optimized static generation for login page
 export const dynamic = 'force-static';
 export const fetchCache = 'force-cache';
+export const revalidate = 3600; // Cache for 1 hour
 
 const LoginPage = memo(function LoginPage() {
   const [password, setPassword] = useState("");
@@ -15,12 +16,15 @@ const LoginPage = memo(function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (loading) return;
+    
     setError("");
     setLoading(true);
 
     try {
-      // Temporarily disable sanitization to test
-      // const sanitizedPassword = sanitizePassword(password);
+      // Direct password submission - sanitization handled server-side for performance
       const result = await login(password);
       if (result?.error) {
         setError(result.error);

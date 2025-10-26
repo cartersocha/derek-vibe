@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
 
-  // Optimize: Only check session for protected routes and login redirect
+  // Optimize: Only check session for protected routes
   if (isProtectedRoute) {
     const session = await getIronSession<SessionData>(
       request,
@@ -30,8 +30,9 @@ export async function middleware(request: NextRequest) {
     if (!session.isAuthenticated) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
-  } else if (pathname === "/login") {
-    // Only check session for login redirect, not for every login page load
+  } else if (pathname === "/login" && request.method === "GET") {
+    // Only check session for GET requests to login (not POST submissions)
+    // This prevents session checks during login form submissions
     const session = await getIronSession<SessionData>(
       request,
       NextResponse.next(),

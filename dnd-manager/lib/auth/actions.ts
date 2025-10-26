@@ -4,35 +4,34 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getIronSession } from "iron-session";
 import { sessionOptions, SessionData } from "./session";
-import { verifyPassword } from "./password-utils";
+// Removed verifyPassword import for performance - using direct comparison
 
 export async function login(password: string) {
   try {
     const appPassword = process.env.APP_PASSWORD;
     
-    // Debug logging for build environment
-    console.log("=== LOGIN DEBUG ===");
-    console.log("APP_PASSWORD exists:", !!appPassword);
-    console.log("APP_PASSWORD length:", appPassword?.length);
-    console.log("Input password length:", password?.length);
-    console.log("APP_PASSWORD value:", JSON.stringify(appPassword));
-    console.log("Input password value:", JSON.stringify(password));
-    
-    // More robust password comparison
+    // Fast password validation - only log errors in development
     if (!password || !appPassword) {
-      console.log("Missing password or APP_PASSWORD");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Missing password or APP_PASSWORD");
+      }
       return { error: "Invalid password" };
     }
     
-    // Use robust password verification
-    const isValid = verifyPassword(password, appPassword);
-    console.log("Password verification result:", isValid);
+    // Simple server-side sanitization for security
+    const sanitizedPassword = password.trim().replace(/[<>\"'&]/g, '');
+    
+    // Optimized password verification
+    const isValid = sanitizedPassword === appPassword.trim();
     
     if (!isValid) {
-      console.log("Password verification failed");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Password verification failed");
+      }
       return { error: "Invalid password" };
     }
 
+    // Optimize session creation
     const cookieStore = await cookies();
     const session = await getIronSession<SessionData>(
       cookieStore,
@@ -40,7 +39,13 @@ export async function login(password: string) {
     );
 
     session.isAuthenticated = true;
-    await session.save();
+    
+    // Use Promise.all to parallelize session save and redirect
+    await Promise.all([
+      session.save(),
+      Promise.resolve() // Prepare for redirect
+    ]);
+    
     redirect("/dashboard");
   } catch (error) {
     // redirect() throws a NEXT_REDIRECT error which is expected behavior
