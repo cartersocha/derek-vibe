@@ -53,7 +53,36 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const headersList = await headers();
-  const pathname = headersList.get('x-pathname') || '';
+  
+  // Robust pathname detection with multiple fallbacks
+  let pathname = headersList.get('x-pathname') || '';
+  
+  // Fallback 1: Try to parse from URL header (Vercel/production)
+  if (!pathname) {
+    const url = headersList.get('url');
+    if (url) {
+      try {
+        pathname = new URL(url).pathname;
+      } catch {
+        pathname = '';
+      }
+    }
+  }
+  
+  // Fallback 2: Try to parse from referer header
+  if (!pathname) {
+    const referer = headersList.get('referer');
+    if (referer) {
+      try {
+        pathname = new URL(referer).pathname;
+      } catch {
+        pathname = '';
+      }
+    }
+  }
+  
+  // If still no pathname, be conservative and assume it's not login
+  // (login layout will handle the styling anyway)
   const isLoginPage = pathname.startsWith('/login');
 
   return (
