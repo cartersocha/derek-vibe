@@ -8,7 +8,7 @@ export default function OrganizationsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isCollapsed, sidebarWidth } = useSidebar();
+  const { isCollapsed } = useSidebar();
   
   return (
     <div className="min-h-screen bg-[var(--bg-dark)] flex flex-col md:flex-row">

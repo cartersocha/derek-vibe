@@ -46,6 +46,9 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next();
   
+  // Add pathname header for layout detection
+  response.headers.set('x-pathname', pathname);
+  
   // Add edge caching headers for static routes
   if (pathname === '/login') {
     setCacheHeaders(response, 'login');

@@ -7,6 +7,7 @@ import AutoCapitalizeProvider from "@/components/providers/auto-capitalize-provi
 import { SidebarProvider } from "@/components/providers/sidebar-provider";
 import ConditionalTopbar from "@/components/layout/conditional-topbar";
 import { MainContentWrapper } from "@/components/layout/main-content-wrapper";
+import { headers } from "next/headers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,24 +47,32 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const pathname = headersList.get('x-pathname') || '';
+  const isLoginPage = pathname === '/login';
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${pressStart.variable} antialiased`}
       >
-        <AutoCapitalizeProvider>
-          <SidebarProvider>
-            <ConditionalTopbar />
-            <MainContentWrapper>
-              {children}
-            </MainContentWrapper>
-          </SidebarProvider>
-        </AutoCapitalizeProvider>
+        {isLoginPage ? (
+          children
+        ) : (
+          <AutoCapitalizeProvider>
+            <SidebarProvider>
+              <ConditionalTopbar />
+              <MainContentWrapper>
+                {children}
+              </MainContentWrapper>
+            </SidebarProvider>
+          </AutoCapitalizeProvider>
+        )}
         <Analytics />
         <SpeedInsights />
       </body>
