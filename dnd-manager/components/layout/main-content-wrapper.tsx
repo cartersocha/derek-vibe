@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 export function MainContentWrapper({ children }: { children: React.ReactNode }) {
   const { sidebarWidth } = useSidebar();
   const [isMobile, setIsMobile] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -17,6 +18,23 @@ export function MainContentWrapper({ children }: { children: React.ReactNode }) 
     
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
+
+  // Handle hydration to prevent flashing
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+  
+  // Show blank page during hydration to prevent flashing
+  if (!isHydrated) {
+    return (
+      <main 
+        className="pt-1 h-screen bg-[var(--bg-dark)]"
+        style={{
+          marginLeft: '0px'
+        }}
+      />
+    );
+  }
   
   return (
     <main 

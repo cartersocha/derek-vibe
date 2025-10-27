@@ -14,7 +14,7 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "sidebar-collapsed";
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(200); // Default width - matches DEFAULT_WIDTH from navbar
 
   // Initialize collapsed state from localStorage
