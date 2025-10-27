@@ -84,50 +84,8 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   // Process session data efficiently
   const processedSessions: DashboardSession[] = []
-  const sessionNumberMap = new Map<string, number>()
 
   if (recentSessions && recentSessions.length > 0) {
-    // Get campaign IDs for session numbering
-    const campaignIds = Array.from(
-      new Set(
-        recentSessions
-          .map((session) => session.campaign_id)
-          .filter((campaignId): campaignId is string => Boolean(campaignId))
-      )
-    )
-
-    // Fetch session numbers if needed
-    if (campaignIds.length > 0) {
-      const { data: relatedSessions } = await supabase
-        .from('sessions')
-        .select('id, campaign_id, session_date, created_at')
-        .in('campaign_id', campaignIds)
-        .order('session_date', { ascending: true, nullsFirst: false })
-        .order('created_at', { ascending: true })
-
-      if (relatedSessions) {
-        const campaignGroups = new Map<string, typeof relatedSessions>()
-        
-        for (const session of relatedSessions) {
-          if (!session.campaign_id) continue
-          
-          if (!campaignGroups.has(session.campaign_id)) {
-            campaignGroups.set(session.campaign_id, [])
-          }
-          campaignGroups.get(session.campaign_id)!.push(session)
-        }
-
-        // Assign session numbers
-        for (const [, sessions] of campaignGroups) {
-          let sessionNumber = 1
-          for (const session of sessions) {
-            sessionNumberMap.set(session.id, sessionNumber)
-            sessionNumber++
-          }
-        }
-      }
-    }
-
     // Process each session
     for (const session of recentSessions) {
       const campaignRelation = Array.isArray(session.campaign)
@@ -166,7 +124,8 @@ export async function getDashboardData(): Promise<DashboardData> {
         campaign: campaignRelation,
         session_characters: rawLinks,
         session_organizations: [],
-        sessionNumber: sessionNumberMap.get(session.id),
+        // Removed expensive cross-campaign session numbering query
+        // sessionNumber intentionally omitted for performance
         players,
         organizations
       })

@@ -87,6 +87,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
             >
               <Link
                 href={`/organizations/${organization.id}`}
+                prefetch
                 className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
                 aria-label={`View organization ${organization.name}`}
               >
@@ -130,6 +131,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                           <Link
                             key={`${organization.id}-char-${character.id}`}
                             href={`/characters/${character.id}`}
+                            prefetch
                             className={getPillClasses(
                               character.player_type === 'player' ? 'player' : 'npc',
                               'small'
@@ -162,6 +164,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                         <Link
                           key={`${organization.id}-session-${sessionRelation.session.id}`}
                           href={`/sessions/${sessionRelation.session.id}`}
+                          prefetch
                           className={cn(getPillClasses('session', 'small'), 'whitespace-nowrap')}
                         >
                           {sessionRelation.session.name}

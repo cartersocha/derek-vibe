@@ -41,6 +41,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
     >
       <Link
         href={`/characters/${character.id}`}
+        prefetch
         className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
         aria-label={`View character ${character.name}`}
       >
@@ -88,6 +89,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                   <Link
                     key={index}
                     href={`/organizations/${org.organization?.id}`}
+                    prefetch
                     className={getPillClasses('organization', 'small')}
                   >
                     {org.organization?.name || 'Unknown Org'}

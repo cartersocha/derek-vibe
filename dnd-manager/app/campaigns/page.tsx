@@ -2,6 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { CampaignsIndex } from '@/components/ui/campaigns-index'
 import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-utils'
 
+export const runtime = 'edge'
+export const revalidate = 300
+export const fetchCache = 'force-cache'
+
 export default async function CampaignsPage() {
   const supabase = await createClient()
 

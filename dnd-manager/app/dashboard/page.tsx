@@ -4,7 +4,7 @@ import { getDashboardData } from '@/lib/dashboard-data'
 
 // Cache configuration for dashboard
 export const revalidate = 300 // Revalidate every 5 minutes
-export const dynamic = 'force-dynamic' // Ensure fresh data for authenticated users
+export const runtime = 'edge'
 export const fetchCache = 'force-cache' // Enable edge caching
 
 export default async function DashboardPage() {

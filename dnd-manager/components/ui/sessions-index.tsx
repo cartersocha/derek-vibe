@@ -79,6 +79,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
               >
                 <Link
                   href={`/sessions/${session.id}`}
+                  prefetch
                   className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
                   aria-label={`View session ${session.name}`}
                 >
@@ -97,8 +98,9 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                       )}
                     </div>
                     {session.campaign && session.campaign.id && session.campaign.name && (
-                      <Link
+                    <Link
                         href={`/campaigns/${session.campaign.id}`}
+                      prefetch
                         className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] hover:text-[var(--orange-500)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
                       >
                         Campaign: {session.campaign.name}
@@ -130,6 +132,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                             <Link
                               key={organization.id}
                               href={`/organizations/${organization.id}`}
+                              prefetch
                               className={getPillClasses('organization', 'small')}
                             >
                               {organization.name}

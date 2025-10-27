@@ -109,6 +109,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                           <Link
                             key={`${campaign.id}-session-${session.id}`}
                             href={`/sessions/${session.id}`}
+                            prefetch
                             className={cn(getPillClasses('session', 'small'), 'whitespace-nowrap')}
                           >
                             {session.name}
@@ -146,6 +147,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                           <Link
                             key={`${campaign.id}-org-${organization.id}`}
                             href={`/organizations/${organization.id}`}
+                            prefetch
                             className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
                           >
                             {organization.name}

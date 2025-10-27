@@ -1,7 +1,11 @@
 "use client";
 
-import Navbar from "@/components/layout/navbar";
+import dynamic from "next/dynamic";
 import { useSidebar } from "@/components/providers/sidebar-provider";
+
+const Navbar = dynamic(() => import("@/components/layout/navbar"), {
+  ssr: false,
+});
 
 export default function ProtectedLayout({
   children,

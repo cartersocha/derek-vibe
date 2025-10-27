@@ -227,7 +227,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     <div className="space-y-6">
       <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/campaigns" className="text-[var(--orange-400)] hover:text-[var(--orange-500)] font-mono uppercase tracking-wider">
+          <Link href="/campaigns" className="text-[var(--cyber-cyan)] hover-cyber font-mono uppercase tracking-wider">
             ← Back to Campaigns
           </Link>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

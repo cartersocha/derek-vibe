@@ -3,6 +3,10 @@ import { SessionsIndex } from '@/components/ui/sessions-index'
 import { type MentionTarget } from '@/lib/mention-utils'
 import { extractPlayerSummaries, dateStringToLocalDate, type SessionCharacterRelation } from '@/lib/utils'
 
+export const runtime = 'edge'
+export const revalidate = 300
+export const fetchCache = 'force-cache'
+
 export default async function SessionsPage() {
   const supabase = await createClient()
 

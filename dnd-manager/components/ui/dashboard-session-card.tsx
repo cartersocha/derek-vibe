@@ -53,6 +53,7 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
     <article className="group relative overflow-hidden rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)] bg-opacity-50 p-4 sm:p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover-cyber">
       <Link
         href={`/sessions/${session.id}`}
+        prefetch
         className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
         aria-label={`View session ${session.name}`}
       >
@@ -73,6 +74,7 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
           {session.campaign?.name && session.campaign.id && (
             <Link
               href={`/campaigns/${session.campaign.id}`}
+              prefetch
               className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] hover:text-[var(--orange-500)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
             >
               Campaign: {session.campaign.name}
@@ -104,6 +106,7 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
+                    prefetch
                     className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
                   >
                     {organization.name}

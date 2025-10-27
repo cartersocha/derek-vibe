@@ -1,6 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { CharacterCard } from '@/components/ui/character-card'
 
+export const runtime = 'edge'
+export const revalidate = 300
+export const fetchCache = 'force-cache'
+
 export default async function CharactersPage() {
   const supabase = await createClient()
 
