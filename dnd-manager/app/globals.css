@@ -126,13 +126,13 @@ body {
 /* Mobile optimizations */
 @media (max-width: 768px) {
   /* Improve touch targets */
-  button, 
+  button:not(.pill), 
   input[type="button"], 
   input[type="submit"], 
   input[type="reset"],
-  a[role="button"],
-  [role="button"],
-  .touch-target {
+  a[role="button"]:not(.pill),
+  [role="button"]:not(.pill),
+  .touch-target:not(.pill) {
     min-height: 44px;
     min-width: 44px;
     touch-action: manipulation;
