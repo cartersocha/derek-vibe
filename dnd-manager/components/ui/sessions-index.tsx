@@ -79,6 +79,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
               >
                 <Link
                   href={`/sessions/${session.id}`}
+                  prefetch
                   className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
                   aria-label={`View session ${session.name}`}
                 >
@@ -97,8 +98,9 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                       )}
                     </div>
                     {session.campaign && session.campaign.id && session.campaign.name && (
-                      <Link
+                    <Link
                         href={`/campaigns/${session.campaign.id}`}
+                      prefetch
                         className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] hover:text-[var(--orange-500)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
                       >
                         Campaign: {session.campaign.name}
@@ -130,6 +132,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                             <Link
                               key={organization.id}
                               href={`/organizations/${organization.id}`}
+                              prefetch
                               className={getPillClasses('organization', 'small')}
                             >
                               {organization.name}
@@ -138,18 +141,18 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                           {!expandedGroups.has(session.id) && groups.length > 6 && (
                             <button
                               onClick={() => toggleSessionGroups(session.id)}
-                              className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                              className={getDashedPillClasses('organization', 'small')}
                               aria-label={`Show ${groups.length - 6} more organizations`}
                             >
                               +{groups.length - 6} more
                             </button>
                           )}
                           {expandedGroups.has(session.id) && groups.length > 6 && (
-                            <button
-                              onClick={() => toggleSessionGroups(session.id)}
-                              className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
-                              aria-label="Show fewer organizations"
-                            >
+                          <button
+                            onClick={() => toggleSessionGroups(session.id)}
+                              className={getPillClasses('default', 'small')}
+                            aria-label="Show fewer organizations"
+                          >
                               Show less
                             </button>
                           )}

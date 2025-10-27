@@ -63,6 +63,7 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
       <Link
         key={`${sessionId}-${player.id}`}
         href={`/characters/${player.id}`}
+        prefetch
         className={getPillClasses(
           player.player_type === 'player' ? 'player' : 'npc',
           'small'
@@ -78,6 +79,7 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
         <Link
           key={`${sessionId}-org-${organization.id}`}
           href={`/organizations/${organization.id}`}
+          prefetch
           className={getPillClasses('organization', 'small')}
         >
           {organization.name}

@@ -101,7 +101,7 @@ export function CampaignSessionCard({
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    className={getPillClasses('organization', 'small')}
                   >
                     {organization.name}
                   </Link>
@@ -109,7 +109,7 @@ export function CampaignSessionCard({
                 {!expandedGroups.has(session.id) && session.organizations.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    className={getDashedPillClasses('organization', 'small')}
                   >
                     +{session.organizations.length - 4} more
                   </button>
@@ -117,7 +117,7 @@ export function CampaignSessionCard({
                 {expandedGroups.has(session.id) && session.organizations.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    className={getPillClasses('default', 'small')}
                   >
                     Show less
                   </button>

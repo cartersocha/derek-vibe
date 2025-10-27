@@ -235,7 +235,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                           <Link
                             key={`${character.id}-org-${organization.id}`}
                             href={`/organizations/${organization.id}`}
-                            className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                            className={getPillClasses('organization', 'small')}
                           >
                             {organization.name}
                           </Link>
@@ -243,7 +243,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {!expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
                           <button
                             onClick={() => toggleCharacterGroups(character.id)}
-                            className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                            className={getDashedPillClasses('organization', 'small')}
                           >
                             +{character.organization_characters.length - 4} more
                           </button>
@@ -251,7 +251,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
                           <button
                             onClick={() => toggleCharacterGroups(character.id)}
-                            className={getPillClasses('organization', 'small')}
+                          className={getPillClasses('default', 'small')}
                           >
                             Show less
                           </button>
@@ -279,7 +279,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                           <Link
                             key={`${character.id}-session-${sessionRelation.session.id}`}
                             href={`/sessions/${sessionRelation.session.id}`}
-                            className={cn(getPillClasses('session', 'small'), 'whitespace-nowrap')}
+                            className={getPillClasses('session', 'small')}
                           >
                             {sessionRelation.session.name}
                           </Link>
@@ -287,7 +287,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {!expandedCharacters.has(character.id) && character.session_characters.length > 3 && (
                           <button
                             onClick={() => toggleCharacterSessions(character.id)}
-                            className={cn(getDashedPillClasses('session', 'small'), 'whitespace-nowrap')}
+                            className={getDashedPillClasses('session', 'small')}
                           >
                             +{character.session_characters.length - 3} more
                           </button>
@@ -295,7 +295,7 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                         {expandedCharacters.has(character.id) && character.session_characters.length > 3 && (
                           <button
                             onClick={() => toggleCharacterSessions(character.id)}
-                            className={getPillClasses('organization', 'small')}
+                          className={getPillClasses('default', 'small')}
                           >
                             Show less
                           </button>

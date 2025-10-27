@@ -126,13 +126,13 @@ body {
 /* Mobile optimizations */
 @media (max-width: 768px) {
   /* Improve touch targets */
-  button, 
+  button:not(.pill), 
   input[type="button"], 
   input[type="submit"], 
   input[type="reset"],
-  a[role="button"],
-  [role="button"],
-  .touch-target {
+  a[role="button"]:not(.pill),
+  [role="button"]:not(.pill),
+  .touch-target:not(.pill) {
     min-height: 44px;
     min-width: 44px;
     touch-action: manipulation;
@@ -197,6 +197,14 @@ body {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+  }
+
+  /* Retro title mobile tuning: keep whole words, reduce letter spacing, balance lines */
+  .retro-title {
+    word-break: keep-all;        /* avoid breaking inside words */
+    overflow-wrap: normal;       /* don't force mid-word breaks */
+    letter-spacing: 0.18em;      /* tighter tracking to prevent single-letter wrap */
+    text-wrap: balance;          /* gracefully balance multi-line titles when supported */
   }
 }
 
