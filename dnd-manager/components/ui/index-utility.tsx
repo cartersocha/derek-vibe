@@ -37,10 +37,9 @@ export function IndexHeader({
               id={searchId}
               value={searchValue}
               onChange={onSearchChange}
-              placeholder={searchPlaceholder}
               type="search"
               disabled={searchDisabled}
-              className="h-9 w-full rounded border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] px-3 font-mono text-xs uppercase tracking-wider text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:border-[var(--cyber-magenta)] focus:outline-none focus:ring-1 focus:ring-[var(--cyber-magenta)] disabled:border-opacity-20 disabled:text-[var(--text-muted)] sm:w-52"
+              className="h-9 w-full rounded border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] px-3 font-mono text-xs uppercase tracking-wider text-[var(--text-primary)] focus:border-[var(--cyber-magenta)] focus:outline-none focus:ring-1 focus:ring-[var(--cyber-magenta)] disabled:border-opacity-20 disabled:text-[var(--text-muted)] sm:w-52"
             />
           </>
         )}

@@ -277,7 +277,6 @@ export default function Topbar() {
               }}
               onBlur={() => setTimeout(() => setShowResults(false), 300)}
               className="w-full px-4 py-2 pl-10 text-sm bg-[var(--bg-card)] border border-[var(--cyber-cyan)] border-opacity-30 rounded text-[var(--cyber-cyan)] focus:outline-none focus:border-[var(--cyber-magenta)] focus:border-opacity-60 transition-colors"
-              placeholder="Search campaigns, characters, sessions..."
               aria-label="Search campaigns, characters, and sessions"
             />
             <svg
@@ -374,7 +373,7 @@ export default function Topbar() {
                             addToSearchHistory(historyItem);
                             performSearch(historyItem);
                           }}
-                          className={`w-full px-4 py-3 text-left hover:bg-[var(--bg-card)] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${typeBgColor}`}
+                          className={`w-full px-4 py-3 text-left hover:bg-[var(--cyber-cyan)]/10 hover:border-[var(--cyber-cyan)]/30 transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${typeBgColor}`}
                         >
                           <div className="flex items-center space-x-3">
                             <div className="w-24 flex-shrink-0">
@@ -425,7 +424,7 @@ export default function Topbar() {
                     <button
                       key={`${result.type}-${result.id}-${index}`}
                       onClick={() => handleResultClick(result.url, result.name)}
-                      className={`w-full px-4 py-3 text-left hover:bg-[var(--bg-card)] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
+                      className={`w-full px-4 py-3 text-left hover:bg-[var(--cyber-cyan)]/10 hover:border-[var(--cyber-cyan)]/30 transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-24 flex-shrink-0">
@@ -482,9 +481,9 @@ export default function Topbar() {
                     <button
                       key={option.href}
                       onClick={() => handleCreateOptionClick(option.href)}
-                      className="w-full px-4 py-2 text-left hover:bg-[var(--bg-card)] transition-colors text-sm whitespace-nowrap"
+                      className="w-full px-4 py-2 text-left hover:bg-[var(--cyber-magenta)]/20 hover:text-[var(--cyber-magenta)] transition-colors text-sm whitespace-nowrap group"
                     >
-                      <span className="text-[var(--cyber-cyan)] font-medium">{option.label}</span>
+                      <span className="text-[var(--cyber-cyan)] group-hover:text-[var(--cyber-magenta)] font-medium transition-colors">{option.label}</span>
                     </button>
                   ))}
                 </div>
@@ -514,7 +513,6 @@ export default function Topbar() {
                 onKeyPress={handleSearchKeyPress}
                 onFocus={() => setShowResults(true)}
                 onBlur={() => setTimeout(() => setShowResults(false), 200)}
-                placeholder="Search campaigns, characters, sessions..."
                 aria-label="Search campaigns, characters, and sessions"
                 className="w-full px-3 py-2 pl-10 text-sm bg-[var(--bg-card)] border border-[var(--cyber-cyan)] border-opacity-30 rounded text-[var(--cyber-cyan)] focus:outline-none focus:border-[var(--cyber-magenta)] focus:border-opacity-60 transition-colors"
               />
@@ -582,7 +580,7 @@ export default function Topbar() {
                           addToSearchHistory(historyItem);
                           performSearch(historyItem);
                         }}
-                        className="w-full px-3 py-2 text-left hover:bg-[var(--bg-card)] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0"
+                        className="w-full px-3 py-2 text-left hover:bg-[var(--cyber-cyan)]/10 transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0"
                       >
                         <div className="flex items-center space-x-2">
                           <svg className="h-4 w-4 text-[var(--cyber-cyan)] opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -622,7 +620,7 @@ export default function Topbar() {
                     <button
                       key={`${result.type}-${result.id}-${index}`}
                       onClick={() => handleResultClick(result.url, result.name)}
-                      className={`w-full px-3 py-2 text-left hover:bg-[var(--bg-card)] transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
+                      className={`w-full px-3 py-2 text-left hover:bg-[var(--cyber-cyan)]/10 transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
                     >
                       <div className="flex flex-col space-y-1">
                         <div className="flex items-center justify-between">

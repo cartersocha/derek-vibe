@@ -63,7 +63,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
               {session.name}
             </span>
             {sessionNumber !== undefined && sessionNumber !== null && (
-              <span className={cn(getPillClasses('organization', 'small'), 'w-fit')}>
+              <span className={cn(getPillClasses('session', 'small'), 'w-fit')}>
                 Session #{sessionNumber}
               </span>
             )}

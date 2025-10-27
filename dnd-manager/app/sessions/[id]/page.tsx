@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { deleteSession } from '@/lib/actions/sessions'
 import { DeleteSessionButton } from '@/components/ui/delete-session-button'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
-import { formatDateStringForDisplay, getPillClasses } from '@/lib/utils'
+import { formatDateStringForDisplay, getPillClasses, cn } from '@/lib/utils'
 import { SessionCharacterCard } from '@/components/ui/session-character-card'
 import { SessionRelatedGroups } from '@/components/ui/session-related-groups'
 
@@ -252,29 +252,32 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           )}
 
           {/* Session Name and Info */}
-          <div>
-            <h1 className="retro-title text-xl sm:text-2xl md:text-3xl font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider break-words">
-              {session.name}
-            {campaignSessionNumber !== undefined && (
-              <span className="ml-3 text-base font-mono uppercase tracking-widest text-[var(--cyber-magenta)]">
-                Session #{campaignSessionNumber}
-              </span>
-            )}
-          </h1>
-          <div className="flex flex-wrap gap-4 text-sm">
-            {session.campaign && (
-              <Link 
-                href={`/campaigns/${session.campaign.id}`}
-                className="text-[var(--orange-400)] hover:text-[var(--orange-500)] font-mono uppercase tracking-wider"
-              >
-                Campaign: {session.campaign.name}
-              </Link>
-            )}
-            {sessionDateLabel && (
-              <span className="inline-block rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] border border-[var(--orange-400)]/40 bg-[var(--bg-dark)]">
-                {sessionDateLabel}
-              </span>
-            )}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex-1">
+              <h1 className="retro-title text-xl sm:text-2xl md:text-3xl font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider break-words">
+                {session.name}
+              </h1>
+              {session.campaign && (
+                <Link 
+                  href={`/campaigns/${session.campaign.id}`}
+                  className="text-sm text-[var(--orange-400)] hover:text-[var(--orange-500)] font-mono uppercase tracking-wider"
+                >
+                  Campaign: {session.campaign.name}
+                </Link>
+              )}
+            </div>
+            <div className="flex-shrink-0 flex flex-col gap-2">
+              {campaignSessionNumber !== undefined && (
+                <span className={cn(getPillClasses('session', 'small'), 'whitespace-nowrap')}>
+                  Session #{campaignSessionNumber}
+                </span>
+              )}
+              {sessionDateLabel && (
+                <span className={getPillClasses('date')}>
+                  {sessionDateLabel}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -319,7 +322,6 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
             )
           })()
         )}
-        </div>
       </div>
     </div>
   )
