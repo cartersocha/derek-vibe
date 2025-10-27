@@ -4,10 +4,6 @@ import { useState, memo } from "react";
 import { login } from "@/lib/auth/actions";
 // Removed sanitizePassword import for performance - sanitization handled server-side
 
-// Optimized static generation for login page
-export const dynamic = 'force-static';
-export const fetchCache = 'force-cache';
-
 const LoginPage = memo(function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");

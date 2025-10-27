@@ -54,7 +54,7 @@ export default async function RootLayout({
 }>) {
   const headersList = await headers();
   const pathname = headersList.get('x-pathname') || '';
-  const isLoginPage = pathname === '/login';
+  const isLoginPage = pathname.startsWith('/login');
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -62,9 +62,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${pressStart.variable} antialiased`}
       >
         {isLoginPage ? (
-          <div className="login-body">
-            {children}
-          </div>
+          children
         ) : (
           <AutoCapitalizeProvider>
             <SidebarProvider>
