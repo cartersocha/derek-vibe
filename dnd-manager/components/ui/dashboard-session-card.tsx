@@ -107,7 +107,7 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
                     prefetch
-                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    className={getPillClasses('organization', 'small')}
                   >
                     {organization.name}
                   </Link>
@@ -115,7 +115,7 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
                 {!expandedGroups.has(session.id) && organizations.length > 5 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    className={getDashedPillClasses('organization', 'small')}
                   >
                     +{organizations.length - 5} more
                   </button>
@@ -123,7 +123,7 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
                 {expandedGroups.has(session.id) && organizations.length > 5 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    className={getPillClasses('default', 'small')}
                   >
                     Show less
                   </button>

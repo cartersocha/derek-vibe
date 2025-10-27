@@ -59,7 +59,7 @@ export function SessionRelatedGroups({ sessionId, groups }: SessionRelatedGroups
         {expandedGroups.has(sessionId) && groups.length > 6 && (
           <button
             onClick={() => toggleSessionGroups(sessionId)}
-            className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+            className={cn(getPillClasses('default', 'small'), 'whitespace-nowrap')}
             aria-label="Show fewer groups"
           >
             Show less

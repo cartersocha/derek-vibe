@@ -165,7 +165,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                           key={`${organization.id}-session-${sessionRelation.session.id}`}
                           href={`/sessions/${sessionRelation.session.id}`}
                           prefetch
-                          className={cn(getPillClasses('session', 'small'), 'whitespace-nowrap')}
+                          className={getPillClasses('session', 'small')}
                         >
                           {sessionRelation.session.name}
                         </Link>
@@ -173,7 +173,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                       {!expandedOrganizations.has(organization.id) && organization.organization_sessions.length > 3 && (
                         <button
                           onClick={() => toggleOrganizationSessions(organization.id)}
-                          className={cn(getDashedPillClasses('session', 'small'), 'whitespace-nowrap')}
+                          className={getDashedPillClasses('session', 'small')}
                         >
                           +{organization.organization_sessions.length - 3} more
                         </button>
@@ -181,7 +181,7 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                       {expandedOrganizations.has(organization.id) && organization.organization_sessions.length > 3 && (
                         <button
                           onClick={() => toggleOrganizationSessions(organization.id)}
-                          className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                          className={getPillClasses('default', 'small')}
                         >
                           Show less
                         </button>

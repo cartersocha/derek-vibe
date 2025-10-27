@@ -106,7 +106,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                   <Link
                     key={organization.id}
                     href={`/organizations/${organization.id}`}
-                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    className={getPillClasses('organization', 'small')}
                   >
                     {organization.name}
                   </Link>
@@ -114,7 +114,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                 {!expandedGroups.has(session.id) && groups.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    className={getDashedPillClasses('organization', 'small')}
                   >
                     +{groups.length - 4} more
                   </button>
@@ -122,7 +122,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                 {expandedGroups.has(session.id) && groups.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    className={getPillClasses('default', 'small')}
                   >
                     Show less
                   </button>

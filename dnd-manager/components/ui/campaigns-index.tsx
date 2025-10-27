@@ -110,7 +110,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                             key={`${campaign.id}-session-${session.id}`}
                             href={`/sessions/${session.id}`}
                             prefetch
-                            className={cn(getPillClasses('session', 'small'), 'whitespace-nowrap')}
+                            className={getPillClasses('session', 'small')}
                           >
                             {session.name}
                           </Link>
@@ -118,7 +118,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {!expandedCampaigns.has(campaign.id) && (campaign.sessionCount ?? campaign.sessions.length) > 3 && (
                           <button
                             onClick={() => toggleCampaignSessions(campaign.id)}
-                            className={cn(getDashedPillClasses('session', 'small'), 'whitespace-nowrap')}
+                            className={getDashedPillClasses('session', 'small')}
                           >
                             +{(campaign.sessionCount ?? campaign.sessions.length) - 3} more
                           </button>
@@ -126,7 +126,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {expandedCampaigns.has(campaign.id) && (campaign.sessionCount ?? campaign.sessions.length) > 3 && (
                           <button
                             onClick={() => toggleCampaignSessions(campaign.id)}
-                            className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                          className={cn(getPillClasses('default', 'small'), 'whitespace-nowrap')}
                           >
                             Show less
                           </button>
@@ -148,7 +148,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                             key={`${campaign.id}-org-${organization.id}`}
                             href={`/organizations/${organization.id}`}
                             prefetch
-                            className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                            className={getPillClasses('organization', 'small')}
                           >
                             {organization.name}
                           </Link>
@@ -156,7 +156,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {!expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
                           <button
                             onClick={() => toggleCampaignGroups(campaign.id)}
-                            className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                            className={getDashedPillClasses('organization', 'small')}
                           >
                             +{campaign.organizations.length - 6} more
                           </button>
@@ -164,7 +164,7 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                         {expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
                           <button
                             onClick={() => toggleCampaignGroups(campaign.id)}
-                            className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                          className={cn(getPillClasses('default', 'small'), 'whitespace-nowrap')}
                           >
                             Show less
                           </button>

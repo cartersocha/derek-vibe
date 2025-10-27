@@ -141,18 +141,18 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                           {!expandedGroups.has(session.id) && groups.length > 6 && (
                             <button
                               onClick={() => toggleSessionGroups(session.id)}
-                              className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                              className={getDashedPillClasses('organization', 'small')}
                               aria-label={`Show ${groups.length - 6} more organizations`}
                             >
                               +{groups.length - 6} more
                             </button>
                           )}
                           {expandedGroups.has(session.id) && groups.length > 6 && (
-                            <button
-                              onClick={() => toggleSessionGroups(session.id)}
-                              className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
-                              aria-label="Show fewer organizations"
-                            >
+                          <button
+                            onClick={() => toggleSessionGroups(session.id)}
+                              className={getPillClasses('default', 'small')}
+                            aria-label="Show fewer organizations"
+                          >
                               Show less
                             </button>
                           )}

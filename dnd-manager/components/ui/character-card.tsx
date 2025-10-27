@@ -115,7 +115,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                       e.stopPropagation();
                       toggleExpansion();
                     }}
-                    className={getPillClasses('organization', 'small')}
+                  className={getPillClasses('default', 'small')}
                     aria-label="Show fewer organizations"
                   >
                     Show less
