@@ -198,6 +198,14 @@ body {
     -moz-appearance: none;
     appearance: none;
   }
+
+  /* Retro title mobile tuning: keep whole words, reduce letter spacing, balance lines */
+  .retro-title {
+    word-break: keep-all;        /* avoid breaking inside words */
+    overflow-wrap: normal;       /* don't force mid-word breaks */
+    letter-spacing: 0.18em;      /* tighter tracking to prevent single-letter wrap */
+    text-wrap: balance;          /* gracefully balance multi-line titles when supported */
+  }
 }
 
 .retro-title {
