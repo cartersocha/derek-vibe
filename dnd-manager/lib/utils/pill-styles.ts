@@ -10,10 +10,10 @@ export type PillVariant = 'default' | 'player' | 'npc' | 'organization' | 'sessi
 /**
  * Base pill classes that all pills should use
  */
-export const getPillBaseClasses = (size: PillSize = 'small') => {
+export const getPillBaseClasses = (size: PillSize = 'tiny') => {
   const sizeClasses = {
     tiny: 'px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-[10px] tracking-widest',
-    small: 'px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-xs tracking-widest',
+    small: 'px-[var(--pill-padding-x-small)] py-[var(--pill-padding-y-small)] text-[10px] tracking-widest',
     medium: 'px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs tracking-widest',
     large: 'px-[var(--pill-padding-x-large)] py-[var(--pill-padding-y-large)] text-sm tracking-[var(--pill-tracking-large)]'
   }
@@ -67,7 +67,7 @@ export const getPillVariantClasses = (variant: PillVariant, size: PillSize = 'sm
 /**
  * Complete pill classes combining base and variant
  */
-export const getPillClasses = (variant: PillVariant = 'default', size: PillSize = 'small') => {
+export const getPillClasses = (variant: PillVariant = 'default', size: PillSize = 'tiny') => {
   return cn(
     getPillBaseClasses(size),
     getPillVariantClasses(variant, size)
@@ -77,7 +77,7 @@ export const getPillClasses = (variant: PillVariant = 'default', size: PillSize 
 /**
  * Dashed pill classes for "more" buttons
  */
-export const getDashedPillClasses = (variant: PillVariant = 'default', size: PillSize = 'small') => {
+export const getDashedPillClasses = (variant: PillVariant = 'default', size: PillSize = 'tiny') => {
   const radiusClass = ''
   
   const dashedClasses = {
