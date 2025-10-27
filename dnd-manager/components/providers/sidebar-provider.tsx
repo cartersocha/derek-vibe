@@ -14,32 +14,37 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "sidebar-collapsed";
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const stored = window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY);
-      if (stored !== null) return JSON.parse(stored);
-    }
-    return true; // default to collapsed
-  });
-  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
-    if (typeof window !== "undefined") {
-      const collapsedStored = window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY);
-      const isCollapsedStored = collapsedStored ? JSON.parse(collapsedStored) : true;
+  // Hydration-safe defaults: always start collapsed and at collapsed width.
+  // We load user preferences from localStorage AFTER mount to avoid SSR/client mismatches.
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(true);
+  const [sidebarWidth, setSidebarWidth] = useState<number>(64); // collapsed width
+
+  // Load persisted state on mount only (client-side)
+  useEffect(() => {
+    try {
+      const storedCollapsed = window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY);
+      const nextCollapsed = storedCollapsed !== null ? JSON.parse(storedCollapsed) : true;
+
       const storedWidth = window.localStorage.getItem("sidebar-width");
-      const parsed = storedWidth ? Number(storedWidth) : 200;
-      const initialExpanded = Number.isFinite(parsed) ? parsed : 200;
+      const parsedWidth = storedWidth ? Number(storedWidth) : 200;
+      const initialExpanded = Number.isFinite(parsedWidth) ? parsedWidth : 200;
       const clampedExpanded = Math.min(Math.max(initialExpanded, 64), 220);
-      return isCollapsedStored ? 64 : clampedExpanded;
+
+      setIsCollapsed(nextCollapsed);
+      setSidebarWidth(nextCollapsed ? 64 : clampedExpanded);
+    } catch {
+      // Ignore parsing errors and keep defaults
     }
-    return 64;
-  }); // Default width - matches DEFAULT_WIDTH from navbar
+  }, []);
 
   // Removed separate init effect; initial state reads from localStorage
 
   // Save collapsed state to localStorage when it changes
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    try {
       window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, JSON.stringify(isCollapsed));
+    } catch {
+      // ignore write errors
     }
   }, [isCollapsed]);
 
