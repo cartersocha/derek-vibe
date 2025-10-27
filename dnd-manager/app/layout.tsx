@@ -62,7 +62,9 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${pressStart.variable} antialiased`}
       >
         {isLoginPage ? (
-          children
+          <div className="login-body">
+            {children}
+          </div>
         ) : (
           <AutoCapitalizeProvider>
             <SidebarProvider>
