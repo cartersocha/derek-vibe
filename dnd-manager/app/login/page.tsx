@@ -43,7 +43,7 @@ const LoginPage = memo(function LoginPage() {
 
   return (
     <div className="h-screen w-full flex items-center justify-center bg-[var(--bg-dark)]">
-      <div className="w-full mx-4 space-y-6 sm:space-y-8 p-6 sm:p-12 bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl">
+      <div className="w-full max-w-md mx-4 space-y-6 sm:space-y-8 p-6 sm:p-12 bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl">
         <div>
           <h2
             className="text-center text-2xl sm:text-4xl font-bold glitch tracking-[0.15em]"
