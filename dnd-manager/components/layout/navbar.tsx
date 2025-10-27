@@ -32,7 +32,18 @@ export default function Navbar() {
   const { isCollapsed, setSidebarWidth, toggleSidebar } = useSidebar();
   const measurementRef = useRef<HTMLDivElement | null>(null);
   const [maxWidth, setMaxWidth] = useState(INITIAL_MAX_WIDTH);
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const [width, setWidth] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const collapsedStored = window.localStorage.getItem("sidebar-collapsed");
+      const isCollapsedStored = collapsedStored ? JSON.parse(collapsedStored) : true;
+      const storedWidth = window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+      const parsed = storedWidth ? Number(storedWidth) : DEFAULT_WIDTH;
+      const initialExpanded = Number.isFinite(parsed) ? parsed : DEFAULT_WIDTH;
+      const clampedExpanded = Math.min(Math.max(initialExpanded, COLLAPSED_WIDTH), INITIAL_MAX_WIDTH);
+      return isCollapsedStored ? COLLAPSED_WIDTH : clampedExpanded;
+    }
+    return COLLAPSED_WIDTH;
+  });
   // Drag-related state removed
 const widthFrameRef = useRef<number | null>(null);
 const hasCustomWidthRef = useRef(false);
