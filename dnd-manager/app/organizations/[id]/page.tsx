@@ -192,17 +192,17 @@ export default async function OrganizationDetailPage({
   return (
     <div className="space-y-6">
       <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl pt-4 px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8 space-y-6 sm:space-y-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-row flex-wrap items-center gap-3 justify-between">
           <Link
             href="/organizations"
             className="text-[var(--cyber-cyan)] hover-cyber font-mono uppercase tracking-wider text-sm sm:text-base"
           >
             ← Back to Groups
           </Link>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-row flex-wrap items-center gap-2 ml-auto">
             <Link
               href={`/organizations/${organization.id}/edit`}
-              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-3 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center min-h-[44px] flex items-center justify-center"
+              className="inline-flex self-start w-auto h-10 bg-[var(--cyber-magenta)] text-black px-4 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center items-center justify-center"
             >
               <EditIcon size="sm" className="bg-black" />
             </Link>

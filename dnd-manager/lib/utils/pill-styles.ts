@@ -38,19 +38,19 @@ export const getPillVariantClasses = (variant: PillVariant, size: PillSize = 'sm
       radiusClass
     ),
     player: cn(
-      'border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] hover-cyber focus-visible:ring-[var(--cyber-cyan)]',
+      'border border-[var(--cyber-cyan)]/40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/50 hover:bg-[var(--cyber-cyan)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)] hover-glow',
       radiusClass
     ),
     npc: cn(
-      'border border-[var(--cyber-magenta)]/40 bg-[var(--bg-dark)] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]',
+      'border border-[var(--cyber-magenta)]/40 bg-[var(--bg-dark)] text-[var(--cyber-magenta)] transition hover:text-[var(--cyber-magenta)] hover:border-[var(--cyber-magenta)]/50 hover:bg-[var(--cyber-magenta)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] hover-glow',
       radiusClass
     ),
     organization: cn(
-      'border border-[var(--cyber-magenta)]/40 bg-[var(--bg-dark)] text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]',
+      'border border-[var(--cyber-magenta)]/40 bg-[var(--bg-dark)] text-[var(--cyber-magenta)] transition hover:text-[var(--cyber-magenta)] hover:border-[var(--cyber-magenta)]/50 hover:bg-[var(--cyber-magenta)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] hover-glow',
       radiusClass
     ),
     session: cn(
-      'border border-[var(--yellow-400)]/40 bg-[var(--bg-dark)] text-[var(--yellow-400)] transition hover:text-[var(--yellow-500)] hover:border-[var(--yellow-500)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--yellow-400)]',
+      'border border-[var(--yellow-400)]/40 bg-[var(--bg-dark)] text-[var(--yellow-400)] transition hover:text-[var(--yellow-500)] hover:border-[var(--yellow-500)]/40 hover:bg-[var(--yellow-400)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--yellow-400)] hover-glow',
       radiusClass
     ),
     date: cn(
@@ -58,7 +58,7 @@ export const getPillVariantClasses = (variant: PillVariant, size: PillSize = 'sm
       radiusClass
     ),
     campaign: cn(
-      'border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] text-[var(--orange-400)]',
+      'border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] text-[var(--orange-400)] transition hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/40 hover:bg-[var(--orange-400)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] hover-glow',
       radiusClass
     )
   }
@@ -84,31 +84,31 @@ export const getDashedPillClasses = (variant: PillVariant = 'default', size: Pil
   
   const dashedClasses = {
     default: cn(
-      'border border-dashed border-[var(--cyber-cyan)]/50 text-[var(--cyber-cyan)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)]',
+      'border border-dashed border-[var(--cyber-cyan)]/50 text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/60 hover:bg-[var(--cyber-cyan)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)] hover-glow',
       radiusClass
     ),
     player: cn(
-      'border border-dashed border-[var(--cyber-cyan)]/50 text-[var(--cyber-cyan)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)]',
+      'border border-dashed border-[var(--cyber-cyan)]/50 text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/60 hover:bg-[var(--cyber-cyan)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-cyan)] hover-glow',
       radiusClass
     ),
     npc: cn(
-      'border border-dashed border-[var(--cyber-magenta)]/50 text-[var(--cyber-magenta)] hover-cyber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]',
+      'border border-dashed border-[var(--cyber-magenta)]/50 text-[var(--cyber-magenta)] transition hover:text-[var(--cyber-magenta)] hover:border-[var(--cyber-magenta)]/60 hover:bg-[var(--cyber-magenta)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] hover-glow',
       radiusClass
     ),
     organization: cn(
-      'border border-dashed border-[var(--cyber-magenta)]/50 text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)]',
+      'border border-dashed border-[var(--cyber-magenta)]/50 text-[var(--cyber-magenta)] transition hover:text-[var(--cyber-magenta)] hover:border-[var(--cyber-magenta)]/60 hover:bg-[var(--cyber-magenta)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] hover-glow',
       radiusClass
     ),
     session: cn(
-      'border border-dashed border-[var(--yellow-400)]/50 text-[var(--yellow-400)] hover:text-[var(--yellow-500)] hover:border-[var(--yellow-500)]/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--yellow-400)]',
+      'border border-dashed border-[var(--yellow-400)]/50 text-[var(--yellow-400)] transition hover:text-[var(--yellow-500)] hover:border-[var(--yellow-500)]/60 hover:bg-[var(--yellow-400)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--yellow-400)] hover-glow',
       radiusClass
     ),
     date: cn(
-      'border border-dashed border-[var(--orange-400)]/50 text-[var(--orange-400)] hover:text-[var(--orange-500)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)]',
+      'border border-dashed border-[var(--orange-400)]/50 text-[var(--orange-400)] transition hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/60 hover:bg-[var(--orange-400)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] hover-glow',
       radiusClass
     ),
     campaign: cn(
-      'border border-dashed border-[var(--orange-400)]/50 text-[var(--orange-400)] hover:text-[var(--orange-500)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)]',
+      'border border-dashed border-[var(--orange-400)]/50 text-[var(--orange-400)] transition hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/60 hover:bg-[var(--orange-400)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] hover-glow',
       radiusClass
     )
   }
