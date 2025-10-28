@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { deleteCharacter } from '@/lib/actions/characters'
 import { DeleteCharacterButton } from '@/components/ui/delete-character-button'
 import SessionManager from '@/components/ui/session-manager'
+import EditIcon from '@/components/ui/edit-icon'
 import {
   extractPlayerSummaries,
   dateStringToLocalDate,
@@ -313,9 +314,9 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href={`/characters/${id}/edit`}
-              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-3 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"
+              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-3 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center flex items-center justify-center"
             >
-              Edit Character
+              <EditIcon size="sm" className="bg-black" />
             </Link>
             <form action={deleteCharacterWithId}>
               <DeleteCharacterButton />

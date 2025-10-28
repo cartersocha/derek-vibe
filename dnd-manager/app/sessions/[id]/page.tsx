@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { deleteSession } from '@/lib/actions/sessions'
 import { DeleteSessionButton } from '@/components/ui/delete-session-button'
+import EditIcon from '@/components/ui/edit-icon'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
 import { formatDateStringForDisplay, getPillClasses, cn } from '@/lib/utils'
 import { SessionCharacterCard } from '@/components/ui/session-character-card'
@@ -227,9 +228,9 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href={`/sessions/${id}/edit`}
-              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"
+              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center flex items-center justify-center"
             >
-              Edit Session
+              <EditIcon size="sm" className="bg-black" />
             </Link>
             <form action={deleteSessionWithId}>
               <DeleteSessionButton />
