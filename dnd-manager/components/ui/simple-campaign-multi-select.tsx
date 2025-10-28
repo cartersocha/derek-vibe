@@ -140,26 +140,26 @@ export default function SimpleCampaignMultiSelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex w-full items-center justify-between gap-3 rounded border border-opacity-30 bg-[var(--bg-dark)] px-4 py-2 text-left font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--orange-400)] ${
+        className={`flex w-full items-center justify-between gap-3 rounded border bg-[var(--bg-dark)] px-4 py-2 text-left font-mono text-sm transition-colors duration-200 focus:outline-none focus:ring-2 ${
           open
-            ? 'border-[var(--orange-500)] text-[var(--orange-500)] shadow-lg shadow-[var(--orange-500)]/30'
-            : 'border-[var(--orange-400)] text-[var(--orange-400)] hover:border-[var(--orange-500)] hover:text-[var(--orange-500)]'
+            ? 'border-[var(--cyber-cyan)] border-opacity-50 text-[var(--cyber-cyan)] shadow-lg shadow-[var(--cyber-cyan)]/20 focus:ring-[var(--cyber-cyan)]'
+            : 'border-[var(--cyber-cyan)] border-opacity-30 text-[var(--cyber-cyan)] hover:border-opacity-50 focus:ring-[var(--cyber-cyan)]'
         }`}
       >
         <span className="truncate">{selectedLabels || placeholder}</span>
-        <span className="text-xs text-[var(--orange-500)]">{open ? "▲" : "▼"}</span>
+        <span className="text-xs text-[var(--cyber-cyan)]">{open ? "▲" : "▼"}</span>
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--orange-400)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[var(--orange-400)]/20">
+        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-2xl shadow-[var(--cyber-cyan)]/15">
           <div className="border-b border-[var(--bg-card)] px-3 py-2">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search campaigns..."
-              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--orange-400)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--orange-500)]"
+              className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--cyber-cyan)]"
               autoFocus
             />
           </div>
@@ -178,8 +178,8 @@ export default function SimpleCampaignMultiSelect({
                       <button
                         type="button"
                         onClick={() => handleToggle(option.value)}
-                        className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[var(--bg-card)]/60 ${
-                          isSelected ? 'text-[var(--orange-500)]' : 'text-[var(--orange-400)]'
+                        className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors duration-150 hover:bg-[var(--cyber-cyan)]/10 ${
+                          isSelected ? 'text-[var(--cyber-cyan)]' : 'text-[var(--cyber-cyan)]'
                         }`}
                       >
                         <span className="truncate">
@@ -201,7 +201,7 @@ export default function SimpleCampaignMultiSelect({
                       type="button"
                       onClick={handleCreateNew}
                       disabled={isPending}
-                      className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[var(--orange-400)] transition-colors duration-150 hover:bg-[var(--bg-card)]/60"
+                      className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[var(--cyber-cyan)] transition-colors duration-150 hover:bg-[var(--cyber-cyan)]/10"
                     >
                       <span className="truncate">
                         {isPending ? "Creating..." : `Create "${trimmedSearch}"`}
@@ -214,17 +214,17 @@ export default function SimpleCampaignMultiSelect({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-2 border-t border-[var(--orange-400)]/20 bg-[var(--bg-dark)] px-3 py-2">
+          <div className="flex items-center justify-between gap-2 border-t border-[var(--cyber-cyan)]/20 bg-[var(--bg-dark)] px-3 py-2">
             <button
               type="button"
-              className="rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-bold uppercase tracking-wider text-[var(--orange-400)] transition hover:text-[var(--orange-500)]"
+              className="rounded-full px-[var(--pill-padding-x-medium)] py-[var(--pill-padding-y-medium)] text-xs font-bold uppercase tracking-wider text-[var(--cyber-cyan)] transition hover:text-[var(--cyber-cyan)]/80"
               onClick={() => setOpen(false)}
             >
               Cancel
             </button>
             <button
               type="button"
-              className="rounded bg-[var(--orange-500)] px-3 py-2 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--orange-500)]/80"
+              className="rounded bg-[var(--cyber-cyan)] px-3 py-2 text-xs font-bold uppercase tracking-wider text-black transition hover:bg-[var(--cyber-cyan)]/80"
               onClick={() => setOpen(false)}
             >
               Done

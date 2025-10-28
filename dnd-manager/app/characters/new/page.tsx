@@ -13,6 +13,7 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
   const [
     { data: allCharacters },
     { data: allSessions },
+    { data: campaigns },
     { data: organizations },
     { data: locationRows },
     { data: raceRows },
@@ -20,6 +21,7 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
   ] = await Promise.all([
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('sessions').select('id, name').order('name'),
+    supabase.from('campaigns').select('id, name, created_at').order('created_at', { ascending: false }),
     supabase.from('organizations').select('id, name').order('name'),
     supabase
       .from('characters')
@@ -71,6 +73,10 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
         organizations={(organizations ?? []).map((organization) => ({
           id: organization.id,
           name: organization.name ?? 'Untitled Organization',
+        }))}
+        campaigns={(campaigns ?? []).map((campaign) => ({
+          id: campaign.id,
+          name: campaign.name ?? 'Untitled Campaign',
         }))}
         locationSuggestions={locationSuggestions}
         raceSuggestions={raceSuggestions}

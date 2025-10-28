@@ -23,7 +23,10 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
     { data: allCharacters },
     { data: allSessions },
     { data: organizations },
+    { data: campaigns },
     { data: organizationLinks },
+    { data: campaignLinks },
+    { data: sessionDerivedCampaigns },
     { data: locationRows },
     { data: raceRows },
     { data: classRows },
@@ -31,10 +34,19 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('sessions').select('id, name').order('name'),
     supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('campaigns').select('id, name').order('name'),
     supabase
       .from('organization_characters')
       .select('organization_id, role')
       .eq('character_id', id),
+    supabase
+      .from('campaign_characters')
+      .select('campaign_id')
+      .eq('character_id', id),
+    supabase
+      .from('sessions')
+      .select('campaign_id, session_characters!inner(character_id)')
+      .eq('session_characters.character_id', id),
     supabase
       .from('characters')
       .select('last_known_location')
@@ -91,7 +103,15 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
           id: organization.id,
           name: organization.name ?? 'Untitled Organization',
         }))}
+        campaigns={(campaigns ?? []).map((campaign) => ({
+          id: campaign.id,
+          name: campaign.name ?? 'Untitled Campaign',
+        }))}
         organizationAffiliations={(organizationLinks ?? []).map((entry) => entry.organization_id)}
+        campaignAffiliations={Array.from(new Set([
+          ...((campaignLinks ?? []).map((entry) => entry.campaign_id).filter(Boolean) as string[]),
+          ...((sessionDerivedCampaigns ?? []).map((row) => row.campaign_id).filter(Boolean) as string[]),
+        ]))}
         locationSuggestions={locationSuggestions}
         raceSuggestions={raceSuggestions}
         classSuggestions={classSuggestions}
