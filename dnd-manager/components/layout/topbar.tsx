@@ -2,17 +2,18 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { createClient } from "@/lib/supabase/client";
 
 const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboard", symbol: "🏠" },
-  { href: "/campaigns", label: "Campaigns", symbol: "⚔" },
-  { href: "/sessions", label: "Sessions", symbol: "✎" },
-  { href: "/characters", label: "Characters", symbol: "♞" },
-  { href: "/organizations", label: "Groups", symbol: "⚙" },
+  { href: "/dashboard", label: "Dashboard", icon: "/icons/dashboards-24.png", symbol: "🏠" },
+  { href: "/campaigns", label: "Campaigns", icon: "/icons/campaigns-24.png", symbol: "⚔" },
+  { href: "/sessions", label: "Sessions", icon: "/icons/sessions-24.png", symbol: "✎" },
+  { href: "/characters", label: "Characters", icon: "/icons/characters-24.png", symbol: "♞" },
+  { href: "/organizations", label: "Groups", icon: "/icons/groups-24.png", symbol: "⚙" },
 ];
 
 const CREATE_OPTIONS = [
@@ -656,7 +657,25 @@ export default function Topbar() {
                     : "text-[var(--cyber-cyan)] hover:bg-[var(--bg-card)] hover-cyber"
                 )}
               >
-                <span className="mr-3 text-lg">{link.symbol}</span>
+                <span className="mr-3 text-lg">
+                  {link.icon ? (
+                    <div 
+                      className="w-6 h-6 bg-[var(--cyber-cyan)]"
+                      style={{
+                        maskImage: `url(${link.icon})`,
+                        maskSize: 'contain',
+                        maskRepeat: 'no-repeat',
+                        maskPosition: 'center',
+                        WebkitMaskImage: `url(${link.icon})`,
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskRepeat: 'no-repeat',
+                        WebkitMaskPosition: 'center'
+                      }}
+                    />
+                  ) : (
+                    link.symbol
+                  )}
+                </span>
                 {link.label}
               </Link>
             );
