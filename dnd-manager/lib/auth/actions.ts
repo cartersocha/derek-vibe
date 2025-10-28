@@ -40,11 +40,8 @@ export async function login(password: string) {
 
     session.isAuthenticated = true;
     
-    // Use Promise.all to parallelize session save and redirect
-    await Promise.all([
-      session.save(),
-      Promise.resolve() // Prepare for redirect
-    ]);
+    // Save session first, then redirect
+    await session.save();
     
     redirect("/dashboard");
   } catch (error) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo } from "react";
+import { useState, memo, useTransition } from "react";
 import { login } from "@/lib/auth/actions";
 // Removed sanitizePassword import for performance - sanitization handled server-side
 
@@ -11,34 +11,34 @@ export const fetchCache = 'force-cache';
 const LoginPage = memo(function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     
     // Prevent multiple submissions
-    if (loading) return;
+    if (isPending) return;
     
     setError("");
-    setLoading(true);
 
-    try {
-      // Direct password submission - sanitization handled server-side for performance
-      const result = await login(password);
-      if (result?.error) {
-        setError(result.error);
-        setLoading(false);
+    startTransition(async () => {
+      try {
+        // Direct password submission - sanitization handled server-side for performance
+        const result = await login(password);
+        if (result?.error) {
+          setError(result.error);
+          return;
+        }
+        // If no error, redirect will happen automatically via server action
+      } catch (error) {
+        // Check if this is a redirect error (which is expected)
+        if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
+          // Let Next.js handle the redirect
+          return;
+        }
+        setError("An error occurred. Please try again.");
       }
-      // If no error, redirect will happen automatically
-    } catch (error) {
-      // Check if this is a redirect error (which is expected)
-      if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
-        // Let Next.js handle the redirect
-        throw error;
-      }
-      setError("An error occurred. Please try again.");
-      setLoading(false);
-    }
+    });
   }
 
   return (
@@ -66,7 +66,7 @@ const LoginPage = memo(function LoginPage() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
+              disabled={isPending}
             />
           </div>
 
@@ -79,10 +79,10 @@ const LoginPage = memo(function LoginPage() {
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={isPending}
               className="group relative w-full flex justify-center py-4 sm:py-3 px-4 border border-transparent text-base font-bold rounded text-black bg-[var(--cyber-magenta)] hover-brightness focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--cyber-magenta)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 uppercase tracking-wider shadow-lg shadow-[var(--cyber-magenta)]/50 min-h-[48px]"
             >
-              {loading ? "ACCESSING..." : "ENTER"}
+              {isPending ? "ACCESSING..." : "ENTER"}
             </button>
           </div>
         </form>
