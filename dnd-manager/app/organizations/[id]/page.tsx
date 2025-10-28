@@ -249,7 +249,7 @@ export default async function OrganizationDetailPage({
                 fontSmoothing: 'never'
               } as React.CSSProperties}>Overview</h2>
             {organization.description && (
-              <div className="whitespace-pre-wrap leading-relaxed break-words">
+              <div className="whitespace-pre-wrap leading-relaxed break-words dynamic-text">
                 {renderNotesWithMentions(organization.description, mentionTargets)}
               </div>
             )}
@@ -272,7 +272,7 @@ export default async function OrganizationDetailPage({
                 <Link
                   key={campaign.id}
                   href={`/campaigns/${campaign.id}`}
-                  className={getPillClasses('campaign', 'small')}
+                  className={cn(getPillClasses('campaign', 'small'), 'whitespace-normal break-words sm:whitespace-nowrap')}
                 >
                   <span className="font-semibold">{campaign.name}</span>
                 </Link>

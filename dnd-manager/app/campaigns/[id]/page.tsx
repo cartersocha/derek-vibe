@@ -248,7 +248,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--cyber-cyan)] mb-4 text-center break-words">{campaign.name}</h1>
           {campaign.description && (
             <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-6">
-              <div className="text-[var(--gray-300)] whitespace-pre-wrap font-mono">
+              <div className="text-[var(--gray-300)] whitespace-pre-wrap font-mono dynamic-text">
                 {renderNotesWithMentions(campaign.description, mentionTargets)}
               </div>
             </div>

@@ -21,7 +21,7 @@ export const getPillBaseClasses = (size: PillSize = 'tiny') => {
   return cn(
     // Mark as a pill and ensure we don't inherit mobile 44px min touch targets for generic buttons
     // Allow text wrapping inside pills and prevent overflow beyond container width
-    'pill inline-flex items-center font-mono uppercase transition-colors focus:outline-none focus-visible:ring-2 min-h-0 min-w-0 max-w-full whitespace-normal break-words text-left',
+    'pill inline-flex items-center font-mono uppercase transition-colors focus:outline-none focus-visible:ring-2 min-h-0 min-w-0 max-w-full whitespace-normal break-words text-left self-start',
     sizeClasses[size]
   )
 }

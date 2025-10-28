@@ -391,7 +391,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
               <h3 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Backstory & Notes</h3>
             </div>
             {character.backstory ? (
-              <div className="whitespace-pre-wrap leading-relaxed">
+              <div className="whitespace-pre-wrap leading-relaxed dynamic-text">
                 {renderNotesWithMentions(character.backstory, mentionTargets)}
               </div>
             ) : (
@@ -434,7 +434,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                   <Link
                     key={campaign.id}
                     href={`/campaigns/${campaign.id}`}
-                    className={cn(getPillClasses('campaign', 'small'), 'whitespace-nowrap')}
+                    className={cn(getPillClasses('campaign', 'small'), 'whitespace-normal break-words sm:whitespace-nowrap')}
                   >
                     <span className="font-semibold">{campaign.name}</span>
                   </Link>
@@ -456,7 +456,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                   <Link
                     key={affiliation.id}
                     href={`/organizations/${affiliation.id}`}
-                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    className={cn(getPillClasses('organization', 'small'), 'whitespace-normal break-words sm:whitespace-nowrap')}
                   >
                     <span className="font-semibold">{affiliation.name}</span>
                   </Link>

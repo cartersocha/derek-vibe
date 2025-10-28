@@ -261,7 +261,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
               {session.campaign && (
                 <Link 
                   href={`/campaigns/${session.campaign.id}`}
-                  className="text-sm font-mono uppercase tracking-wider text-[var(--orange-400)] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)] border border-transparent rounded px-1.5 py-0.5 hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/40 hover:bg-[var(--orange-400)]/10 hover-glow"
+                  className="inline-block text-xs sm:text-sm font-mono uppercase tracking-[0.12em] sm:tracking-wider text-[var(--orange-400)] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)] border border-transparent rounded px-1.5 py-0.5 hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/40 hover:bg-[var(--orange-400)]/10 hover-glow whitespace-normal break-words sm:whitespace-nowrap leading-snug"
                 >
                   Campaign: {session.campaign.name}
                 </Link>
@@ -290,7 +290,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           <div className="mb-8">
             <h3 className="text-xl font-bold text-[var(--cyber-cyan)] mb-4 uppercase tracking-wider">Session Notes</h3>
             <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-6">
-              <div className="text-[var(--text-primary)] whitespace-pre-wrap font-mono text-base sm:text-lg leading-relaxed break-words">
+              <div className="text-[var(--text-primary)] whitespace-pre-wrap font-mono dynamic-text leading-relaxed break-words">
                 {renderNotesWithMentions(session.notes, mentionTargets)}
               </div>
             </div>
