@@ -44,7 +44,7 @@ export function DeleteOrganizationButton() {
       <ConfirmDialog
         open={open}
         title="Delete organization?"
-        description="Linked campaigns, sessions, and characters will remain, but their affiliations will be removed."
+        description="You sure about that?"
         confirmLabel="Delete"
         cancelLabel="Cancel"
         confirmVariant="danger"

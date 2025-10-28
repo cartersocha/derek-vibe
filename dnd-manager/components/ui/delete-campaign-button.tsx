@@ -43,7 +43,7 @@ export function DeleteCampaignButton() {
       <ConfirmDialog
         open={open}
         title="Delete campaign?"
-        description="This will not delete associated sessions."
+        description="You sure about that?"
         confirmLabel="Delete"
         cancelLabel="Cancel"
         confirmVariant="danger"
