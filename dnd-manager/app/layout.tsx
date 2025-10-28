@@ -64,8 +64,8 @@ export default function RootLayout({
             </MainContentWrapper>
           </SidebarProvider>
         </AutoCapitalizeProvider>
-        <Analytics />
-        <SpeedInsights />
+        {process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true' && <Analytics />}
+        {process.env.NEXT_PUBLIC_ENABLE_SPEED_INSIGHTS === 'true' && <SpeedInsights />}
       </body>
     </html>
   );
