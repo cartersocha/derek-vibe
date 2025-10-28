@@ -61,35 +61,37 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
       </Link>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1 relative z-10 pointer-events-none">
-          <div className="mb-2">
-            <span className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider transition-colors hover-cyber break-words">
-              {session.name}
-            </span>
-          </div>
-          {session.campaign?.name && session.campaign.id && (
-            <Link
-              href={`/campaigns/${session.campaign.id}`}
-              prefetch
-              className="pointer-events-auto inline-block text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)] border border-transparent rounded px-1.5 py-0.5 hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/40 hover:bg-[var(--orange-400)]/10 hover-glow whitespace-normal break-words sm:whitespace-nowrap leading-snug"
-            >
-              Campaign: {session.campaign.name}
-            </Link>
-          )}
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            {sessionNumber !== undefined && sessionNumber !== null && (
-              <span className={cn(getPillClasses('session', 'small'), 'flex-shrink-0')}>
-                Session #{sessionNumber}
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between sm:gap-4 mb-2">
+            <div className="mb-2 sm:mb-0">
+              <span className="text-lg sm:text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider transition-colors hover-cyber break-words">
+                {session.name}
               </span>
-            )}
-            {sessionDateLabel ? (
-              <span className={getPillClasses('date', 'small')}>
-                {sessionDateLabel}
-              </span>
-            ) : (
-              <span className={cn(getPillClasses('date', 'small'), 'text-[var(--text-muted)] border-[var(--text-muted)]/40')}>
-                No date set
-              </span>
-            )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
+              {session.campaign?.name && session.campaign.id && (
+                <Link
+                  href={`/campaigns/${session.campaign.id}`}
+                  prefetch
+                  className={getPillClasses('campaign', 'small')}
+                >
+                  {session.campaign.name}
+                </Link>
+              )}
+              {sessionNumber !== undefined && sessionNumber !== null && (
+                <span className={cn(getPillClasses('session', 'small'), 'flex-shrink-0')}>
+                  Session #{sessionNumber}
+                </span>
+              )}
+              {sessionDateLabel ? (
+                <span className={getPillClasses('date', 'small')}>
+                  {sessionDateLabel}
+                </span>
+              ) : (
+                <span className={cn(getPillClasses('date', 'small'), 'text-[var(--text-muted)] border-[var(--text-muted)]/40')}>
+                  No date set
+                </span>
+              )}
+            </div>
           </div>
           {players.length > 0 && (
             <div className={`pointer-events-auto ${organizations.length > 0 ? 'mt-3' : 'mt-3'}`}>

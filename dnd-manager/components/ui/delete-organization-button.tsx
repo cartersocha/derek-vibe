@@ -1,27 +1,56 @@
 
 'use client'
 
-import type { MouseEvent } from 'react'
+import { useRef, useState } from 'react'
 import { useFormStatus } from 'react-dom'
+import ConfirmDialog from './confirm-dialog'
 import TrashIcon from './trash-icon'
 
 export function DeleteOrganizationButton() {
   const { pending } = useFormStatus()
+  const [open, setOpen] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
 
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    if (!confirm('Delete this organization? Linked campaigns, sessions, and characters will remain, but their affiliations will be removed.')) {
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (!open) {
       event.preventDefault()
+      setOpen(true)
+    }
+  }
+
+  const handleConfirm = () => {
+    setOpen(false)
+    const form = buttonRef.current?.form
+    if (form) {
+      if (form.requestSubmit) {
+        form.requestSubmit(buttonRef.current as HTMLButtonElement)
+      } else {
+        form.submit()
+      }
     }
   }
 
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      onClick={handleClick}
-      className="inline-flex w-auto h-10 bg-[var(--bg-dark)] border border-[var(--red-500)] border-opacity-50 text-[var(--red-500)] px-4 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[var(--red-500)] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center"
-    >
-      <TrashIcon size="sm" className="bg-[var(--red-500)] hover:bg-black" />
-    </button>
+    <>
+      <button
+        ref={buttonRef}
+        type="submit"
+        disabled={pending}
+        onClick={handleClick}
+        className="inline-flex w-auto h-10 bg-[var(--bg-dark)] border border-[var(--red-500)] border-opacity-50 text-[var(--red-500)] px-4 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover:bg-[var(--red-500)] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center"
+      >
+        <TrashIcon size="sm" className="bg-[var(--red-500)] hover:bg-black" />
+      </button>
+      <ConfirmDialog
+        open={open}
+        title="Delete organization?"
+        description="Linked campaigns, sessions, and characters will remain, but their affiliations will be removed."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        confirmVariant="danger"
+        onCancel={() => setOpen(false)}
+        onConfirm={handleConfirm}
+      />
+    </>
   )
 }

@@ -253,21 +253,19 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           )}
 
           {/* Session Name and Info */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex-1">
-              <h1 className="retro-title text-xl sm:text-2xl md:text-3xl font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider break-words">
-                {session.name}
-              </h1>
+          <div>
+            <h1 className="retro-title text-xl sm:text-2xl md:text-3xl font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider break-words">
+              {session.name}
+            </h1>
+            <div className="flex flex-wrap items-center gap-2">
               {session.campaign && (
                 <Link 
                   href={`/campaigns/${session.campaign.id}`}
-                  className="inline-block text-xs sm:text-sm font-mono uppercase tracking-[0.12em] sm:tracking-wider text-[var(--orange-400)] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)] border border-transparent rounded px-1.5 py-0.5 hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/40 hover:bg-[var(--orange-400)]/10 hover-glow whitespace-normal break-words sm:whitespace-nowrap leading-snug"
+                  className={getPillClasses('campaign', 'small')}
                 >
-                  Campaign: {session.campaign.name}
+                  {session.campaign.name}
                 </Link>
               )}
-            </div>
-            <div className="flex-shrink-0 flex flex-col gap-2">
               {campaignSessionNumber !== undefined && (
                 <span className={cn(
                   getPillClasses('session', 'small'),
@@ -277,7 +275,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
                 </span>
               )}
               {sessionDateLabel && (
-                <span className={getPillClasses('date')}>
+                <span className={getPillClasses('date', 'small')}>
                   {sessionDateLabel}
                 </span>
               )}
