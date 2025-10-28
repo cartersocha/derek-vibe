@@ -7,6 +7,7 @@ import CreatableSelect from "@/components/ui/creatable-select"
 import SynthwaveDropdown from "@/components/ui/synthwave-dropdown"
 import OrganizationMultiSelect from "@/components/ui/organization-multi-select"
 import MentionableTextarea from "@/components/ui/mentionable-textarea"
+import SimpleCampaignMultiSelect from "@/components/ui/simple-campaign-multi-select"
 import { createCharacter } from "@/lib/actions/characters"
 import {
   CHARACTER_STATUS_OPTIONS,
@@ -26,6 +27,7 @@ type NewCharacterFormProps = {
   redirectTo?: string | null
   mentionTargets: MentionTarget[]
   organizations: { id: string; name: string }[]
+  campaigns?: { id: string; name: string }[]
   locationSuggestions?: string[]
   raceSuggestions?: string[]
   classSuggestions?: string[]
@@ -35,6 +37,7 @@ export function NewCharacterForm({
   redirectTo,
   mentionTargets,
   organizations,
+  campaigns = [],
   locationSuggestions = [],
   raceSuggestions = [],
   classSuggestions = [],
@@ -45,6 +48,13 @@ export function NewCharacterForm({
   const [lastKnownLocation, setLastKnownLocation] = useState("")
   const [status, setStatus] = useState<CharacterStatus>("alive")
   const [organizationIds, setOrganizationIds] = useState<string[]>([])
+  const [campaignIds, setCampaignIds] = useState<string[]>(() => {
+    // Default to most recently created campaign if provided
+    if (campaigns && campaigns.length > 0) {
+      return [campaigns[0].id]
+    }
+    return []
+  })
   const organizationMentionTargets = useMemo(() => {
     return organizations
       .filter((organization) => Boolean(organization.name))
@@ -100,6 +110,13 @@ export function NewCharacterForm({
       label: organization.name || "Untitled Organization",
     }))
   }, [organizations])
+
+  const campaignOptions = useMemo(() => {
+    return (campaigns ?? []).map((campaign) => ({
+      value: campaign.id,
+      label: campaign.name || "Untitled Campaign",
+    }))
+  }, [campaigns])
 
   const dedupeAndNormalize = useCallback((values: readonly string[] | string[] | undefined) => {
     const seen = new Set<string>()
@@ -182,6 +199,13 @@ export function NewCharacterForm({
       if (target.kind === 'organization') {
         // Add organization to the list if not already present
         setOrganizationIds((prev) => {
+          if (prev.includes(target.id)) {
+            return prev
+          }
+          return [...prev, target.id]
+        })
+      } else if (target.kind === 'campaign') {
+        setCampaignIds((prev) => {
           if (prev.includes(target.id)) {
             return prev
           }
@@ -350,6 +374,20 @@ export function NewCharacterForm({
             options={organizationOptions}
             placeholder="Select organizations"
             onCreateOption={handleOrganizationCreated}
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="campaign_ids" className="block text-sm font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">
+            Campaigns
+          </label>
+          <SimpleCampaignMultiSelect
+            id="campaign_ids"
+            name="campaign_ids"
+            value={campaignIds}
+            onChange={setCampaignIds}
+            options={campaignOptions}
+            placeholder="Select campaigns"
+            emptyMessage="No campaigns available"
           />
         </div>
       </div>

@@ -44,6 +44,7 @@ import {
   setCharacterOrganizations,
   syncSessionOrganizationsFromCharacters,
 } from "@/lib/actions/organizations";
+import { getIdList } from "@/lib/utils/form-data";
 import { extractOrganizationIds } from "@/lib/organizations/helpers";
 import type { CharacterOrganizationAffiliationInput } from "@/lib/validations/organization";
 
@@ -74,6 +75,7 @@ export async function createCharacter(formData: FormData): Promise<void> {
     formData.has("organization_id");
 
   const selectedOrganizationIds = extractOrganizationIds(formData);
+  const selectedCampaignIds = getIdList(formData, "campaign_ids");
 
   const imageFile = getFile(formData, "image");
   let imageUrl: string | null = null;
@@ -183,6 +185,36 @@ export async function createCharacter(formData: FormData): Promise<void> {
       revalidatePath("/organizations");
       Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
         revalidatePath(`/organizations/${organizationId}`);
+      });
+    }
+  }
+
+  // Sync campaign_characters if provided
+  if (Array.isArray(selectedCampaignIds)) {
+    // Clear existing links first
+    const { error: deleteCampaignLinksError } = await supabase
+      .from("campaign_characters")
+      .delete()
+      .eq("character_id", characterId);
+
+    if (deleteCampaignLinksError && deleteCampaignLinksError.code !== "PGRST116") {
+      throw new Error(deleteCampaignLinksError.message);
+    }
+
+    if (selectedCampaignIds.length > 0) {
+      const inserts = Array.from(new Set(selectedCampaignIds)).map((campaignId) => ({
+        campaign_id: campaignId,
+        character_id: characterId,
+      }));
+      const { error: insertCampaignLinksError } = await supabase
+        .from("campaign_characters")
+        .insert(inserts);
+      if (insertCampaignLinksError) {
+        throw new Error(insertCampaignLinksError.message);
+      }
+      revalidatePath("/campaigns");
+      Array.from(new Set(selectedCampaignIds)).forEach((campaignId) => {
+        revalidatePath(`/campaigns/${campaignId}`);
       });
     }
   }
@@ -303,6 +335,7 @@ export async function updateCharacter(
     formData.has("organization_id");
 
   const selectedOrganizationIds = extractOrganizationIds(formData);
+  const selectedCampaignIds = getIdList(formData, "campaign_ids");
 
   const { data: existing, error: fetchError } = await supabase
     .from("characters")
@@ -454,6 +487,35 @@ export async function updateCharacter(
           revalidatePath(`/sessions/${sessionId}`);
         }
       }
+    }
+  }
+
+  // Sync campaign_characters if list provided in the form
+  if (Array.isArray(selectedCampaignIds)) {
+    const { error: deleteCampaignLinksError } = await supabase
+      .from("campaign_characters")
+      .delete()
+      .eq("character_id", id);
+
+    if (deleteCampaignLinksError && deleteCampaignLinksError.code !== "PGRST116") {
+      throw new Error(deleteCampaignLinksError.message);
+    }
+
+    if (selectedCampaignIds.length > 0) {
+      const inserts = Array.from(new Set(selectedCampaignIds)).map((campaignId) => ({
+        campaign_id: campaignId,
+        character_id: id,
+      }));
+      const { error: insertCampaignLinksError } = await supabase
+        .from("campaign_characters")
+        .insert(inserts);
+      if (insertCampaignLinksError) {
+        throw new Error(insertCampaignLinksError.message);
+      }
+      revalidatePath("/campaigns");
+      Array.from(new Set(selectedCampaignIds)).forEach((campaignId) => {
+        revalidatePath(`/campaigns/${campaignId}`);
+      });
     }
   }
 

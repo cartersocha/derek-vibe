@@ -50,9 +50,22 @@ type OrganizationsIndexProps = {
 
 export function OrganizationsIndex({ organizations, mentionTargets }: OrganizationsIndexProps) {
   const [expandedOrganizations, setExpandedOrganizations] = useState<Set<string>>(new Set());
+  const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
 
   const toggleOrganizationSessions = (organizationId: string) => {
     setExpandedOrganizations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(organizationId)) {
+        newSet.delete(organizationId);
+      } else {
+        newSet.add(organizationId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleOrganizationCampaigns = (organizationId: string) => {
+    setExpandedCampaigns(prev => {
       const newSet = new Set(prev);
       if (newSet.has(organizationId)) {
         newSet.delete(organizationId);
@@ -181,6 +194,45 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                       {expandedOrganizations.has(organization.id) && organization.organization_sessions.length > 3 && (
                         <button
                           onClick={() => toggleOrganizationSessions(organization.id)}
+                          className={getPillClasses('default', 'small')}
+                        >
+                          Show less
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Campaign Pills */}
+                {organization.organization_campaigns && organization.organization_campaigns.length > 0 && (
+                  <div className="pointer-events-auto mt-2">
+                    <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
+                      Campaigns
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {organization.organization_campaigns
+                        .slice(0, expandedCampaigns.has(organization.id) ? organization.organization_campaigns.length : 4)
+                        .map((relation) => (
+                          <Link
+                            key={`${organization.id}-campaign-${relation.campaign.id}`}
+                            href={`/campaigns/${relation.campaign.id}`}
+                            prefetch
+                            className={getPillClasses('campaign', 'small')}
+                          >
+                            {relation.campaign.name}
+                          </Link>
+                        ))}
+                      {!expandedCampaigns.has(organization.id) && organization.organization_campaigns.length > 4 && (
+                        <button
+                          onClick={() => toggleOrganizationCampaigns(organization.id)}
+                          className={getDashedPillClasses('campaign', 'small')}
+                        >
+                          +{organization.organization_campaigns.length - 4} more
+                        </button>
+                      )}
+                      {expandedCampaigns.has(organization.id) && organization.organization_campaigns.length > 4 && (
+                        <button
+                          onClick={() => toggleOrganizationCampaigns(organization.id)}
                           className={getPillClasses('default', 'small')}
                         >
                           Show less

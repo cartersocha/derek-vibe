@@ -16,6 +16,7 @@ import {
 } from '@/lib/characters/constants'
 import MentionableTextarea from '@/components/ui/mentionable-textarea'
 import type { MentionTarget } from '@/lib/mention-utils'
+import SimpleCampaignMultiSelect from '@/components/ui/simple-campaign-multi-select'
 
 interface Character {
   id: string
@@ -36,6 +37,8 @@ interface CharacterEditFormProps {
   cancelHref?: string
   mentionTargets: MentionTarget[]
   organizations: { id: string; name: string }[]
+  campaigns?: { id: string; name: string }[]
+  campaignAffiliations?: string[]
   organizationAffiliations?: string[]
   locationSuggestions?: string[]
   raceSuggestions?: string[]
@@ -52,6 +55,8 @@ export default function CharacterEditForm({
   cancelHref,
   mentionTargets,
   organizations,
+  campaigns = [],
+  campaignAffiliations = [],
   organizationAffiliations,
   locationSuggestions = [],
   raceSuggestions = [],
@@ -151,11 +156,18 @@ export default function CharacterEditForm({
   const [lastKnownLocation, setLastKnownLocation] = useState(() => toTitleCase(character.last_known_location ?? ''))
   const [status, setStatus] = useState<CharacterStatus>(character.status ?? 'alive')
   const [organizationList, setOrganizationList] = useState(() => [...organizations])
+  const [campaignList, setCampaignList] = useState(() => [...campaigns])
   const allowedOrganizationIds = useMemo(() => {
     const allowed = new Set(organizationList.map((organization) => organization.id))
     return (organizationAffiliations ?? []).filter((organizationId) => allowed.has(organizationId))
   }, [organizationAffiliations, organizationList])
   const [organizationIds, setOrganizationIds] = useState<string[]>(allowedOrganizationIds)
+
+  const allowedCampaignIds = useMemo(() => {
+    const allowed = new Set(campaignList.map((campaign) => campaign.id))
+    return (campaignAffiliations ?? []).filter((campaignId) => allowed.has(campaignId))
+  }, [campaignAffiliations, campaignList])
+  const [campaignIds, setCampaignIds] = useState<string[]>(allowedCampaignIds)
 
   const organizationMentionTargets = useMemo(() => {
     return organizationList
@@ -189,9 +201,63 @@ export default function CharacterEditForm({
           merged.set(organization.id, { id: organization.id, name: organization.name })
         }
       })
-      return Array.from(merged.values()).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+      const next = Array.from(merged.values()).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+      if (
+        previous.length === next.length &&
+        previous.every((entry, idx) => entry.id === next[idx]?.id && entry.name === next[idx]?.name)
+      ) {
+        return previous
+      }
+      return next
     })
   }, [organizations])
+
+  useEffect(() => {
+    setCampaignList((previous) => {
+      const merged = new Map(previous.map((campaign) => [campaign.id, campaign]))
+      campaigns.forEach((campaign) => {
+        if (campaign?.id) {
+          merged.set(campaign.id, { id: campaign.id, name: campaign.name })
+        }
+      })
+      const next = Array.from(merged.values()).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+      if (
+        previous.length === next.length &&
+        previous.every((entry, idx) => entry.id === next[idx]?.id && entry.name === next[idx]?.name)
+      ) {
+        return previous
+      }
+      return next
+    })
+  }, [campaigns])
+
+  // Ensure any pre-linked campaign IDs appear in the options even if not in the fetched list
+  useEffect(() => {
+    if (!campaignAffiliations || campaignAffiliations.length === 0) {
+      return
+    }
+    setCampaignList((previous) => {
+      const merged = new Map(previous.map((campaign) => [campaign.id, campaign]))
+      let changed = false
+      for (const id of campaignAffiliations) {
+        if (id && !merged.has(id)) {
+          merged.set(id, { id, name: 'Untitled Campaign' })
+          changed = true
+        }
+      }
+      if (!changed) {
+        return previous
+      }
+      const next = Array.from(merged.values()).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+      if (
+        previous.length === next.length &&
+        previous.every((entry, idx) => entry.id === next[idx]?.id && entry.name === next[idx]?.name)
+      ) {
+        return previous
+      }
+      return next
+    })
+  }, [campaignAffiliations])
 
   useEffect(() => {
     setOrganizationIds((prev) => {
@@ -206,6 +272,20 @@ export default function CharacterEditForm({
       return updated ? Array.from(merged) : prev
     })
   }, [allowedOrganizationIds])
+
+  useEffect(() => {
+    setCampaignIds((prev) => {
+      const merged = new Set(prev)
+      let updated = false
+      for (const id of allowedCampaignIds) {
+        if (!merged.has(id)) {
+          merged.add(id)
+          updated = true
+        }
+      }
+      return updated ? Array.from(merged) : prev
+    })
+  }, [allowedCampaignIds])
 
   useEffect(() => {
     setMentionableTargets((previous) => {
@@ -228,6 +308,13 @@ export default function CharacterEditForm({
       label: organization.name || 'Untitled Organization',
     }))
   }, [organizationList])
+
+  const campaignOptions = useMemo(() => {
+    return campaignList.map((campaign) => ({
+      value: campaign.id,
+      label: campaign.name || 'Untitled Campaign',
+    }))
+  }, [campaignList])
 
   const handleRaceChange = useCallback((next: string) => {
     setRace(next ? toTitleCase(next) : '')
@@ -279,6 +366,20 @@ export default function CharacterEditForm({
 
         // Auto-assign the organization to the character
         setOrganizationIds((prev) => {
+          if (prev.includes(target.id)) {
+            return prev
+          }
+          return [...prev, target.id]
+        })
+      } else if (target.kind === 'campaign') {
+        setCampaignList((prev) => {
+          if (prev.some((c) => c.id === target.id)) {
+            return prev
+          }
+          const next = [...prev, { id: target.id, name: target.name }]
+          return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
+        })
+        setCampaignIds((prev) => {
           if (prev.includes(target.id)) {
             return prev
           }
@@ -425,6 +526,20 @@ export default function CharacterEditForm({
             options={organizationOptions}
             placeholder="Select groups"
             onCreateOption={handleOrganizationCreated}
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="campaign_ids" className="block text-sm font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">
+            Campaigns
+          </label>
+          <SimpleCampaignMultiSelect
+            id="campaign_ids"
+            name="campaign_ids"
+            value={campaignIds}
+            onChange={setCampaignIds}
+            options={campaignOptions}
+            placeholder="Select campaigns"
+            emptyMessage="No campaigns available"
           />
         </div>
       </div>

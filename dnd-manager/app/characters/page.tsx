@@ -55,7 +55,13 @@ export default async function CharactersPage() {
       .from('session_characters')
       .select(`
         character_id,
-        session:sessions (id, name, campaign_id, session_date, created_at)
+        session:sessions (
+          id,
+          name,
+          session_date,
+          created_at,
+          campaign:campaigns (id, name)
+        )
       `)
       .in('character_id', characterIds),
     supabase
@@ -81,7 +87,19 @@ export default async function CharactersPage() {
         return nameA.localeCompare(nameB);
       }),
       session_characters: characterSessions.map((s: any) => s.session),
-      campaign_characters: characterCampaigns.map((c: any) => c.campaign)
+      campaign_characters: (() => {
+        const direct = characterCampaigns.map((c: any) => c.campaign).filter(Boolean);
+        const viaSessions = characterSessions
+          .map((s: any) => s.session?.campaign)
+          .filter(Boolean);
+        const byId = new Map<string, any>();
+        for (const camp of [...direct, ...viaSessions]) {
+          if (camp?.id && !byId.has(camp.id)) {
+            byId.set(camp.id, { id: camp.id, name: camp.name });
+          }
+        }
+        return Array.from(byId.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      })()
     };
   })
 
