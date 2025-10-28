@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { deleteCampaign } from '@/lib/actions/campaigns'
 import { DeleteCampaignButton } from '@/components/ui/delete-campaign-button'
+import EditIcon from '@/components/ui/edit-icon'
+import PlusIcon from '@/components/ui/plus-icon'
 import {
   extractPlayerSummaries,
   dateStringToLocalDate,
@@ -233,9 +235,9 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href={`/campaigns/${id}/edit`}
-              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"
+              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center flex items-center justify-center"
             >
-              Edit Campaign
+              <EditIcon size="sm" className="bg-black" />
             </Link>
             <form action={deleteCampaignWithId}>
               <DeleteCampaignButton />
@@ -347,9 +349,9 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
               } as React.CSSProperties}>Sessions</h2>
             <Link
               href={`/sessions/new?campaign_id=${id}`}
-              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 text-sm shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"
+              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 text-sm shadow-lg shadow-[var(--cyber-magenta)]/50 text-center flex items-center justify-center"
             >
-              + Add Session
+              <PlusIcon size="sm" className="bg-black" />
             </Link>
           </div>
 

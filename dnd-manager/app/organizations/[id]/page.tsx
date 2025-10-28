@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeleteOrganizationButton } from "@/components/ui/delete-organization-button";
+import EditIcon from "@/components/ui/edit-icon";
 import { deleteOrganization } from "@/lib/actions/organizations";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateStringForDisplay, formatTimestampForDisplay, getPillClasses, cn } from "@/lib/utils";
@@ -203,7 +204,7 @@ export default async function OrganizationDetailPage({
               href={`/organizations/${organization.id}/edit`}
               className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-3 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center min-h-[44px] flex items-center justify-center"
             >
-              Edit Group
+              <EditIcon size="sm" className="bg-black" />
             </Link>
             <form action={handleDelete}>
               <DeleteOrganizationButton />

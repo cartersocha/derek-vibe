@@ -2,17 +2,22 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { createClient } from "@/lib/supabase/client";
+import HamburgerIcon from "@/components/ui/hamburger-icon";
+import PlusIcon from "@/components/ui/plus-icon";
+import SearchIcon from "@/components/ui/search-icon";
+import CloseIcon from "@/components/ui/close-icon";
 
 const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboard", symbol: "🏠" },
-  { href: "/campaigns", label: "Campaigns", symbol: "⚔" },
-  { href: "/sessions", label: "Sessions", symbol: "✎" },
-  { href: "/characters", label: "Characters", symbol: "♞" },
-  { href: "/organizations", label: "Groups", symbol: "⚙" },
+  { href: "/dashboard", label: "Dashboard", icon: "/icons/dashboards-24.png", symbol: "🏠" },
+  { href: "/campaigns", label: "Campaigns", icon: "/icons/campaigns-24.png", symbol: "⚔" },
+  { href: "/sessions", label: "Sessions", icon: "/icons/sessions-24.png", symbol: "✎" },
+  { href: "/characters", label: "Characters", icon: "/icons/characters-24.png", symbol: "♞" },
+  { href: "/organizations", label: "Groups", icon: "/icons/groups-24.png", symbol: "⚙" },
 ];
 
 const CREATE_OPTIONS = [
@@ -211,17 +216,7 @@ export default function Topbar() {
               transform: 'translateY(-2px)' // Move up slightly
             }}
           >
-            <svg
-              className="h-6 w-6"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <HamburgerIcon size="md" className="text-[var(--cyber-cyan)]" />
           </button>
           
           {/* Mobile Hamburger Button - only visible on mobile, positioned to the left of RAT PALACE */}
@@ -233,21 +228,11 @@ export default function Topbar() {
             className="md:hidden inline-flex items-center justify-center rounded border border-[var(--cyber-cyan)] border-opacity-40 p-1.5 text-[var(--cyber-cyan)] hover-cyber transition-colors min-h-[36px] min-w-[36px]"
           >
             <span className="sr-only">Toggle navigation</span>
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {isMobileMenuOpen ? (
-                <path d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
+            <HamburgerIcon 
+              isOpen={isMobileMenuOpen} 
+              size="sm" 
+              className="text-[var(--cyber-cyan)]" 
+            />
           </button>
           
           {/* Website Title - always next to hamburger like YouTube */}
@@ -279,18 +264,7 @@ export default function Topbar() {
               className="w-full px-4 py-2 pl-10 text-sm bg-[var(--bg-card)] border border-[var(--cyber-cyan)] border-opacity-30 rounded text-[var(--cyber-cyan)] focus:outline-none focus:border-[var(--cyber-magenta)] focus:border-opacity-60 transition-colors"
               aria-label="Search campaigns, characters, and sessions"
             />
-            <svg
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--cyber-cyan)] opacity-60"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.35-4.35" />
-            </svg>
+            <SearchIcon size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-[var(--cyber-cyan)] opacity-60" />
             
             {/* Clear Search Button */}
             {searchQuery && (
@@ -304,16 +278,7 @@ export default function Topbar() {
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--cyber-cyan)] opacity-60 hover:opacity-100 transition-opacity"
                 aria-label="Clear search"
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
+                <CloseIcon size="sm" className="bg-[var(--cyber-cyan)] opacity-60 hover:opacity-100" />
               </button>
             )}
             
@@ -460,17 +425,7 @@ export default function Topbar() {
               className="inline-flex items-center justify-center rounded border border-[var(--cyber-magenta)] p-1.5 text-black hover:bg-[var(--cyber-magenta)]/80 transition-colors min-h-[32px] min-w-[32px] bg-[var(--cyber-magenta)]"
             >
               <span className="sr-only">Create new item</span>
-              <svg
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
+              <PlusIcon size="sm" className="bg-black" />
             </button>
 
             {/* Create Menu Dropdown */}
@@ -516,18 +471,7 @@ export default function Topbar() {
                 aria-label="Search campaigns, characters, and sessions"
                 className="w-full px-3 py-2 pl-10 text-sm bg-[var(--bg-card)] border border-[var(--cyber-cyan)] border-opacity-30 rounded text-[var(--cyber-cyan)] focus:outline-none focus:border-[var(--cyber-magenta)] focus:border-opacity-60 transition-colors"
               />
-              <svg
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--cyber-cyan)] opacity-60"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
+              <SearchIcon size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-[var(--cyber-cyan)] opacity-60" />
               
               {/* Clear Search Button - Mobile */}
               {searchQuery && (
@@ -541,16 +485,7 @@ export default function Topbar() {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--cyber-cyan)] opacity-60 hover:opacity-100 transition-opacity"
                   aria-label="Clear search"
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
+                  <CloseIcon size="sm" className="bg-[var(--cyber-cyan)] opacity-60 hover:opacity-100" />
                 </button>
               )}
             </div>
@@ -656,7 +591,25 @@ export default function Topbar() {
                     : "text-[var(--cyber-cyan)] hover:bg-[var(--bg-card)] hover-cyber"
                 )}
               >
-                <span className="mr-3 text-lg">{link.symbol}</span>
+                <span className="mr-3 text-lg">
+                  {link.icon ? (
+                    <div 
+                      className="w-6 h-6 bg-[var(--cyber-cyan)]"
+                      style={{
+                        maskImage: `url(${link.icon})`,
+                        maskSize: 'contain',
+                        maskRepeat: 'no-repeat',
+                        maskPosition: 'center',
+                        WebkitMaskImage: `url(${link.icon})`,
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskRepeat: 'no-repeat',
+                        WebkitMaskPosition: 'center'
+                      }}
+                    />
+                  ) : (
+                    link.symbol
+                  )}
+                </span>
                 {link.label}
               </Link>
             );

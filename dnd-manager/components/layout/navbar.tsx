@@ -3,15 +3,16 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 
 const NAV_LINKS = [
-  { href: "/campaigns", label: "Campaigns", symbol: "⚔" },
-  { href: "/sessions", label: "Sessions", symbol: "✎" },
-  { href: "/characters", label: "Characters", symbol: "♞" },
-  { href: "/organizations", label: "Groups", symbol: "⚙" },
+  { href: "/campaigns", label: "Campaigns", icon: "/icons/campaigns-24.png", symbol: "⚔" },
+  { href: "/sessions", label: "Sessions", icon: "/icons/sessions-24.png", symbol: "✎" },
+  { href: "/characters", label: "Characters", icon: "/icons/characters-24.png", symbol: "♞" },
+  { href: "/organizations", label: "Groups", icon: "/icons/groups-24.png", symbol: "⚙" },
 ];
 
 const DEFAULT_WIDTH = 200;
@@ -274,13 +275,29 @@ const hasAppliedAutoWidthRef = useRef(false);
                 } as React.CSSProperties}
               >
                 {shouldShowIconsOnly ? (
-                  // Collapsed state: only icon
-                  <span
-                    aria-hidden
-                    className="flex items-center justify-center text-3xl leading-none text-[var(--cyber-cyan)] drop-shadow-[0_0_6px_rgba(0,255,255,0.45)] -mt-2.5"
-                  >
-                    {link.symbol}
-                  </span>
+                  // Collapsed state: show icon or symbol
+                  link.icon ? (
+                    <div 
+                      className="w-6 h-6 bg-[var(--cyber-cyan)] drop-shadow-[0_0_6px_rgba(0,255,255,0.45)]"
+                      style={{
+                        maskImage: `url(${link.icon})`,
+                        maskSize: 'contain',
+                        maskRepeat: 'no-repeat',
+                        maskPosition: 'center',
+                        WebkitMaskImage: `url(${link.icon})`,
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskRepeat: 'no-repeat',
+                        WebkitMaskPosition: 'center'
+                      }}
+                    />
+                  ) : (
+                    <span
+                      aria-hidden
+                      className="flex items-center justify-center text-3xl leading-none text-[var(--cyber-cyan)] drop-shadow-[0_0_6px_rgba(0,255,255,0.45)] -mt-2.5"
+                    >
+                      {link.symbol}
+                    </span>
+                  )
                 ) : (
                   // Expanded state: only text (no icons)
                   <span>{link.label}</span>
