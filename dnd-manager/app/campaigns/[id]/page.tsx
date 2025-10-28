@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { deleteCampaign } from '@/lib/actions/campaigns'
 import { DeleteCampaignButton } from '@/components/ui/delete-campaign-button'
 import EditIcon from '@/components/ui/edit-icon'
-import PlusIcon from '@/components/ui/plus-icon'
 import {
   extractPlayerSummaries,
   dateStringToLocalDate,
@@ -228,14 +227,14 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   return (
     <div className="space-y-6">
       <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-row flex-wrap items-center gap-3 justify-between">
           <Link href="/campaigns" className="text-[var(--cyber-cyan)] hover-cyber font-mono uppercase tracking-wider">
             ← Back to Campaigns
           </Link>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-row flex-wrap items-center gap-2 ml-auto">
             <Link
               href={`/campaigns/${id}/edit`}
-              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center flex items-center justify-center"
+              className="inline-flex self-start w-auto h-10 bg-[var(--cyber-magenta)] text-black px-4 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center items-center justify-center"
             >
               <EditIcon size="sm" className="bg-black" />
             </Link>
@@ -249,7 +248,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--cyber-cyan)] mb-4 text-center break-words">{campaign.name}</h1>
           {campaign.description && (
             <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-6">
-              <div className="text-[var(--gray-300)] whitespace-pre-wrap font-mono">
+              <div className="text-[var(--gray-300)] whitespace-pre-wrap font-mono dynamic-text">
                 {renderNotesWithMentions(campaign.description, mentionTargets)}
               </div>
             </div>
@@ -347,23 +346,11 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                 WebkitFontSmoothing: 'none',
                 fontSmoothing: 'never'
               } as React.CSSProperties}>Sessions</h2>
-            <Link
-              href={`/sessions/new?campaign_id=${id}`}
-              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 text-sm shadow-lg shadow-[var(--cyber-magenta)]/50 text-center flex items-center justify-center"
-            >
-              <PlusIcon size="sm" className="bg-black" />
-            </Link>
           </div>
 
           {rawSessions.length === 0 ? (
             <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-8 text-center">
               <p className="text-[var(--text-muted)] font-mono mb-4">No sessions yet for this campaign</p>
-              <Link
-                href={`/sessions/new?campaign_id=${id}`}
-                className="inline-block w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center"
-              >
-                Create First Session
-              </Link>
             </div>
           ) : (
             <div className="space-y-3">

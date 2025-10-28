@@ -87,25 +87,38 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                 </Link>
                 <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
                   <div className="relative z-10 flex-1 pointer-events-none">
-                    <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <span className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider transition-colors hover-cyber">
-                        {session.name}
-                      </span>
-                      {session.sessionNumber !== null && session.sessionNumber !== undefined && (
-                          <span className={getPillClasses('session', 'small')}>
-                          Session #{session.sessionNumber}
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between sm:gap-4 mb-2">
+                      <div className="mb-2 sm:mb-0">
+                        <span className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider transition-colors hover-cyber">
+                          {session.name}
                         </span>
-                      )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
+                        {session.campaign && session.campaign.id && session.campaign.name && (
+                          <Link
+                              href={`/campaigns/${session.campaign.id}`}
+                            prefetch
+                              className={getPillClasses('campaign', 'small')}
+                          >
+                            {session.campaign.name}
+                          </Link>
+                        )}
+                        {session.sessionNumber !== null && session.sessionNumber !== undefined && (
+                          <span className={getPillClasses('session', 'small')}>
+                            Session #{session.sessionNumber}
+                          </span>
+                        )}
+                        {sessionDateLabel ? (
+                          <span className={getPillClasses('date', 'small')}>
+                            {sessionDateLabel}
+                          </span>
+                        ) : (
+                          <span className={cn(getPillClasses('date', 'small'), 'text-[var(--text-muted)] border-[var(--text-muted)]/40')}>
+                            No date set
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {session.campaign && session.campaign.id && session.campaign.name && (
-                    <Link
-                        href={`/campaigns/${session.campaign.id}`}
-                      prefetch
-                        className="pointer-events-auto inline-flex text-xs font-mono uppercase tracking-widest text-[var(--orange-400)] hover:text-[var(--orange-500)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
-                      >
-                        Campaign: {session.campaign.name}
-                      </Link>
-                    )}
                     {players.length > 0 && (
                       <div className={`pointer-events-auto ${groups.length > 0 ? "mt-3" : "mt-4"}`}>
                         <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
@@ -160,17 +173,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                       </div>
                     )}
                   </div>
-                  <div className="relative z-10 pointer-events-none sm:text-right sm:ml-4">
-                    {sessionDateLabel ? (
-                      <span className={getPillClasses('date', 'small')}>
-                        {sessionDateLabel}
-                      </span>
-                    ) : (
-                      <span className={cn(getPillClasses('date', 'small'), 'text-[var(--text-muted)] border-[var(--text-muted)]/40')}>
-                        No date set
-                      </span>
-                    )}
-                  </div>
+                  <div className="relative z-10 pointer-events-none sm:text-right sm:ml-4" />
                 </div>
               </article>
             );

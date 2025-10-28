@@ -108,6 +108,9 @@
   --error: var(--cyber-magenta);
   --status-active: var(--cyber-cyan);
   --status-inactive: var(--text-muted);
+  
+  /* Retro title tracking (controls space/letter spacing globally) */
+  --retro-letter-spacing: 0.02em;
 }
 
 @theme inline {
@@ -203,7 +206,7 @@ body {
   .retro-title {
     word-break: keep-all;        /* avoid breaking inside words */
     overflow-wrap: normal;       /* don't force mid-word breaks */
-    letter-spacing: 0.18em;      /* tighter tracking to prevent single-letter wrap */
+    letter-spacing: 0.06em;      /* tighter tracking to prevent single-letter wrap */
     text-wrap: balance;          /* gracefully balance multi-line titles when supported */
   }
 }
@@ -511,5 +514,10 @@ body {
 .border-semantic-error {
   border-color: var(--cyber-magenta);
   opacity: 0.7;
+}
+
+/* Fluid typography utility for long-form content (mobile-friendly) */
+.dynamic-text {
+  font-size: clamp(0.82rem, 0.74rem + 0.45vw, 1.05rem);
 }
 

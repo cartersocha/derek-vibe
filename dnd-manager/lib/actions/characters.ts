@@ -48,6 +48,21 @@ import { getIdList } from "@/lib/utils/form-data";
 import { extractOrganizationIds } from "@/lib/organizations/helpers";
 import type { CharacterOrganizationAffiliationInput } from "@/lib/validations/organization";
 
+// Detects environments where `campaign_characters` table hasn't been created yet
+const isMissingCampaignCharactersTable = (error: { message?: string | null; code?: string | null } | null | undefined) => {
+  if (!error) {
+    return false;
+  }
+
+  const code = error.code?.toUpperCase();
+  if (code === "42P01") {
+    return true;
+  }
+
+  const message = error.message?.toLowerCase() ?? "";
+  return message.includes("campaign_characters");
+};
+
 // List characters with pagination
 export async function getCharactersList(
   supabase: SupabaseClient,
@@ -197,11 +212,14 @@ export async function createCharacter(formData: FormData): Promise<void> {
       .delete()
       .eq("character_id", characterId);
 
-    if (deleteCampaignLinksError && deleteCampaignLinksError.code !== "PGRST116") {
-      throw new Error(deleteCampaignLinksError.message);
+    if (deleteCampaignLinksError) {
+      if (!isMissingCampaignCharactersTable(deleteCampaignLinksError) && deleteCampaignLinksError.code !== "PGRST116") {
+        throw new Error(deleteCampaignLinksError.message);
+      }
     }
 
-    if (selectedCampaignIds.length > 0) {
+    // Only attempt inserts if table exists (i.e., delete did not fail due to missing table)
+    if (!isMissingCampaignCharactersTable(deleteCampaignLinksError) && selectedCampaignIds.length > 0) {
       const inserts = Array.from(new Set(selectedCampaignIds)).map((campaignId) => ({
         campaign_id: campaignId,
         character_id: characterId,
@@ -210,12 +228,15 @@ export async function createCharacter(formData: FormData): Promise<void> {
         .from("campaign_characters")
         .insert(inserts);
       if (insertCampaignLinksError) {
-        throw new Error(insertCampaignLinksError.message);
+        if (!isMissingCampaignCharactersTable(insertCampaignLinksError)) {
+          throw new Error(insertCampaignLinksError.message);
+        }
+      } else {
+        revalidatePath("/campaigns");
+        Array.from(new Set(selectedCampaignIds)).forEach((campaignId) => {
+          revalidatePath(`/campaigns/${campaignId}`);
+        });
       }
-      revalidatePath("/campaigns");
-      Array.from(new Set(selectedCampaignIds)).forEach((campaignId) => {
-        revalidatePath(`/campaigns/${campaignId}`);
-      });
     }
   }
 
@@ -497,11 +518,14 @@ export async function updateCharacter(
       .delete()
       .eq("character_id", id);
 
-    if (deleteCampaignLinksError && deleteCampaignLinksError.code !== "PGRST116") {
-      throw new Error(deleteCampaignLinksError.message);
+    if (deleteCampaignLinksError) {
+      if (!isMissingCampaignCharactersTable(deleteCampaignLinksError) && deleteCampaignLinksError.code !== "PGRST116") {
+        throw new Error(deleteCampaignLinksError.message);
+      }
     }
 
-    if (selectedCampaignIds.length > 0) {
+    // Only attempt inserts if table exists
+    if (!isMissingCampaignCharactersTable(deleteCampaignLinksError) && selectedCampaignIds.length > 0) {
       const inserts = Array.from(new Set(selectedCampaignIds)).map((campaignId) => ({
         campaign_id: campaignId,
         character_id: id,
@@ -510,12 +534,15 @@ export async function updateCharacter(
         .from("campaign_characters")
         .insert(inserts);
       if (insertCampaignLinksError) {
-        throw new Error(insertCampaignLinksError.message);
+        if (!isMissingCampaignCharactersTable(insertCampaignLinksError)) {
+          throw new Error(insertCampaignLinksError.message);
+        }
+      } else {
+        revalidatePath("/campaigns");
+        Array.from(new Set(selectedCampaignIds)).forEach((campaignId) => {
+          revalidatePath(`/campaigns/${campaignId}`);
+        });
       }
-      revalidatePath("/campaigns");
-      Array.from(new Set(selectedCampaignIds)).forEach((campaignId) => {
-        revalidatePath(`/campaigns/${campaignId}`);
-      });
     }
   }
 

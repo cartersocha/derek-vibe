@@ -221,14 +221,14 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   return (
     <div className="space-y-6">
       <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-row flex-wrap items-center gap-3 justify-between">
           <Link href="/sessions" className="text-[var(--cyber-cyan)] hover-cyber font-mono uppercase tracking-wider">
             ← Back to Sessions
           </Link>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-row flex-wrap items-center gap-2 ml-auto">
             <Link
               href={`/sessions/${id}/edit`}
-              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-2 text-sm sm:text-base sm:px-5 sm:py-2.5 rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center flex items-center justify-center"
+              className="inline-flex self-start w-auto h-10 bg-[var(--cyber-magenta)] text-black px-4 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center items-center justify-center"
             >
               <EditIcon size="sm" className="bg-black" />
             </Link>
@@ -253,28 +253,29 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           )}
 
           {/* Session Name and Info */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex-1">
-              <h1 className="retro-title text-xl sm:text-2xl md:text-3xl font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider break-words">
-                {session.name}
-              </h1>
+          <div>
+            <h1 className="retro-title text-xl sm:text-2xl md:text-3xl font-bold text-[var(--cyber-cyan)] mb-2 uppercase tracking-wider break-words">
+              {session.name}
+            </h1>
+            <div className="flex flex-wrap items-center gap-2">
               {session.campaign && (
                 <Link 
                   href={`/campaigns/${session.campaign.id}`}
-                  className="text-sm text-[var(--orange-400)] hover:text-[var(--orange-500)] font-mono uppercase tracking-wider"
+                  className={getPillClasses('campaign', 'small')}
                 >
-                  Campaign: {session.campaign.name}
+                  {session.campaign.name}
                 </Link>
               )}
-            </div>
-            <div className="flex-shrink-0 flex flex-col gap-2">
               {campaignSessionNumber !== undefined && (
-                <span className={cn(getPillClasses('session', 'small'), 'whitespace-nowrap')}>
+                <span className={cn(
+                  getPillClasses('session', 'small'),
+                  'whitespace-nowrap pointer-events-none cursor-default hover:shadow-none hover:bg-transparent hover:text-[var(--yellow-400)] hover:border-[var(--yellow-400)]/40'
+                )}>
                   Session #{campaignSessionNumber}
                 </span>
               )}
               {sessionDateLabel && (
-                <span className={getPillClasses('date')}>
+                <span className={getPillClasses('date', 'small')}>
                   {sessionDateLabel}
                 </span>
               )}
@@ -287,7 +288,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           <div className="mb-8">
             <h3 className="text-xl font-bold text-[var(--cyber-cyan)] mb-4 uppercase tracking-wider">Session Notes</h3>
             <div className="bg-[var(--bg-dark)] border border-[var(--cyber-cyan)] border-opacity-30 rounded p-6">
-              <div className="text-[var(--text-primary)] whitespace-pre-wrap font-mono text-base sm:text-lg leading-relaxed break-words">
+              <div className="text-[var(--text-primary)] whitespace-pre-wrap font-mono dynamic-text leading-relaxed break-words">
                 {renderNotesWithMentions(session.notes, mentionTargets)}
               </div>
             </div>

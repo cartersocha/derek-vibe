@@ -307,14 +307,14 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
   return (
     <div className="space-y-6">
       <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl pt-4 px-8 pb-8 space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-row flex-wrap items-center gap-3 justify-between">
           <Link href="/characters" className="text-[var(--cyber-cyan)] hover-cyber font-mono uppercase tracking-wider">
             ← Back to Characters
           </Link>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-row flex-wrap items-center gap-2 ml-auto">
             <Link
               href={`/characters/${id}/edit`}
-              className="w-full sm:w-auto bg-[var(--cyber-magenta)] text-black px-4 py-3 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center flex items-center justify-center"
+              className="inline-flex self-start w-auto h-10 bg-[var(--cyber-magenta)] text-black px-4 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center items-center justify-center"
             >
               <EditIcon size="sm" className="bg-black" />
             </Link>
@@ -391,7 +391,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
               <h3 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Backstory & Notes</h3>
             </div>
             {character.backstory ? (
-              <div className="whitespace-pre-wrap leading-relaxed">
+              <div className="whitespace-pre-wrap leading-relaxed dynamic-text">
                 {renderNotesWithMentions(character.backstory, mentionTargets)}
               </div>
             ) : (
@@ -434,7 +434,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                   <Link
                     key={campaign.id}
                     href={`/campaigns/${campaign.id}`}
-                    className={cn(getPillClasses('campaign', 'small'), 'whitespace-nowrap')}
+                    className={cn(getPillClasses('campaign', 'small'), 'whitespace-normal break-words sm:whitespace-nowrap')}
                   >
                     <span className="font-semibold">{campaign.name}</span>
                   </Link>
@@ -456,7 +456,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                   <Link
                     key={affiliation.id}
                     href={`/organizations/${affiliation.id}`}
-                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    className={cn(getPillClasses('organization', 'small'), 'whitespace-normal break-words sm:whitespace-nowrap')}
                   >
                     <span className="font-semibold">{affiliation.name}</span>
                   </Link>
