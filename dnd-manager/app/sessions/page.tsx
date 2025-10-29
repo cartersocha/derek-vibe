@@ -10,7 +10,7 @@ export const fetchCache = 'force-cache'
 export default async function SessionsPage() {
   const supabase = await createClient()
 
-  const [sessionsResult, charactersResult, organizationsResult, campaignsResult, organizationMemberCountsResult] = await Promise.all([
+  const [sessionsResult, charactersResult, groupsResult, campaignsResult, groupMemberCountsResult] = await Promise.all([
     supabase
       .from('sessions')
       .select(`
@@ -24,33 +24,33 @@ export default async function SessionsPage() {
             race,
             level,
             player_type,
-            organization_memberships:organization_characters(
-              organizations(id, name)
+            group_memberships:group_characters(
+              groups(id, name)
             )
           )
         ),
-        session_organizations:organization_sessions(
-          organization:organizations(id, name)
+        session_groups:group_sessions(
+          group:groups(id, name)
         )
       `)
       .order('session_date', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false }),
     supabase.from('characters').select('id, name').order('name'),
-    supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('groups').select('id, name').order('name'),
     supabase.from('campaigns').select('id, name').order('name'),
-    supabase.from('organization_characters').select('organization_id'),
+    supabase.from('group_characters').select('group_id'),
   ])
 
   const sessions = sessionsResult.data
   const mentionCharacters = charactersResult.data
-  const organizations = organizationsResult.data
+  const groups = groupsResult.data
   const campaigns = campaignsResult.data
 
-  // Process organization member counts
-  const organizationMemberCounts = new Map<string, number>()
-  organizationMemberCountsResult.data?.forEach(row => {
-    const orgId = row.organization_id
-    organizationMemberCounts.set(orgId, (organizationMemberCounts.get(orgId) || 0) + 1)
+  // Process group member counts
+  const groupMemberCounts = new Map<string, number>()
+  groupMemberCountsResult.data?.forEach(row => {
+    const orgId = row.group_id
+    groupMemberCounts.set(orgId, (groupMemberCounts.get(orgId) || 0) + 1)
   })
 
   const sessionNumberMap = new Map<string, number>()
@@ -103,24 +103,24 @@ export default async function SessionsPage() {
       ? session.campaign[0] ?? null
       : session.campaign ?? null
 
-    const organizations = Array.isArray(session.session_organizations)
-      ? session.session_organizations
+    const groups = Array.isArray(session.session_groups)
+      ? session.session_groups
           .map((entry: {
-            organization:
+            group:
               | { id: string | null; name: string | null }
               | { id: string | null; name: string | null }[]
               | null
           }) => {
-            const org = Array.isArray(entry?.organization) ? entry?.organization?.[0] : entry?.organization
+            const org = Array.isArray(entry?.group) ? entry?.group?.[0] : entry?.group
             if (!org?.id || !org?.name) {
               return null
             }
             return { id: org.id, name: org.name }
           })
           .filter((value: { id: string; name: string } | null): value is { id: string; name: string } => Boolean(value))
-          .sort((a: any, b: any) => {
-            const aCount = organizationMemberCounts.get(a.id) || 0
-            const bCount = organizationMemberCounts.get(b.id) || 0
+          .sort((a: { id: string; name: string }, b: { id: string; name: string }) => {
+            const aCount = groupMemberCounts.get(a.id) || 0
+            const bCount = groupMemberCounts.get(b.id) || 0
             
             // Sort by member count (descending), then by name (ascending) as tiebreaker
             if (aCount !== bCount) {
@@ -135,7 +135,7 @@ export default async function SessionsPage() {
       sessionNumber: sessionNumberMap.get(session.id) ?? null,
       campaign: campaignRelation,
       players,
-      organizations,
+      groups,
     }
   })
 
@@ -173,15 +173,15 @@ export default async function SessionsPage() {
       })
     }
 
-    for (const organization of organizations ?? []) {
-      if (!organization?.id || !organization?.name) {
+    for (const group of groups ?? []) {
+      if (!group?.id || !group?.name) {
         continue
       }
       addTarget({
-        id: organization.id,
-        name: organization.name,
-        href: `/organizations/${organization.id}`,
-        kind: 'organization',
+        id: group.id,
+        name: group.name,
+        href: `/groups/${group.id}`,
+        kind: 'group',
       })
     }
 

@@ -55,20 +55,20 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
 
   const characterIds = sessionCharacters?.map(sc => sc.character_id) || []
 
-  const { data: sessionOrganizations } = await supabase
-    .from('organization_sessions')
-    .select('organization:organizations(id, name)')
+  const { data: sessionGroupsData } = await supabase
+    .from('group_sessions')
+    .select('group:groups(id, name)')
     .eq('session_id', id)
 
-  const sessionGroups = (sessionOrganizations ?? [])
+  const sessionGroups = (sessionGroupsData ?? [])
     .map((entry) => {
-      const organization = Array.isArray(entry.organization) ? entry.organization[0] : entry.organization
-      if (!organization?.id || !organization?.name) {
+      const group = Array.isArray(entry.group) ? entry.group[0] : entry.group
+      if (!group?.id || !group?.name) {
         return null
       }
       return {
-        id: organization.id,
-        name: organization.name,
+        id: group.id,
+        name: group.name,
       }
     })
     .filter((group): group is { id: string; name: string } => Boolean(group))
@@ -79,8 +79,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     name: string
     level: string | null
     player_type: 'npc' | 'player' | null
-    organization_memberships: Array<{
-      organizations:
+    group_memberships: Array<{
+      groups:
         | { id: string | null; name: string | null }
         | Array<{ id: string | null; name: string | null }>
     }> | null
@@ -91,7 +91,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
     name: string
     level: string | null
     player_type: 'npc' | 'player' | null
-    organizations: { id: string; name: string }[]
+    groups: { id: string; name: string }[]
   }> = []
 
   if (characterIds.length > 0) {
@@ -103,25 +103,25 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
           name,
           level,
           player_type,
-          organization_memberships:organization_characters(
-            organizations(id, name)
+          group_memberships:group_characters(
+            groups(id, name)
           )
         `
       )
       .in('id', characterIds)
 
     sessionChars = (charData as SessionCharacterRow[] | null)?.map((character) => {
-      const organizations: { id: string; name: string }[] = Array.isArray(character.organization_memberships)
-        ? character.organization_memberships
+      const groups: { id: string; name: string }[] = Array.isArray(character.group_memberships)
+        ? character.group_memberships
             .flatMap((membership) => {
-              const orgData = membership.organizations
-              const organization = Array.isArray(orgData) ? orgData[0] : orgData
-              if (!organization?.id || !organization?.name) {
+              const orgData = membership.groups
+              const group = Array.isArray(orgData) ? orgData[0] : orgData
+              if (!group?.id || !group?.name) {
                 return []
               }
               return [{
-                id: organization.id,
-                name: organization.name,
+                id: group.id,
+                name: group.name,
               }]
             })
         : []
@@ -131,7 +131,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         name: character.name,
         level: character.level,
         player_type: character.player_type,
-        organizations,
+        groups,
       }
     }) ?? []
   }
@@ -139,12 +139,12 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   const [
     { data: mentionCharacters },
     { data: mentionSessions },
-    { data: mentionOrganizations },
+    { data: mentionGroups },
     { data: mentionCampaigns },
   ] = await Promise.all([
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('sessions').select('id, name').order('name'),
-    supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('groups').select('id, name').order('name'),
     supabase.from('campaigns').select('id, name').order('name'),
   ])
 
@@ -182,15 +182,15 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
       })
     }
 
-    for (const organization of mentionOrganizations ?? []) {
-      if (!organization?.id || !organization?.name) {
+    for (const group of mentionGroups ?? []) {
+      if (!group?.id || !group?.name) {
         continue
       }
       addTarget({
-        id: organization.id,
-        name: organization.name,
-        href: `/organizations/${organization.id}`,
-        kind: 'organization',
+        id: group.id,
+        name: group.name,
+        href: `/groups/${group.id}`,
+        kind: 'group',
       })
     }
 

@@ -41,8 +41,8 @@ export function SessionRelatedGroups({ sessionId, groups }: SessionRelatedGroups
         ).map((group) => (
           <Link
             key={group.id}
-            href={`/organizations/${group.id}`}
-            className={getPillClasses('organization', 'small')}
+            href={`/groups/${group.id}`}
+            className={getPillClasses('group', 'small')}
           >
             {group.name}
           </Link>
@@ -50,7 +50,7 @@ export function SessionRelatedGroups({ sessionId, groups }: SessionRelatedGroups
         {!expandedGroups.has(sessionId) && groups.length > 6 && (
           <button
             onClick={() => toggleSessionGroups(sessionId)}
-            className={cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap')}
+            className={cn(getDashedPillClasses('group', 'small'), 'whitespace-nowrap')}
             aria-label={`Show ${groups.length - 6} more groups`}
           >
             +{groups.length - 6} more

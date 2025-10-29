@@ -5,7 +5,7 @@ import Link from "next/link"
 import ImageUpload from "@/components/ui/image-upload"
 import CreatableSelect from "@/components/ui/creatable-select"
 import SynthwaveDropdown from "@/components/ui/synthwave-dropdown"
-import OrganizationMultiSelect from "@/components/ui/organization-multi-select"
+import GroupMultiSelect from "@/components/ui/group-multi-select"
 import MentionableTextarea from "@/components/ui/mentionable-textarea"
 import SimpleCampaignMultiSelect from "@/components/ui/simple-campaign-multi-select"
 import { createCharacter } from "@/lib/actions/characters"
@@ -26,7 +26,7 @@ const LOCATION_STORAGE_KEY = "character-location-options"
 type NewCharacterFormProps = {
   redirectTo?: string | null
   mentionTargets: MentionTarget[]
-  organizations: { id: string; name: string }[]
+  groups: { id: string; name: string }[]
   campaigns?: { id: string; name: string }[]
   locationSuggestions?: string[]
   raceSuggestions?: string[]
@@ -36,7 +36,7 @@ type NewCharacterFormProps = {
 export function NewCharacterForm({
   redirectTo,
   mentionTargets,
-  organizations,
+  groups,
   campaigns = [],
   locationSuggestions = [],
   raceSuggestions = [],
@@ -47,7 +47,7 @@ export function NewCharacterForm({
   const [characterClass, setCharacterClass] = useState("")
   const [lastKnownLocation, setLastKnownLocation] = useState("")
   const [status, setStatus] = useState<CharacterStatus>("alive")
-  const [organizationIds, setOrganizationIds] = useState<string[]>([])
+  const [groupIds, setGroupIds] = useState<string[]>([])
   const [campaignIds, setCampaignIds] = useState<string[]>(() => {
     // Default to most recently created campaign if provided
     if (campaigns && campaigns.length > 0) {
@@ -55,27 +55,27 @@ export function NewCharacterForm({
     }
     return []
   })
-  const organizationMentionTargets = useMemo(() => {
-    return organizations
-      .filter((organization) => Boolean(organization.name))
-      .map((organization) => ({
-        id: organization.id,
-        name: organization.name,
-        href: `/organizations/${organization.id}`,
-        kind: "organization" as const,
+  const groupMentionTargets = useMemo(() => {
+    return groups
+      .filter((group) => Boolean(group.name))
+      .map((group) => ({
+        id: group.id,
+        name: group.name,
+        href: `/groups/${group.id}`,
+        kind: "group" as const,
       }))
-  }, [organizations])
+  }, [groups])
 
   const baseMentionTargets = useMemo(() => {
     const merged = new Map<string, MentionTarget>()
     mentionTargets.forEach((target) => {
       merged.set(target.id, target)
     })
-    organizationMentionTargets.forEach((target) => {
+    groupMentionTargets.forEach((target) => {
       merged.set(target.id, target)
     })
     return Array.from(merged.values())
-  }, [mentionTargets, organizationMentionTargets])
+  }, [mentionTargets, groupMentionTargets])
 
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(baseMentionTargets)
 
@@ -104,12 +104,12 @@ export function NewCharacterForm({
       .join(" ")
   }, [])
 
-  const organizationOptions = useMemo(() => {
-    return organizations.map((organization) => ({
-      value: organization.id,
-      label: organization.name || "Untitled Organization",
+  const groupOptions = useMemo(() => {
+    return groups.map((group) => ({
+      value: group.id,
+      label: group.name || "Untitled Group",
     }))
-  }, [organizations])
+  }, [groups])
 
   const campaignOptions = useMemo(() => {
     return (campaigns ?? []).map((campaign) => ({
@@ -170,7 +170,7 @@ export function NewCharacterForm({
     })
   }, [baseMentionTargets])
 
-  const handleOrganizationCreated = useCallback((option: { value: string; label: string }) => {
+  const handleGroupCreated = useCallback((option: { value: string; label: string }) => {
     setMentionableTargets((previous) => {
       if (previous.some((target) => target.id === option.value)) {
         return previous
@@ -180,8 +180,8 @@ export function NewCharacterForm({
         {
           id: option.value,
           name: option.label,
-          href: `/organizations/${option.value}`,
-          kind: "organization" as const,
+          href: `/groups/${option.value}`,
+          kind: "group" as const,
         },
       ]
     })
@@ -196,9 +196,9 @@ export function NewCharacterForm({
         return [...previous, target]
       })
 
-      if (target.kind === 'organization') {
-        // Add organization to the list if not already present
-        setOrganizationIds((prev) => {
+      if (target.kind === 'group') {
+        // Add group to the list if not already present
+        setGroupIds((prev) => {
           if (prev.includes(target.id)) {
             return prev
           }
@@ -250,7 +250,7 @@ export function NewCharacterForm({
       className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl p-6 space-y-8"
     >
       {redirectTo ? <input type="hidden" name="redirect_to" value={redirectTo} /> : null}
-      <input type="hidden" name="organization_field_present" value="true" />
+      <input type="hidden" name="group_field_present" value="true" />
 
       <ImageUpload name="image" label="Character Portrait" maxSize={5} />
 
@@ -363,17 +363,17 @@ export function NewCharacterForm({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="organization_ids" className="block text-sm font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">
-            Organization Affiliation
+          <label htmlFor="group_ids" className="block text-sm font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">
+            Group Affiliation
           </label>
-          <OrganizationMultiSelect
-            id="organization_ids"
-            name="organization_ids"
-            value={organizationIds}
-            onChange={setOrganizationIds}
-            options={organizationOptions}
-            placeholder="Select organizations"
-            onCreateOption={handleOrganizationCreated}
+          <GroupMultiSelect
+            id="group_ids"
+            name="group_ids"
+            value={groupIds}
+            onChange={setGroupIds}
+            options={groupOptions}
+            placeholder="Select groups"
+            onCreateOption={handleGroupCreated}
           />
         </div>
         <div className="space-y-2">

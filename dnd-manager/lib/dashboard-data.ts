@@ -15,8 +15,8 @@ export interface DashboardSession {
   campaign_id: string | null
   campaign: { id: string; name: string } | null
   session_characters: SessionCharacterRelation[] | null
-  session_organizations: Array<{
-    organization: { id: string; name: string } | null
+  session_groups: Array<{
+    group: { id: string; name: string } | null
   }>
   sessionNumber?: number
   players: Array<{
@@ -26,9 +26,9 @@ export interface DashboardSession {
     race: string | null
     level: string | null
     player_type: "npc" | "player" | null
-    organizations: Array<{ id: string; name: string }>
+    groups: Array<{ id: string; name: string }>
   }>
-  organizations: Array<{ id: string; name: string }>
+  groups: Array<{ id: string; name: string }>
 }
 
 export interface DashboardData {
@@ -69,13 +69,13 @@ export async function getDashboardData(): Promise<DashboardData> {
             race,
             level,
             player_type,
-            organization_memberships:organization_characters(
-              organizations(id, name)
+            group_memberships:group_characters(
+              groups(id, name)
             )
           )
         ),
-        session_organizations:organization_sessions(
-          organization:organizations(id, name)
+        session_groups:group_sessions(
+          group:groups(id, name)
         )
       `)
       .order('created_at', { ascending: false })
@@ -98,15 +98,15 @@ export async function getDashboardData(): Promise<DashboardData> {
 
       const players = extractPlayerSummaries(rawLinks)
 
-      const organizations = Array.isArray(session.session_organizations)
-        ? session.session_organizations
+      const groups = Array.isArray(session.session_groups)
+        ? session.session_groups
             .map((entry: {
-              organization:
+              group:
                 | { id: string | null; name: string | null }
                 | { id: string | null; name: string | null }[]
                 | null
             }) => {
-              const org = Array.isArray(entry?.organization) ? entry?.organization?.[0] : entry?.organization
+              const org = Array.isArray(entry?.group) ? entry?.group?.[0] : entry?.group
               if (!org?.id || !org?.name) {
                 return null
               }
@@ -123,11 +123,11 @@ export async function getDashboardData(): Promise<DashboardData> {
         campaign_id: session.campaign_id,
         campaign: campaignRelation,
         session_characters: rawLinks,
-        session_organizations: [],
+        session_groups: [],
         // Removed expensive cross-campaign session numbering query
         // sessionNumber intentionally omitted for performance
         players,
-        organizations
+        groups
       })
     }
   }

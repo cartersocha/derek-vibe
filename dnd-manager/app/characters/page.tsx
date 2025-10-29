@@ -44,11 +44,11 @@ export default async function CharactersPage() {
   // Fetch relationships in parallel (following the pattern from other pages)
   const [orgsResult, sessionsResult, campaignsResult] = await Promise.all([
     supabase
-      .from('organization_characters')
+      .from('group_characters')
       .select(`
         character_id,
         role,
-        organization:organizations (id, name)
+        group:groups (id, name)
       `)
       .in('character_id', characterIds),
     supabase
@@ -81,18 +81,18 @@ export default async function CharactersPage() {
 
     return {
       ...character,
-      organization_characters: characterOrgs.sort((a: any, b: any) => {
-        const nameA = a.organization?.name || '';
-        const nameB = b.organization?.name || '';
+      group_characters: characterOrgs.sort((a: { group?: { name?: string } }, b: { group?: { name?: string } }) => {
+        const nameA = a.group?.name || '';
+        const nameB = b.group?.name || '';
         return nameA.localeCompare(nameB);
       }),
-      session_characters: characterSessions.map((s: any) => s.session),
+      session_characters: characterSessions.map((s: { session: unknown }) => s.session),
       campaign_characters: (() => {
-        const direct = characterCampaigns.map((c: any) => c.campaign).filter(Boolean);
+        const direct = characterCampaigns.map((c: { campaign: unknown }) => c.campaign).filter(Boolean);
         const viaSessions = characterSessions
-          .map((s: any) => s.session?.campaign)
+          .map((s: { session?: { campaign?: unknown } }) => s.session?.campaign)
           .filter(Boolean);
-        const byId = new Map<string, any>();
+        const byId = new Map<string, { id: string; name: string }>();
         for (const camp of [...direct, ...viaSessions]) {
           if (camp?.id && !byId.has(camp.id)) {
             byId.set(camp.id, { id: camp.id, name: camp.name });

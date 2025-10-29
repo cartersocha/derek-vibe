@@ -61,11 +61,11 @@ export default async function DashboardPage() {
                   created_at: session.created_at,
                   campaign: session.campaign,
                   session_characters: session.session_characters,
-                  session_organizations: session.session_organizations
+                  session_groups: session.session_groups
                 }}
                 sessionNumber={session.sessionNumber}
                 players={session.players}
-                organizations={session.organizations}
+                groups={session.groups}
               />
             ))}
           </div>

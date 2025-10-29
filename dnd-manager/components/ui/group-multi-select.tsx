@@ -1,40 +1,40 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
-import { createOrganizationInline } from "@/lib/actions/organizations"
+import { createGroupInline } from "@/lib/actions/groups"
 import { sanitizeSearchQuery } from "@/lib/security/sanitize"
 
-export type OrganizationOption = {
+export type GroupOption = {
   value: string
   label: string
 }
 
-type OrganizationMultiSelectProps = {
+type GroupMultiSelectProps = {
   id: string
   name: string
   value: string[]
   onChange: (next: string[]) => void
-  options: readonly OrganizationOption[]
+  options: readonly GroupOption[]
   placeholder?: string
   className?: string
   emptyMessage?: string
-  onCreateOption?: (option: OrganizationOption) => void
+  onCreateOption?: (option: GroupOption) => void
 }
 
-export default function OrganizationMultiSelect({
+export default function GroupMultiSelect({
   id,
   name,
   value,
   onChange,
   options,
-  placeholder = "Select organizations",
+  placeholder = "Select groups",
   className = "",
-  emptyMessage = "No organizations found",
+  emptyMessage = "No groups found",
   onCreateOption,
-}: OrganizationMultiSelectProps) {
+}: GroupMultiSelectProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
-  const [localOptions, setLocalOptions] = useState<OrganizationOption[]>(() => [...options])
+  const [localOptions, setLocalOptions] = useState<GroupOption[]>(() => [...options])
   const [creationError, setCreationError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -43,7 +43,7 @@ export default function OrganizationMultiSelect({
   useEffect(() => {
     setLocalOptions((current) => {
       const seen = new Set<string>()
-      const merged: OrganizationOption[] = []
+      const merged: GroupOption[] = []
 
       options.forEach((option) => {
         if (!seen.has(option.value)) {
@@ -64,7 +64,7 @@ export default function OrganizationMultiSelect({
   }, [options])
 
   const optionMap = useMemo(() => {
-    const map = new Map<string, OrganizationOption>()
+    const map = new Map<string, GroupOption>()
     localOptions.forEach((option) => {
       map.set(option.value, option)
     })
@@ -176,14 +176,14 @@ export default function OrganizationMultiSelect({
     [normalizedSelections, onChange]
   )
 
-  const handleCreateNewOrganization = useCallback(() => {
+  const handleCreateNewGroup = useCallback(() => {
     if (!trimmedSearch || !canCreateNew || isPending) {
       return
     }
 
     setCreationError(null)
     startTransition(() => {
-      void createOrganizationInline(trimmedSearch)
+      void createGroupInline(trimmedSearch)
         .then((result) => {
           setCreationError(null)
           setLocalOptions((current) => {
@@ -204,8 +204,8 @@ export default function OrganizationMultiSelect({
           setSearch("")
         })
         .catch((error) => {
-          console.error("Failed to create organization", error)
-          setCreationError(error instanceof Error ? error.message : "Failed to create organization")
+          console.error("Failed to create group", error)
+          setCreationError(error instanceof Error ? error.message : "Failed to create group")
         })
     })
   }, [canCreateNew, isPending, normalizedSelections, onChange, onCreateOption, trimmedSearch])
@@ -269,7 +269,7 @@ export default function OrganizationMultiSelect({
                 }
                 setSearch(event.target.value)
               }}
-              placeholder="Search organizations"
+              placeholder="Search groups"
               className="w-full rounded bg-[var(--bg-dark)] px-3 py-2 text-sm text-[var(--cyber-cyan)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--cyber-magenta)]"
               disabled={isPending}
             />
@@ -307,7 +307,7 @@ export default function OrganizationMultiSelect({
               <div className="border-t border-[var(--bg-card)]">
                 <button
                   type="button"
-                  onClick={handleCreateNewOrganization}
+                  onClick={handleCreateNewGroup}
                   disabled={isPending}
                   className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-[var(--cyber-magenta)] transition-colors duration-150 hover:bg-[var(--bg-card)]/60 disabled:cursor-not-allowed disabled:opacity-60"
                 >

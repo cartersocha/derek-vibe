@@ -46,8 +46,8 @@ export async function validateCSRFToken(request: Request): Promise<boolean> {
 }
 
 // Middleware to add CSRF protection to forms
-export function withCSRFProtection<T extends any[]>(
-  handler: (...args: T) => Promise<any>
+export function withCSRFProtection<T extends unknown[]>(
+  handler: (...args: T) => Promise<unknown>
 ) {
   return async (...args: T) => {
     // For server actions, we need to check the request

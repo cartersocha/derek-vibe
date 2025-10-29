@@ -5,12 +5,12 @@ import { useSidebar } from "@/components/providers/sidebar-provider";
 
 const Navbar = dynamic(() => import("@/components/layout/navbar"), { ssr: false });
 
-export default function OrganizationsLayout({
+export default function GroupsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isCollapsed } = useSidebar();
+  useSidebar();
   
   return (
     <div className="min-h-screen bg-[var(--bg-dark)] flex flex-col md:flex-row">

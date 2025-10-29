@@ -18,15 +18,15 @@ import {
   validateDescription
 } from '@/lib/utils/form-data'
 import { STORAGE_BUCKETS } from '@/lib/utils/storage'
-import { organizationSchema, type CharacterOrganizationAffiliationInput } from '@/lib/validations/organization'
+import { groupSchema, type CharacterGroupAffiliationInput } from '@/lib/validations/group'
 
-// List organizations with pagination
-export async function getOrganizationsList(
+// List groups with pagination
+export async function getGroupsList(
   supabase: SupabaseClient,
   { limit = 20, offset = 0 } = {}
 ): Promise<Record<string, unknown>[]> {
   const { data, error } = await supabase
-    .from('organizations')
+    .from('groups')
     .select('*')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
@@ -34,31 +34,31 @@ export async function getOrganizationsList(
   return data ?? [];
 }
 
-const LOGO_BUCKET = STORAGE_BUCKETS.ORGANIZATIONS
+const LOGO_BUCKET = STORAGE_BUCKETS.GROUPS
 
-export async function createOrganization(formData: FormData): Promise<void> {
+export async function createGroup(formData: FormData): Promise<void> {
   const supabase = await createClient()
-  const organizationId = randomUUID()
+  const groupId = randomUUID()
 
   const sanitizedName = getName(formData, 'name')
 
   // Validate name before proceeding
   if (!validateName(sanitizedName)) {
-    throw new Error("Invalid organization name. Name must be between 1-100 characters and contain no dangerous content.");
+    throw new Error("Invalid group name. Name must be between 1-100 characters and contain no dangerous content.");
   }
 
   await assertUniqueValue(supabase, {
-    table: 'organizations',
+    table: 'groups',
     column: 'name',
     value: sanitizedName,
-    errorMessage: 'Organization name already exists. Choose a different name.',
+    errorMessage: 'Group name already exists. Choose a different name.',
   })
 
   const description = getDescription(formData, 'description')
   
   // Validate description if provided
   if (description && !validateDescription(description)) {
-    throw new Error("Invalid organization description. Description must be 2,000 characters or less and contain no dangerous content.");
+    throw new Error("Invalid group description. Description must be 2,000 characters or less and contain no dangerous content.");
   }
 
   const logoFile = getFile(formData, 'logo')
@@ -68,11 +68,11 @@ export async function createOrganization(formData: FormData): Promise<void> {
     const { url, error } = await uploadImage(
       LOGO_BUCKET,
       logoFile,
-      `organizations/${organizationId}/logo`
+      `groups/${groupId}/logo`
     )
 
     if (error) {
-      throw new Error(`Failed to upload organization logo: ${error.message}`)
+      throw new Error(`Failed to upload group logo: ${error.message}`)
     }
 
     logoUrl = url
@@ -84,7 +84,7 @@ export async function createOrganization(formData: FormData): Promise<void> {
     logo_url: logoUrl,
   }
 
-  const result = organizationSchema.safeParse(data)
+  const result = groupSchema.safeParse(data)
   if (!result.success) {
     if (logoUrl) {
       const path = getStoragePathFromUrl(LOGO_BUCKET, logoUrl)
@@ -94,8 +94,8 @@ export async function createOrganization(formData: FormData): Promise<void> {
   }
 
   const { error } = await supabase
-    .from('organizations')
-    .insert({ id: organizationId, ...result.data })
+    .from('groups')
+    .insert({ id: groupId, ...result.data })
 
   if (error) {
     if (logoUrl) {
@@ -105,21 +105,21 @@ export async function createOrganization(formData: FormData): Promise<void> {
     throw new Error(error.message)
   }
 
-  revalidatePath('/organizations')
-  redirect('/organizations')
+  revalidatePath('/groups')
+  redirect('/groups')
 }
 
-export async function updateOrganization(id: string, formData: FormData): Promise<void> {
+export async function updateGroup(id: string, formData: FormData): Promise<void> {
   const supabase = await createClient()
 
   const { data: existing, error: fetchError } = await supabase
-    .from('organizations')
+    .from('groups')
     .select('logo_url')
     .eq('id', id)
     .single()
 
   if (fetchError || !existing) {
-    throw new Error('Organization not found')
+    throw new Error('Group not found')
   }
 
   const logoFile = getFile(formData, 'logo')
@@ -129,11 +129,11 @@ export async function updateOrganization(id: string, formData: FormData): Promis
   const sanitizedName = getString(formData, 'name')
 
   await assertUniqueValue(supabase, {
-    table: 'organizations',
+    table: 'groups',
     column: 'name',
     value: sanitizedName,
     excludeId: id,
-    errorMessage: 'Organization name already exists. Choose a different name.',
+    errorMessage: 'Group name already exists. Choose a different name.',
   })
 
   const description = getStringOrNull(formData, 'description')
@@ -142,11 +142,11 @@ export async function updateOrganization(id: string, formData: FormData): Promis
     const { url, path, error } = await uploadImage(
       LOGO_BUCKET,
       logoFile,
-      `organizations/${id}/logo`
+      `groups/${id}/logo`
     )
 
     if (error) {
-      throw new Error(`Failed to upload organization logo: ${error.message}`)
+      throw new Error(`Failed to upload group logo: ${error.message}`)
     }
 
     const previousPath = getStoragePathFromUrl(LOGO_BUCKET, logoUrl)
@@ -154,7 +154,7 @@ export async function updateOrganization(id: string, formData: FormData): Promis
       const { error: deletePreviousError } = await deleteImage(LOGO_BUCKET, previousPath)
 
       if (deletePreviousError) {
-        console.error('Failed to remove previous organization logo', deletePreviousError)
+        console.error('Failed to remove previous group logo', deletePreviousError)
       }
     }
 
@@ -164,7 +164,7 @@ export async function updateOrganization(id: string, formData: FormData): Promis
     const { error } = await deleteImage(LOGO_BUCKET, path)
 
     if (error) {
-      throw new Error(`Failed to delete organization logo: ${error.message}`)
+      throw new Error(`Failed to delete group logo: ${error.message}`)
     }
 
     logoUrl = null
@@ -176,13 +176,13 @@ export async function updateOrganization(id: string, formData: FormData): Promis
     logo_url: logoUrl,
   }
 
-  const result = organizationSchema.safeParse(data)
+  const result = groupSchema.safeParse(data)
   if (!result.success) {
     throw new Error('Validation failed')
   }
 
   const { error } = await supabase
-    .from('organizations')
+    .from('groups')
     .update(result.data)
     .eq('id', id)
 
@@ -194,9 +194,9 @@ export async function updateOrganization(id: string, formData: FormData): Promis
   const sessionIds = getIdList(formData, 'session_ids')
   const characterIds = getIdList(formData, 'character_ids')
 
-  const touchedCampaignIds = await syncOrganizationCampaigns(supabase, id, campaignIds)
-  const touchedSessionIds = await syncOrganizationSessions(supabase, id, sessionIds)
-  const touchedCharacterIds = await syncOrganizationCharacters(supabase, id, characterIds)
+  const touchedCampaignIds = await syncGroupCampaigns(supabase, id, campaignIds)
+  const touchedSessionIds = await syncGroupSessions(supabase, id, sessionIds)
+  const touchedCharacterIds = await syncGroupCharacters(supabase, id, characterIds)
 
   if (touchedCampaignIds.length > 0) {
     revalidatePath('/campaigns')
@@ -225,16 +225,16 @@ export async function updateOrganization(id: string, formData: FormData): Promis
     })
   }
 
-  revalidatePath('/organizations')
-  revalidatePath(`/organizations/${id}`)
-  redirect(`/organizations/${id}`)
+  revalidatePath('/groups')
+  revalidatePath(`/groups/${id}`)
+  redirect(`/groups/${id}`)
 }
 
-export async function deleteOrganization(id: string): Promise<void> {
+export async function deleteGroup(id: string): Promise<void> {
   const supabase = await createClient()
 
   const { data: existing, error: fetchError } = await supabase
-    .from('organizations')
+    .from('groups')
     .select('logo_url')
     .eq('id', id)
     .single()
@@ -244,27 +244,27 @@ export async function deleteOrganization(id: string): Promise<void> {
   }
 
   const { data: linkedCampaigns, error: campaignsError } = await supabase
-    .from('organization_campaigns')
+    .from('group_campaigns')
     .select('campaign_id')
-    .eq('organization_id', id)
+    .eq('group_id', id)
 
   if (campaignsError) {
     throw new Error(campaignsError.message)
   }
 
   const { data: linkedSessions, error: sessionsError } = await supabase
-    .from('organization_sessions')
+    .from('group_sessions')
     .select('session_id')
-    .eq('organization_id', id)
+    .eq('group_id', id)
 
   if (sessionsError) {
     throw new Error(sessionsError.message)
   }
 
   const { data: linkedCharacters, error: charactersError } = await supabase
-    .from('organization_characters')
+    .from('group_characters')
     .select('character_id')
-    .eq('organization_id', id)
+    .eq('group_id', id)
 
   if (charactersError) {
     throw new Error(charactersError.message)
@@ -293,7 +293,7 @@ export async function deleteOrganization(id: string): Promise<void> {
   )
 
   const { error } = await supabase
-    .from('organizations')
+    .from('groups')
     .delete()
     .eq('id', id)
 
@@ -306,11 +306,11 @@ export async function deleteOrganization(id: string): Promise<void> {
     const { error: deleteError } = await deleteImage(LOGO_BUCKET, path)
 
     if (deleteError) {
-      console.error('Failed to remove organization logo from storage', deleteError)
+      console.error('Failed to remove group logo from storage', deleteError)
     }
   }
 
-  revalidatePath('/organizations')
+  revalidatePath('/groups')
 
   if (touchedCampaignIds.length > 0) {
     revalidatePath('/campaigns')
@@ -333,40 +333,40 @@ export async function deleteOrganization(id: string): Promise<void> {
     })
   }
 
-  redirect('/organizations')
+  redirect('/groups')
 }
 
-export async function createOrganizationInline(name: string): Promise<{ id: string; name: string }> {
+export async function createGroupInline(name: string): Promise<{ id: string; name: string }> {
   const supabase = await createClient()
   const sanitized = name.trim()
 
   if (!sanitized) {
-    throw new Error('Organization name is required')
+    throw new Error('Group name is required')
   }
 
   const truncated = sanitized.slice(0, 200)
   await assertUniqueValue(supabase, {
-    table: 'organizations',
+    table: 'groups',
     column: 'name',
     value: truncated,
-    errorMessage: 'Organization name already exists. Choose a different name.',
+    errorMessage: 'Group name already exists. Choose a different name.',
   })
-  const organizationId = randomUUID()
+  const groupId = randomUUID()
 
   const { error } = await supabase
-    .from('organizations')
-    .insert({ id: organizationId, name: truncated })
+    .from('groups')
+    .insert({ id: groupId, name: truncated })
 
   if (error) {
     throw new Error(error.message)
   }
 
-  revalidatePath('/organizations')
+  revalidatePath('/groups')
 
-  return { id: organizationId, name: truncated }
+  return { id: groupId, name: truncated }
 }
 
-export async function resolveOrganizationIds(
+export async function resolveGroupIds(
   supabase: SupabaseClient,
   requestedIds: string[]
 ): Promise<string[]> {
@@ -376,20 +376,20 @@ export async function resolveOrganizationIds(
     return unique
   }
 
-  // Return empty array instead of falling back to oldest organization
+  // Return empty array instead of falling back to oldest group
   return []
 }
 
-export async function setCampaignOrganizations(
+export async function setCampaignGroups(
   supabase: SupabaseClient,
   campaignId: string,
-  organizationIds: string[]
+  groupIds: string[]
 ): Promise<string[]> {
-  const unique = Array.from(new Set(organizationIds)).filter((id): id is string => Boolean(id))
+  const unique = Array.from(new Set(groupIds)).filter((id): id is string => Boolean(id))
 
   const { data: existingLinks, error: existingError } = await supabase
-    .from('organization_campaigns')
-    .select('organization_id')
+    .from('group_campaigns')
+    .select('group_id')
     .eq('campaign_id', campaignId)
 
   if (existingError) {
@@ -398,27 +398,27 @@ export async function setCampaignOrganizations(
 
   const previousIds = new Set<string>()
   existingLinks?.forEach((link) => {
-    if (link?.organization_id) {
-      previousIds.add(link.organization_id)
+    if (link?.group_id) {
+      previousIds.add(link.group_id)
     }
   })
 
   const nextIds = new Set(unique)
 
   const touchedIds = new Set<string>()
-  previousIds.forEach((organizationId) => {
-    if (!nextIds.has(organizationId)) {
-      touchedIds.add(organizationId)
+  previousIds.forEach((groupId) => {
+    if (!nextIds.has(groupId)) {
+      touchedIds.add(groupId)
     }
   })
-  nextIds.forEach((organizationId) => {
-    if (!previousIds.has(organizationId)) {
-      touchedIds.add(organizationId)
+  nextIds.forEach((groupId) => {
+    if (!previousIds.has(groupId)) {
+      touchedIds.add(groupId)
     }
   })
 
   const { error: deleteError } = await supabase
-    .from('organization_campaigns')
+    .from('group_campaigns')
     .delete()
     .eq('campaign_id', campaignId)
 
@@ -430,13 +430,13 @@ export async function setCampaignOrganizations(
     return Array.from(touchedIds)
   }
 
-  const inserts = Array.from(nextIds).map((organizationId) => ({
-    organization_id: organizationId,
+  const inserts = Array.from(nextIds).map((groupId) => ({
+    group_id: groupId,
     campaign_id: campaignId,
   }))
 
   const { error: insertError } = await supabase
-    .from('organization_campaigns')
+    .from('group_campaigns')
     .insert(inserts)
 
   if (insertError) {
@@ -446,7 +446,7 @@ export async function setCampaignOrganizations(
   return Array.from(touchedIds)
 }
 
-export async function getCampaignOrganizationIds(
+export async function getCampaignGroupIds(
   supabase: SupabaseClient,
   campaignId: string | null
 ): Promise<string[]> {
@@ -455,27 +455,27 @@ export async function getCampaignOrganizationIds(
   }
 
   const { data, error } = await supabase
-    .from('organization_campaigns')
-    .select('organization_id')
+    .from('group_campaigns')
+    .select('group_id')
     .eq('campaign_id', campaignId)
 
   if (error) {
     throw new Error(error.message)
   }
 
-  return data?.map((row) => row.organization_id) ?? []
+  return data?.map((row) => row.group_id) ?? []
 }
 
-export async function setSessionOrganizations(
+export async function setSessionGroups(
   supabase: SupabaseClient,
   sessionId: string,
-  organizationIds: string[]
+  groupIds: string[]
 ): Promise<string[]> {
-  const unique = Array.from(new Set(organizationIds)).filter((id): id is string => Boolean(id))
+  const unique = Array.from(new Set(groupIds)).filter((id): id is string => Boolean(id))
 
   const { data: existingLinks, error: existingError } = await supabase
-    .from('organization_sessions')
-    .select('organization_id')
+    .from('group_sessions')
+    .select('group_id')
     .eq('session_id', sessionId)
 
   if (existingError) {
@@ -484,27 +484,27 @@ export async function setSessionOrganizations(
 
   const previousIds = new Set<string>()
   existingLinks?.forEach((link) => {
-    if (link?.organization_id) {
-      previousIds.add(link.organization_id)
+    if (link?.group_id) {
+      previousIds.add(link.group_id)
     }
   })
 
   const nextIds = new Set(unique)
 
   const touchedIds = new Set<string>()
-  previousIds.forEach((organizationId) => {
-    if (!nextIds.has(organizationId)) {
-      touchedIds.add(organizationId)
+  previousIds.forEach((groupId) => {
+    if (!nextIds.has(groupId)) {
+      touchedIds.add(groupId)
     }
   })
-  nextIds.forEach((organizationId) => {
-    if (!previousIds.has(organizationId)) {
-      touchedIds.add(organizationId)
+  nextIds.forEach((groupId) => {
+    if (!previousIds.has(groupId)) {
+      touchedIds.add(groupId)
     }
   })
 
   const { error: deleteError } = await supabase
-    .from('organization_sessions')
+    .from('group_sessions')
     .delete()
     .eq('session_id', sessionId)
 
@@ -516,13 +516,13 @@ export async function setSessionOrganizations(
     return Array.from(touchedIds)
   }
 
-  const inserts = Array.from(nextIds).map((organizationId) => ({
-    organization_id: organizationId,
+  const inserts = Array.from(nextIds).map((groupId) => ({
+    group_id: groupId,
     session_id: sessionId,
   }))
 
   const { error: insertError } = await supabase
-    .from('organization_sessions')
+    .from('group_sessions')
     .insert(inserts)
 
   if (insertError) {
@@ -532,21 +532,21 @@ export async function setSessionOrganizations(
   return Array.from(touchedIds)
 }
 
-export async function setCharacterOrganizations(
+export async function setCharacterGroups(
   supabase: SupabaseClient,
   characterId: string,
-  affiliations: CharacterOrganizationAffiliationInput[]
+  affiliations: CharacterGroupAffiliationInput[]
 ): Promise<string[]> {
-  const deduped = new Map<string, CharacterOrganizationAffiliationInput>()
+  const deduped = new Map<string, CharacterGroupAffiliationInput>()
   affiliations.forEach((affiliation) => {
-    deduped.set(affiliation.organizationId, affiliation)
+    deduped.set(affiliation.groupId, affiliation)
   })
 
   const finalAffiliations = Array.from(deduped.values())
 
   const { data: existingLinks, error: existingError } = await supabase
-    .from('organization_characters')
-    .select('organization_id, role')
+    .from('group_characters')
+    .select('group_id, role')
     .eq('character_id', characterId)
 
   if (existingError) {
@@ -556,38 +556,38 @@ export async function setCharacterOrganizations(
   const previousIds = new Set<string>()
   const previousRoles = new Map<string, string>()
   existingLinks?.forEach((link) => {
-    if (link?.organization_id) {
-      previousIds.add(link.organization_id)
-      previousRoles.set(link.organization_id, link.role ?? 'npc')
+    if (link?.group_id) {
+      previousIds.add(link.group_id)
+      previousRoles.set(link.group_id, link.role ?? 'npc')
     }
   })
 
-  const nextIds = new Set(finalAffiliations.map((affiliation) => affiliation.organizationId))
+  const nextIds = new Set(finalAffiliations.map((affiliation) => affiliation.groupId))
   const nextRoles = new Map<string, string>()
   finalAffiliations.forEach((affiliation) => {
-    nextRoles.set(affiliation.organizationId, affiliation.role)
+    nextRoles.set(affiliation.groupId, affiliation.role)
   })
 
   const touchedIds = new Set<string>()
-  previousIds.forEach((organizationId) => {
-    if (!nextIds.has(organizationId)) {
-      touchedIds.add(organizationId)
+  previousIds.forEach((groupId) => {
+    if (!nextIds.has(groupId)) {
+      touchedIds.add(groupId)
     }
   })
-  nextIds.forEach((organizationId) => {
-    if (!previousIds.has(organizationId)) {
-      touchedIds.add(organizationId)
+  nextIds.forEach((groupId) => {
+    if (!previousIds.has(groupId)) {
+      touchedIds.add(groupId)
     }
   })
-  previousRoles.forEach((previousRole, organizationId) => {
-    const nextRole = nextRoles.get(organizationId)
+  previousRoles.forEach((previousRole, groupId) => {
+    const nextRole = nextRoles.get(groupId)
     if (nextRole && nextRole !== previousRole) {
-      touchedIds.add(organizationId)
+      touchedIds.add(groupId)
     }
   })
 
   const { error: deleteError } = await supabase
-    .from('organization_characters')
+    .from('group_characters')
     .delete()
     .eq('character_id', characterId)
 
@@ -599,14 +599,14 @@ export async function setCharacterOrganizations(
     return Array.from(touchedIds)
   }
 
-  const inserts = finalAffiliations.map(({ organizationId, role }) => ({
-    organization_id: organizationId,
+  const inserts = finalAffiliations.map(({ groupId, role }) => ({
+    group_id: groupId,
     character_id: characterId,
     role,
   }))
 
   const { error: insertError } = await supabase
-    .from('organization_characters')
+    .from('group_characters')
     .insert(inserts)
 
   if (insertError) {
@@ -617,17 +617,17 @@ export async function setCharacterOrganizations(
 }
 
 
-async function syncOrganizationCampaigns(
+async function syncGroupCampaigns(
   supabase: SupabaseClient,
-  organizationId: string,
+  groupId: string,
   campaignIds: string[]
 ): Promise<string[]> {
   const uniqueIds = Array.from(new Set(campaignIds)).filter((id): id is string => Boolean(id))
 
   const { data: existingLinks, error: existingError } = await supabase
-    .from('organization_campaigns')
+    .from('group_campaigns')
     .select('campaign_id')
-    .eq('organization_id', organizationId)
+    .eq('group_id', groupId)
 
   if (existingError) {
     throw new Error(existingError.message)
@@ -655,9 +655,9 @@ async function syncOrganizationCampaigns(
   })
 
   const { error: deleteError } = await supabase
-    .from('organization_campaigns')
+    .from('group_campaigns')
     .delete()
-    .eq('organization_id', organizationId)
+    .eq('group_id', groupId)
 
   if (deleteError) {
     throw new Error(deleteError.message)
@@ -668,12 +668,12 @@ async function syncOrganizationCampaigns(
   }
 
   const inserts = Array.from(nextIds).map((campaignId) => ({
-    organization_id: organizationId,
+    group_id: groupId,
     campaign_id: campaignId,
   }))
 
   const { error: insertError } = await supabase
-    .from('organization_campaigns')
+    .from('group_campaigns')
     .insert(inserts)
 
   if (insertError) {
@@ -683,17 +683,17 @@ async function syncOrganizationCampaigns(
   return Array.from(touchedIds)
 }
 
-async function syncOrganizationSessions(
+async function syncGroupSessions(
   supabase: SupabaseClient,
-  organizationId: string,
+  groupId: string,
   sessionIds: string[]
 ): Promise<string[]> {
   const uniqueIds = Array.from(new Set(sessionIds)).filter((id): id is string => Boolean(id))
 
   const { data: existingLinks, error: existingError } = await supabase
-    .from('organization_sessions')
+    .from('group_sessions')
     .select('session_id')
-    .eq('organization_id', organizationId)
+    .eq('group_id', groupId)
 
   if (existingError) {
     throw new Error(existingError.message)
@@ -721,9 +721,9 @@ async function syncOrganizationSessions(
   })
 
   const { error: deleteError } = await supabase
-    .from('organization_sessions')
+    .from('group_sessions')
     .delete()
-    .eq('organization_id', organizationId)
+    .eq('group_id', groupId)
 
   if (deleteError) {
     throw new Error(deleteError.message)
@@ -734,12 +734,12 @@ async function syncOrganizationSessions(
   }
 
   const inserts = Array.from(nextIds).map((sessionId) => ({
-    organization_id: organizationId,
+    group_id: groupId,
     session_id: sessionId,
   }))
 
   const { error: insertError } = await supabase
-    .from('organization_sessions')
+    .from('group_sessions')
     .insert(inserts)
 
   if (insertError) {
@@ -749,17 +749,17 @@ async function syncOrganizationSessions(
   return Array.from(touchedIds)
 }
 
-async function syncOrganizationCharacters(
+async function syncGroupCharacters(
   supabase: SupabaseClient,
-  organizationId: string,
+  groupId: string,
   characterIds: string[]
 ): Promise<string[]> {
   const uniqueIds = Array.from(new Set(characterIds))
 
   const { data: existingLinks, error: existingError } = await supabase
-    .from('organization_characters')
+    .from('group_characters')
     .select('character_id, role')
-    .eq('organization_id', organizationId)
+    .eq('group_id', groupId)
 
   if (existingError) {
     throw new Error(existingError.message)
@@ -789,9 +789,9 @@ async function syncOrganizationCharacters(
   })
 
   const { error: deleteError } = await supabase
-    .from('organization_characters')
+    .from('group_characters')
     .delete()
-    .eq('organization_id', organizationId)
+    .eq('group_id', groupId)
 
   if (deleteError) {
     throw new Error(deleteError.message)
@@ -802,13 +802,13 @@ async function syncOrganizationCharacters(
   }
 
   const inserts = uniqueIds.map((characterId) => ({
-    organization_id: organizationId,
+    group_id: groupId,
     character_id: characterId,
     role: roleMap.get(characterId) ?? 'npc',
   }))
 
   const { error: insertError } = await supabase
-    .from('organization_characters')
+    .from('group_characters')
     .insert(inserts)
 
   if (insertError) {
@@ -818,7 +818,7 @@ async function syncOrganizationCharacters(
   return Array.from(touchedIds)
 }
 
-export async function syncSessionOrganizationsFromCharacters(
+export async function syncSessionGroupsFromCharacters(
   supabase: SupabaseClient,
   sessionId: string
 ): Promise<string[]> {
@@ -835,24 +835,24 @@ export async function syncSessionOrganizationsFromCharacters(
   const characterIds = sessionCharacters?.map(sc => sc.character_id) || []
 
   if (characterIds.length === 0) {
-    // No characters, so no organizations
-    return await setSessionOrganizations(supabase, sessionId, [])
+    // No characters, so no groups
+    return await setSessionGroups(supabase, sessionId, [])
   }
 
-  // Get all organizations of these characters
-  const { data: organizationLinks, error: orgsError } = await supabase
-    .from('organization_characters')
-    .select('organization_id')
+  // Get all groups of these characters
+  const { data: groupLinks, error: orgsError } = await supabase
+    .from('group_characters')
+    .select('group_id')
     .in('character_id', characterIds)
 
   if (orgsError) {
     throw new Error(orgsError.message)
   }
 
-  const organizationIds = Array.from(new Set(
-    organizationLinks?.map(link => link.organization_id).filter(Boolean) || []
+  const groupIds = Array.from(new Set(
+    groupLinks?.map(link => link.group_id).filter(Boolean) || []
   ))
 
-  // Update session organizations
-  return await setSessionOrganizations(supabase, sessionId, organizationIds)
+  // Update session groups
+  return await setSessionGroups(supabase, sessionId, groupIds)
 }

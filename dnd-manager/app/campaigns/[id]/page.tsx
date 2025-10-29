@@ -7,7 +7,6 @@ import EditIcon from '@/components/ui/edit-icon'
 import {
   extractPlayerSummaries,
   dateStringToLocalDate,
-  formatDateStringForDisplay,
   formatTimestampForDisplay,
   type SessionCharacterRelation,
   getPillClasses,
@@ -46,13 +45,13 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           race,
           level,
           player_type,
-          organization_memberships:organization_characters(
-            organizations(id, name)
+          group_memberships:group_characters(
+            groups(id, name)
           )
         )
       ),
-      session_organizations:organization_sessions(
-        organization:organizations(id, name)
+      session_groups:group_sessions(
+        group:groups(id, name)
       )
     `)
     .eq('campaign_id', id)
@@ -62,9 +61,9 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
 
   const [
     { data: campaignCharacterRows, error: campaignCharacterError },
-    { data: organizationCampaignRows, error: organizationCampaignError },
+    { data: groupCampaignRows, error: groupCampaignError },
     { data: mentionCharacters },
-    { data: mentionOrganizations },
+    { data: mentionGroups },
     { data: mentionSessions },
     { data: mentionCampaigns },
   ] = await Promise.all([
@@ -78,20 +77,20 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           race,
           level,
           player_type,
-          organization_memberships:organization_characters(
-            organizations(id, name)
+          group_memberships:group_characters(
+            groups(id, name)
           )
         )
       `)
       .eq('campaign_id', id),
     supabase
-      .from('organization_campaigns')
+      .from('group_campaigns')
       .select(`
-        organization:organizations(id, name)
+        group:groups(id, name)
       `)
       .eq('campaign_id', id),
     supabase.from('characters').select('id, name').order('name'),
-    supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('groups').select('id, name').order('name'),
     supabase.from('sessions').select('id, name').order('name'),
     supabase.from('campaigns').select('id, name').order('name'),
   ])
@@ -108,8 +107,8 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     throw new Error(campaignCharacterError.message)
   }
 
-  if (organizationCampaignError) {
-    throw new Error(organizationCampaignError.message)
+  if (groupCampaignError) {
+    throw new Error(groupCampaignError.message)
   }
 
   const sessionNumberMap = new Map<string, number>()
@@ -146,10 +145,10 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
       ? session.campaign[0] ?? null
       : session.campaign ?? null
 
-    const organizations = Array.isArray(session.session_organizations)
-      ? session.session_organizations
+    const groups = Array.isArray(session.session_groups)
+      ? session.session_groups
           .map((entry) => {
-            const org = Array.isArray(entry?.organization) ? entry?.organization?.[0] : entry?.organization
+            const org = Array.isArray(entry?.group) ? entry?.group?.[0] : entry?.group
             if (!org?.id || !org?.name) {
               return null
             }
@@ -162,7 +161,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
       ...session,
       campaign: campaignRelation,
       players,
-      organizations,
+      groups,
       sessionNumber: sessionNumberMap.get(session.id) ?? null,
     }
   })
@@ -195,11 +194,11 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
   )
 
-  const organizationMap = new Map<string, { id: string; name: string }>()
+  const groupMap = new Map<string, { id: string; name: string }>()
 
-  const directOrganizations = (organizationCampaignRows ?? [])
+  const directGroups = (groupCampaignRows ?? [])
     .map((row) => {
-      const entry = Array.isArray(row.organization) ? row.organization[0] : row.organization
+      const entry = Array.isArray(row.group) ? row.group[0] : row.group
       if (!entry?.id || !entry?.name) {
         return null
       }
@@ -207,17 +206,17 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
     })
     .filter((value): value is { id: string; name: string } => Boolean(value))
 
-  directOrganizations.forEach((org) => {
-    organizationMap.set(org.id, org)
+  directGroups.forEach((org) => {
+    groupMap.set(org.id, org)
   })
 
-  const combinedOrganizations = Array.from(organizationMap.values()).sort((a, b) =>
+  const combinedGroups = Array.from(groupMap.values()).sort((a, b) =>
     a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
   )
 
   const mentionTargets: MentionTarget[] = mergeMentionTargets(
     mapEntitiesToMentionTargets(mentionCharacters ?? [], 'character', (entry) => `/characters/${entry.id}`),
-    mapEntitiesToMentionTargets(mentionOrganizations ?? [], 'organization', (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(mentionGroups ?? [], 'group', (entry) => `/groups/${entry.id}`),
     mapEntitiesToMentionTargets(mentionSessions ?? rawSessions, 'session', (entry) => `/sessions/${entry.id}`),
     mapEntitiesToMentionTargets(mentionCampaigns ?? [], 'campaign', (entry) => `/campaigns/${entry.id}`)
   )
@@ -305,7 +304,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                 sessionId={`campaign-${id}`}
                 players={combinedCharacters}
                 className="pointer-events-auto"
-                showOrganizations={false}
+                showGroups={false}
               />
             )}
           </div>
@@ -317,19 +316,19 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                 WebkitFontSmoothing: 'none',
                 fontSmoothing: 'never'
               } as React.CSSProperties}>Groups</h2>
-            {combinedOrganizations.length === 0 ? (
+            {combinedGroups.length === 0 ? (
               <p className="text-sm font-mono text-[var(--text-muted)]">
                 No groups have been linked to this campaign yet.
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {combinedOrganizations.map((organization) => (
+                {combinedGroups.map((group) => (
                   <Link
-                    key={organization.id}
-                    href={`/organizations/${organization.id}`}
-                    className={cn(getPillClasses('organization', 'small'), 'whitespace-nowrap')}
+                    key={group.id}
+                    href={`/groups/${group.id}`}
+                    className={cn(getPillClasses('group', 'small'), 'whitespace-nowrap')}
                   >
-                    {organization.name}
+                    {group.name}
                   </Link>
                 ))}
               </div>
@@ -355,8 +354,6 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           ) : (
             <div className="space-y-3">
               {sessionsWithPlayers.map((session) => {
-                const players = session.players
-
                 return (
                   <CampaignSessionCard
                     key={session.id}

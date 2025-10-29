@@ -7,10 +7,10 @@ import { sanitizeSearchQuery } from "@/lib/security/sanitize";
 import { IndexEmptyState, IndexHeader, IndexSearchEmptyState } from "@/components/ui/index-utility";
 import type { Character } from "@/types/database";
 
-type CharacterWithOrganizations = Character & {
-  organization_characters?: {
+type CharacterWithGroups = Character & {
+  group_characters?: {
     role: string;
-    organization: {
+    group: {
       id: string;
       name: string;
     };
@@ -36,7 +36,7 @@ type CharacterWithOrganizations = Character & {
 };
 
 export type CharacterSearchProps = {
-  characters: CharacterWithOrganizations[];
+  characters: CharacterWithGroups[];
 };
 
 export function CharacterSearch({ characters }: CharacterSearchProps) {
@@ -86,8 +86,8 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
         character.last_known_location,
         character.player_type,
         character.status,
-        // Add related organizations to search
-        character.organization_characters?.map((org) => org.organization.name).join(" ") ?? "",
+        // Add related groups to search
+        character.group_characters?.map((org) => org.group.name).join(" ") ?? "",
         // Add related sessions to search
         character.session_characters?.map((session) => session.session.name).join(" ") ?? "",
         // Add related campaigns to search (from sessions)
@@ -222,33 +222,33 @@ export function CharacterSearch({ characters }: CharacterSearchProps) {
                     </div>
                   </div>
 
-                  {character.organization_characters && character.organization_characters.length > 0 ? (
+                  {character.group_characters && character.group_characters.length > 0 ? (
                     <div className="pointer-events-auto mt-2">
                       <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                         Groups
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {(expandedGroups.has(character.id) 
-                          ? character.organization_characters 
-                          : character.organization_characters.slice(0, 4)
-                        ).map(({ organization }) => (
+                          ? character.group_characters 
+                          : character.group_characters.slice(0, 4)
+                        ).map(({ group }) => (
                           <Link
-                            key={`${character.id}-org-${organization.id}`}
-                            href={`/organizations/${organization.id}`}
-                            className={getPillClasses('organization', 'small')}
+                            key={`${character.id}-org-${group.id}`}
+                            href={`/groups/${group.id}`}
+                            className={getPillClasses('group', 'small')}
                           >
-                            {organization.name}
+                            {group.name}
                           </Link>
                         ))}
-                        {!expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
+                        {!expandedGroups.has(character.id) && character.group_characters.length > 4 && (
                           <button
                             onClick={() => toggleCharacterGroups(character.id)}
-                            className={getDashedPillClasses('organization', 'small')}
+                            className={getDashedPillClasses('group', 'small')}
                           >
-                            +{character.organization_characters.length - 4} more
+                            +{character.group_characters.length - 4} more
                           </button>
                         )}
-                        {expandedGroups.has(character.id) && character.organization_characters.length > 4 && (
+                        {expandedGroups.has(character.id) && character.group_characters.length > 4 && (
                           <button
                             onClick={() => toggleCharacterGroups(character.id)}
                           className={getPillClasses('default', 'small')}

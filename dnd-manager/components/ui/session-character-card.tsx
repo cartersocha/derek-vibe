@@ -10,7 +10,7 @@ type SessionCharacterCardProps = {
     name: string;
     level: string | null;
     player_type: 'npc' | 'player' | null;
-    organizations: Array<{ id: string; name: string }>;
+    groups: Array<{ id: string; name: string }>;
   };
 };
 
@@ -22,25 +22,22 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
   };
 
   const isPlayer = character.player_type === 'player';
-  const badgeClasses = isPlayer
-    ? 'border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] group-hover:border-[var(--cyber-cyan)] group-hover:text-[var(--cyber-magenta)]'
-    : 'border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--bg-card)] text-[var(--cyber-magenta)] group-hover:border-[var(--cyber-magenta)] group-hover:text-[var(--cyber-magenta)]';
   const cardClasses = isPlayer
     ? 'border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-dark)]/70 hover:border-[var(--cyber-magenta)] hover:bg-[var(--bg-dark)] focus-visible:ring-[var(--cyber-cyan)]'
     : 'border border-[var(--cyber-magenta)] border-opacity-30 bg-[var(--bg-dark)] hover:border-[var(--cyber-magenta)] hover:bg-[var(--bg-dark)] focus-visible:ring-[var(--cyber-magenta)]';
   const nameClasses = isPlayer
     ? 'font-medium text-[var(--cyber-cyan)] font-mono text-sm sm:text-base transition-colors group-hover:text-[var(--cyber-magenta)] focus-visible:ring-[var(--cyber-cyan)]'
     : 'font-medium text-[var(--cyber-magenta)] font-mono text-sm sm:text-base transition-colors group-hover:text-[var(--cyber-magenta)] focus-visible:ring-[var(--cyber-magenta)]';
-  const organizationChipClasses = cn(getPillClasses('organization', 'small'), 'whitespace-nowrap');
-  const showMoreButtonBaseClasses = cn(getDashedPillClasses('organization', 'small'), 'whitespace-nowrap');
+  const groupChipClasses = cn(getPillClasses('group', 'small'), 'whitespace-nowrap');
+  const showMoreButtonBaseClasses = cn(getDashedPillClasses('group', 'small'), 'whitespace-nowrap');
   const levelLabel = character.level
     ? isPlayer
       ? `Level ${character.level}`
       : `CR ${character.level}`
     : null;
 
-  const displayedOrganizations = expanded ? character.organizations : character.organizations.slice(0, 3);
-  const hasMore = character.organizations.length > 3;
+  const displayedGroups = expanded ? character.groups : character.groups.slice(0, 3);
+  const hasMore = character.groups.length > 3;
 
   return (
     <div
@@ -67,15 +64,15 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
           {levelLabel}
         </p>
       ) : null}
-      {character.organizations.length > 0 ? (
+      {character.groups.length > 0 ? (
         <div className="mt-3 flex flex-wrap gap-2">
-          {displayedOrganizations.map((organization) => (
+          {displayedGroups.map((group) => (
             <Link
-              key={`${character.id}-${organization.id}`}
-              href={`/organizations/${organization.id}`}
-              className={`focus-visible:outline-none focus-visible:ring-2 ${organizationChipClasses}`}
+              key={`${character.id}-${group.id}`}
+              href={`/groups/${group.id}`}
+              className={`focus-visible:outline-none focus-visible:ring-2 ${groupChipClasses}`}
             >
-              {organization.name}
+              {group.name}
             </Link>
           ))}
           {hasMore && (
@@ -87,7 +84,7 @@ export function SessionCharacterCard({ character }: SessionCharacterCardProps) {
                   : 'border-dashed border-[var(--cyber-magenta)]/50 hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/50 focus-visible:ring-[var(--cyber-magenta)]'
               }`}
             >
-              {expanded ? 'Show less' : `+${character.organizations.length - 3} more`}
+              {expanded ? 'Show less' : `+${character.groups.length - 3} more`}
             </button>
           )}
         </div>

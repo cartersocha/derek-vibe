@@ -12,7 +12,7 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isCollapsed } = useSidebar();
+  useSidebar();
   
   return (
     <div className="min-h-screen bg-[var(--bg-dark)] flex flex-col md:flex-row">

@@ -8,11 +8,11 @@ type SessionParticipantPillsProps = {
   sessionId: string
   players: PlayerSummary[]
   className?: string
-  showOrganizations?: boolean
-  organizationMemberCounts?: Map<string, number>
+  showGroups?: boolean
+  groupMemberCounts?: Map<string, number>
 }
 
-export function SessionParticipantPills({ sessionId, players: rawPlayers, className, showOrganizations = true, organizationMemberCounts }: SessionParticipantPillsProps) {
+export function SessionParticipantPills({ sessionId, players: rawPlayers, className, showGroups = true, groupMemberCounts }: SessionParticipantPillsProps) {
   const sortedPlayers = useMemo(() => {
     if (!rawPlayers?.length) {
       return [] as PlayerSummary[]
@@ -26,14 +26,14 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
     })
   }, [rawPlayers])
 
-  const uniqueOrganizations = useMemo(() => {
-    if (!showOrganizations) {
+  const uniqueGroups = useMemo(() => {
+    if (!showGroups) {
       return [] as { id: string; name: string }[]
     }
     const seen = new Set<string>()
     const result: { id: string; name: string }[] = []
     for (const player of sortedPlayers) {
-      for (const org of player.organizations) {
+      for (const org of player.groups) {
         if (!seen.has(org.id)) {
           seen.add(org.id)
           result.push(org)
@@ -41,9 +41,9 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
       }
     }
     return result.sort((a, b) => {
-      if (organizationMemberCounts) {
-        const aCount = organizationMemberCounts.get(a.id) || 0
-        const bCount = organizationMemberCounts.get(b.id) || 0
+      if (groupMemberCounts) {
+        const aCount = groupMemberCounts.get(a.id) || 0
+        const bCount = groupMemberCounts.get(b.id) || 0
         
         // Sort by member count (descending), then by name (ascending) as tiebreaker
         if (aCount !== bCount) {
@@ -52,7 +52,7 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
       }
       return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
     })
-  }, [sortedPlayers, showOrganizations, organizationMemberCounts])
+  }, [sortedPlayers, showGroups, groupMemberCounts])
 
   if (sortedPlayers.length === 0) {
     return null
@@ -74,15 +74,15 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
     )
   })
 
-  const organizationPills = showOrganizations
-    ? uniqueOrganizations.map((organization) => (
+  const groupPills = showGroups
+    ? uniqueGroups.map((group) => (
         <Link
-          key={`${sessionId}-org-${organization.id}`}
-          href={`/organizations/${organization.id}`}
+          key={`${sessionId}-org-${group.id}`}
+          href={`/groups/${group.id}`}
           prefetch
-          className={getPillClasses('organization', 'small')}
+          className={getPillClasses('group', 'small')}
         >
-          {organization.name}
+          {group.name}
         </Link>
       ))
     : []
@@ -90,7 +90,7 @@ export function SessionParticipantPills({ sessionId, players: rawPlayers, classN
   return (
     <div className={cn('flex flex-wrap gap-2', className)} aria-label="Players present">
       {playerPills}
-      {organizationPills}
+      {groupPills}
     </div>
   )
 }

@@ -1,24 +1,24 @@
 import { createClient } from "@/lib/supabase/server";
-import { OrganizationsIndex, type OrganizationRecord } from "@/components/ui/organizations-index";
+import { GroupsIndex, type GroupRecord } from "@/components/ui/groups-index";
 import { mapEntitiesToMentionTargets, mergeMentionTargets } from "@/lib/mention-utils";
 
 export const runtime = 'edge'
 export const revalidate = 300
 export const fetchCache = 'force-cache'
 
-export default async function OrganizationsPage() {
+export default async function GroupsPage() {
   const supabase = await createClient();
 
-  const [organizationsResult, charactersResult, sessionsResult, campaignsResult] = await Promise.all([
+  const [groupsResult, charactersResult, sessionsResult, campaignsResult] = await Promise.all([
     supabase
-      .from("organizations")
+      .from("groups")
       .select(`
         id, name, description, logo_url, created_at,
-        organization_characters (
+        group_characters (
           role,
           character:characters (id, name, player_type, status, image_url)
         ),
-        organization_sessions (
+        group_sessions (
           session:sessions (
             id,
             name,
@@ -27,7 +27,7 @@ export default async function OrganizationsPage() {
             campaign:campaigns (id, name)
           )
         ),
-        organization_campaigns (
+        group_campaigns (
           campaign:campaigns (id, name)
         )
       `)
@@ -37,8 +37,8 @@ export default async function OrganizationsPage() {
     supabase.from("campaigns").select("id, name").order("name", { ascending: true }),
   ]);
 
-  if (organizationsResult.error) {
-    throw new Error(organizationsResult.error.message);
+  if (groupsResult.error) {
+    throw new Error(groupsResult.error.message);
   }
   if (charactersResult.error) {
     throw new Error(charactersResult.error.message);
@@ -50,9 +50,9 @@ export default async function OrganizationsPage() {
     throw new Error(campaignsResult.error.message);
   }
 
-  const organizations = (organizationsResult.data ?? []).map((organizationEntry): OrganizationRecord => {
-    const organizationCharacters = Array.isArray(organizationEntry?.organization_characters)
-      ? organizationEntry.organization_characters
+  const groups = (groupsResult.data ?? []).map((groupEntry): GroupRecord => {
+    const groupCharacters = Array.isArray(groupEntry?.group_characters)
+      ? groupEntry.group_characters
           .map((membership) => {
             const rawCharacter = Array.isArray(membership?.character)
               ? membership.character[0]
@@ -76,15 +76,11 @@ export default async function OrganizationsPage() {
               },
             };
           })
-          .filter(
-            (
-              entry,
-            ): entry is NonNullable<OrganizationRecord["organization_characters"]>[number] => entry !== null,
-          )
+          .filter((entry): entry is NonNullable<GroupRecord["group_characters"]>[number] => entry !== null)
       : [];
 
-    const organizationSessions = Array.isArray(organizationEntry?.organization_sessions)
-      ? organizationEntry.organization_sessions
+    const groupSessions = Array.isArray(groupEntry?.group_sessions)
+      ? groupEntry.group_sessions
           .map((membership) => {
             const rawSession = Array.isArray(membership?.session)
               ? membership.session[0]
@@ -110,15 +106,11 @@ export default async function OrganizationsPage() {
               },
             };
           })
-          .filter(
-            (
-              entry,
-            ): entry is NonNullable<OrganizationRecord["organization_sessions"]>[number] => entry !== null,
-          )
+          .filter((entry): entry is NonNullable<GroupRecord["group_sessions"]>[number] => entry !== null)
       : [];
 
-    const organizationCampaigns = Array.isArray(organizationEntry?.organization_campaigns)
-      ? organizationEntry.organization_campaigns
+    const groupCampaigns = Array.isArray(groupEntry?.group_campaigns)
+      ? groupEntry.group_campaigns
           .map((membership) => {
             const rawCampaign = Array.isArray(membership?.campaign)
               ? membership.campaign[0]
@@ -133,31 +125,27 @@ export default async function OrganizationsPage() {
               },
             };
           })
-          .filter(
-            (
-              entry,
-            ): entry is NonNullable<OrganizationRecord["organization_campaigns"]>[number] => entry !== null,
-          )
+          .filter((entry): entry is NonNullable<GroupRecord["group_campaigns"]>[number] => entry !== null)
       : [];
 
     return {
-      id: String(organizationEntry.id),
-      name: String(organizationEntry.name),
+      id: String(groupEntry.id),
+      name: String(groupEntry.name),
       description:
-        typeof organizationEntry.description === "string" ? organizationEntry.description : null,
-      logo_url: organizationEntry.logo_url ? String(organizationEntry.logo_url) : null,
-      created_at: String(organizationEntry.created_at),
-      organization_characters: organizationCharacters,
-      organization_sessions: organizationSessions,
-      organization_campaigns: organizationCampaigns,
+        typeof groupEntry.description === "string" ? groupEntry.description : null,
+      logo_url: groupEntry.logo_url ? String(groupEntry.logo_url) : null,
+      created_at: String(groupEntry.created_at),
+      group_characters: groupCharacters,
+      group_sessions: groupSessions,
+      group_campaigns: groupCampaigns,
     };
   });
   const mentionTargets = mergeMentionTargets(
-    mapEntitiesToMentionTargets(organizations, "organization", (organization) => `/organizations/${organization.id}`),
+    mapEntitiesToMentionTargets(groups, "group", (group) => `/groups/${group.id}`),
     mapEntitiesToMentionTargets(charactersResult.data, "character", (character) => `/characters/${character.id}`),
     mapEntitiesToMentionTargets(sessionsResult.data, "session", (session) => `/sessions/${session.id}`),
     mapEntitiesToMentionTargets(campaignsResult.data, "campaign", (campaign) => `/campaigns/${campaign.id}`),
   );
 
-  return <OrganizationsIndex organizations={organizations} mentionTargets={mentionTargets} />;
+  return <GroupsIndex groups={groups} mentionTargets={mentionTargets} />;
 }

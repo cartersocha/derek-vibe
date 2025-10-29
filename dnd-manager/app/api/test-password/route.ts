@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(result)
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to test password' },
       { status: 500 }

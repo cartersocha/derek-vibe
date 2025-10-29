@@ -2,18 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
-import { cn, getPillClasses, getDashedPillClasses } from "@/lib/utils";
+import { getPillClasses, getDashedPillClasses } from "@/lib/utils";
 import { IndexEmptyState, IndexHeader } from "@/components/ui/index-utility";
 
-export type OrganizationRecord = {
+export type GroupRecord = {
   id: string;
   name: string;
   description: string | null;
   logo_url: string | null;
   created_at: string;
-  organization_characters?: {
+  group_characters?: {
     role: string;
     character: {
       id: string;
@@ -23,7 +23,7 @@ export type OrganizationRecord = {
       image_url: string | null;
     };
   }[];
-  organization_sessions?: {
+  group_sessions?: {
     session: {
       id: string;
       name: string;
@@ -35,7 +35,7 @@ export type OrganizationRecord = {
       } | null;
     };
   }[];
-  organization_campaigns?: {
+  group_campaigns?: {
     campaign: {
       id: string;
       name: string;
@@ -43,40 +43,40 @@ export type OrganizationRecord = {
   }[];
 };
 
-type OrganizationsIndexProps = {
-  organizations: OrganizationRecord[];
+type GroupsIndexProps = {
+  groups: GroupRecord[];
   mentionTargets: MentionTarget[];
 };
 
-export function OrganizationsIndex({ organizations, mentionTargets }: OrganizationsIndexProps) {
-  const [expandedOrganizations, setExpandedOrganizations] = useState<Set<string>>(new Set());
+export function GroupsIndex({ groups, mentionTargets }: GroupsIndexProps) {
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
 
-  const toggleOrganizationSessions = (organizationId: string) => {
-    setExpandedOrganizations(prev => {
+  const toggleGroupSessions = (groupId: string) => {
+    setExpandedGroups(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(organizationId)) {
-        newSet.delete(organizationId);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
       } else {
-        newSet.add(organizationId);
+        newSet.add(groupId);
       }
       return newSet;
     });
   };
 
-  const toggleOrganizationCampaigns = (organizationId: string) => {
+  const toggleGroupCampaigns = (groupId: string) => {
     setExpandedCampaigns(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(organizationId)) {
-        newSet.delete(organizationId);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
       } else {
-        newSet.add(organizationId);
+        newSet.add(groupId);
       }
       return newSet;
     });
   };
 
-  const hasOrganizations = organizations.length > 0;
+  const hasGroups = groups.length > 0;
 
   return (
     <section className="space-y-8">
@@ -84,35 +84,35 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
         title="Groups"
       />
 
-      {!hasOrganizations ? (
+      {!hasGroups ? (
         <IndexEmptyState
           title="No groups yet"
           description="Create your first group to get started."
-          actionHref="/organizations/new"
+          actionHref="/groups/new"
           actionLabel="Create Group"
         />
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {organizations.map((organization) => (
+          {groups.map((group) => (
             <article
-              key={organization.id}
+              key={group.id}
               className="group relative overflow-hidden rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 bg-[var(--bg-card)] bg-opacity-50 p-6 shadow-2xl backdrop-blur-sm transition-all duration-200 hover-cyber"
             >
               <Link
-                href={`/organizations/${organization.id}`}
+                href={`/groups/${group.id}`}
                 prefetch
                 className="absolute inset-0 z-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-dark)]"
-                aria-label={`View organization ${organization.name}`}
+                aria-label={`View group ${group.name}`}
               >
                 <span aria-hidden="true" />
               </Link>
               <div className="relative z-10 flex flex-col gap-3 pointer-events-none">
                 <div className="flex items-center gap-4">
-                  {organization.logo_url ? (
+                  {group.logo_url ? (
                     <div className="pointer-events-auto relative h-14 w-14 overflow-hidden rounded border border-[var(--cyber-cyan)]/30 bg-[var(--bg-dark)]">
                       <Image
-                        src={organization.logo_url}
-                        alt={`${organization.name} logo`}
+                        src={group.logo_url}
+                        alt={`${group.name} logo`}
                         fill
                         sizes="56px"
                         className="object-contain"
@@ -121,28 +121,28 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                   ) : null}
                   <div className="min-w-0">
                     <h2 className="text-lg font-bold uppercase tracking-wider text-[var(--cyber-cyan)] transition-colors group-hover:text-[var(--cyber-magenta)] break-words leading-tight">
-                      {organization.name}
+                      {group.name}
                     </h2>
                   </div>
                 </div>
-                {organization.description && (
+                {group.description && (
                   <div className="text-sm leading-relaxed text-[var(--text-primary)] pointer-events-auto">
                     <p className="line-clamp-4 text-[var(--text-primary)]">
-                      {renderNotesWithMentions(organization.description, mentionTargets)}
+                      {renderNotesWithMentions(group.description, mentionTargets)}
                     </p>
                   </div>
                 )}
                 
                 {/* Character Pills */}
-                {organization.organization_characters && organization.organization_characters.length > 0 && (
+                {group.group_characters && group.group_characters.length > 0 && (
                   <div className="pointer-events-auto mt-2">
                     <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                       Members
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {organization.organization_characters.map(({ character }) => (
+                      {group.group_characters.map(({ character }) => (
                           <Link
-                            key={`${organization.id}-char-${character.id}`}
+                            key={`${group.id}-char-${character.id}`}
                             href={`/characters/${character.id}`}
                             prefetch
                             className={getPillClasses(
@@ -158,13 +158,13 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                 )}
 
                 {/* Session Pills */}
-                {organization.organization_sessions && organization.organization_sessions.length > 0 && (
+                {group.group_sessions && group.group_sessions.length > 0 && (
                   <div className="pointer-events-auto mt-2">
                     <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                       Sessions
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      {organization.organization_sessions
+                      {group.group_sessions
                         .sort((a, b) => {
                           // Sort by session date (most recent first)
                           // Prefer session_date over created_at
@@ -172,10 +172,10 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                           const bDate = new Date(b.session.session_date || b.session.created_at || 0).getTime()
                           return bDate - aDate
                         })
-                        .slice(0, expandedOrganizations.has(organization.id) ? organization.organization_sessions.length : 3)
+                        .slice(0, expandedGroups.has(group.id) ? group.group_sessions.length : 3)
                         .map((sessionRelation) => (
                         <Link
-                          key={`${organization.id}-session-${sessionRelation.session.id}`}
+                          key={`${group.id}-session-${sessionRelation.session.id}`}
                           href={`/sessions/${sessionRelation.session.id}`}
                           prefetch
                           className={getPillClasses('session', 'small')}
@@ -183,17 +183,17 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                           {sessionRelation.session.name}
                         </Link>
                       ))}
-                      {!expandedOrganizations.has(organization.id) && organization.organization_sessions.length > 3 && (
+                      {!expandedGroups.has(group.id) && group.group_sessions.length > 3 && (
                         <button
-                          onClick={() => toggleOrganizationSessions(organization.id)}
+                          onClick={() => toggleGroupSessions(group.id)}
                           className={getDashedPillClasses('session', 'small')}
                         >
-                          +{organization.organization_sessions.length - 3} more
+                          +{group.group_sessions.length - 3} more
                         </button>
                       )}
-                      {expandedOrganizations.has(organization.id) && organization.organization_sessions.length > 3 && (
+                      {expandedGroups.has(group.id) && group.group_sessions.length > 3 && (
                         <button
-                          onClick={() => toggleOrganizationSessions(organization.id)}
+                          onClick={() => toggleGroupSessions(group.id)}
                           className={getPillClasses('default', 'small')}
                         >
                           Show less
@@ -204,17 +204,17 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                 )}
 
                 {/* Campaign Pills */}
-                {organization.organization_campaigns && organization.organization_campaigns.length > 0 && (
+                {group.group_campaigns && group.group_campaigns.length > 0 && (
                   <div className="pointer-events-auto mt-2">
                     <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                       Campaigns
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      {organization.organization_campaigns
-                        .slice(0, expandedCampaigns.has(organization.id) ? organization.organization_campaigns.length : 4)
+                      {group.group_campaigns
+                        .slice(0, expandedCampaigns.has(group.id) ? group.group_campaigns.length : 4)
                         .map((relation) => (
                           <Link
-                            key={`${organization.id}-campaign-${relation.campaign.id}`}
+                            key={`${group.id}-campaign-${relation.campaign.id}`}
                             href={`/campaigns/${relation.campaign.id}`}
                             prefetch
                             className={getPillClasses('campaign', 'small')}
@@ -222,17 +222,17 @@ export function OrganizationsIndex({ organizations, mentionTargets }: Organizati
                             {relation.campaign.name}
                           </Link>
                         ))}
-                      {!expandedCampaigns.has(organization.id) && organization.organization_campaigns.length > 4 && (
+                      {!expandedCampaigns.has(group.id) && group.group_campaigns.length > 4 && (
                         <button
-                          onClick={() => toggleOrganizationCampaigns(organization.id)}
+                          onClick={() => toggleGroupCampaigns(group.id)}
                           className={getDashedPillClasses('campaign', 'small')}
                         >
-                          +{organization.organization_campaigns.length - 4} more
+                          +{group.group_campaigns.length - 4} more
                         </button>
                       )}
-                      {expandedCampaigns.has(organization.id) && organization.organization_campaigns.length > 4 && (
+                      {expandedCampaigns.has(group.id) && group.group_campaigns.length > 4 && (
                         <button
-                          onClick={() => toggleOrganizationCampaigns(organization.id)}
+                          onClick={() => toggleGroupCampaigns(group.id)}
                           className={getPillClasses('default', 'small')}
                         >
                           Show less

@@ -13,8 +13,8 @@ type DashboardSessionCardProps = {
     created_at: string;
     campaign: { id: string; name: string } | null;
     session_characters: SessionCharacterRelation[] | null;
-    session_organizations: Array<{
-      organization: { id: string; name: string } | null;
+    session_groups: Array<{
+      group: { id: string; name: string } | null;
     }>;
   };
   sessionNumber?: number;
@@ -25,12 +25,12 @@ type DashboardSessionCardProps = {
     race: string | null;
     level: string | null;
     player_type: "npc" | "player" | null;
-    organizations: Array<{ id: string; name: string }>;
+    groups: Array<{ id: string; name: string }>;
   }>;
-  organizations: Array<{ id: string; name: string }>;
+  groups: Array<{ id: string; name: string }>;
 };
 
-export const DashboardSessionCard = memo(function DashboardSessionCard({ session, sessionNumber, players, organizations }: DashboardSessionCardProps) {
+export const DashboardSessionCard = memo(function DashboardSessionCard({ session, sessionNumber, players, groups }: DashboardSessionCardProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const toggleSessionGroups = (sessionId: string) => {
@@ -94,7 +94,7 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
             </div>
           </div>
           {players.length > 0 && (
-            <div className={`pointer-events-auto ${organizations.length > 0 ? 'mt-3' : 'mt-3'}`}>
+            <div className={`pointer-events-auto ${groups.length > 0 ? 'mt-3' : 'mt-3'}`}>
               <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                 Participants
               </div>
@@ -102,38 +102,38 @@ export const DashboardSessionCard = memo(function DashboardSessionCard({ session
                 sessionId={session.id}
                 players={players}
                 className=""
-                showOrganizations={false}
+                showGroups={false}
               />
             </div>
           )}
-          {organizations.length > 0 && (
+          {groups.length > 0 && (
             <div className={`pointer-events-auto ${players.length > 0 ? 'mt-2' : 'mt-3'}`}>
               <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                 Groups
               </div>
               <div className="flex flex-wrap items-center gap-1 sm:gap-2">
                 {(expandedGroups.has(session.id) 
-                  ? organizations 
-                  : organizations.slice(0, 5)
-                ).map((organization) => (
+                  ? groups 
+                  : groups.slice(0, 5)
+                ).map((group) => (
                   <Link
-                    key={organization.id}
-                    href={`/organizations/${organization.id}`}
+                    key={group.id}
+                    href={`/groups/${group.id}`}
                     prefetch
-                    className={getPillClasses('organization', 'small')}
+                    className={getPillClasses('group', 'small')}
                   >
-                    {organization.name}
+                    {group.name}
                   </Link>
                 ))}
-                {!expandedGroups.has(session.id) && organizations.length > 5 && (
+                {!expandedGroups.has(session.id) && groups.length > 5 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className={getDashedPillClasses('organization', 'small')}
+                    className={getDashedPillClasses('group', 'small')}
                   >
-                    +{organizations.length - 5} more
+                    +{groups.length - 5} more
                   </button>
                 )}
-                {expandedGroups.has(session.id) && organizations.length > 5 && (
+                {expandedGroups.has(session.id) && groups.length > 5 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
                     className={getPillClasses('default', 'small')}

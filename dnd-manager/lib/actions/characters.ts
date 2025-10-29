@@ -9,26 +9,19 @@ import { assertUniqueValue } from "@/lib/supabase/ensure-unique";
 import { createClient } from "@/lib/supabase/server";
 import { 
   getString, 
-  getStringOrNull, 
   getFile, 
   getName, 
-  getDescription, 
-  getNotes, 
   getBackstory, 
   getLocation, 
   getRace, 
   getClass, 
   getLevel, 
-  getRole,
   validateName,
-  validateDescription,
-  validateNotes,
   validateBackstory,
   validateLocation,
   validateRace,
   validateClass,
-  validateLevel,
-  validateRole
+  validateLevel
 } from '@/lib/utils/form-data'
 import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import {
@@ -40,13 +33,13 @@ import { characterSchema } from "@/lib/validations/schemas";
 import { CharacterStatus, PlayerType } from "@/lib/characters/constants";
 import { toTitleCase } from "@/lib/utils";
 import {
-  resolveOrganizationIds,
-  setCharacterOrganizations,
-  syncSessionOrganizationsFromCharacters,
-} from "@/lib/actions/organizations";
+  resolveGroupIds,
+  setCharacterGroups,
+  syncSessionGroupsFromCharacters,
+} from "@/lib/actions/groups";
 import { getIdList } from "@/lib/utils/form-data";
-import { extractOrganizationIds } from "@/lib/organizations/helpers";
-import type { CharacterOrganizationAffiliationInput } from "@/lib/validations/organization";
+import { extractGroupIds } from "@/lib/groups/helpers";
+import type { CharacterGroupAffiliationInput } from "@/lib/validations/group";
 
 // Detects environments where `campaign_characters` table hasn't been created yet
 const isMissingCampaignCharactersTable = (error: { message?: string | null; code?: string | null } | null | undefined) => {
@@ -83,13 +76,13 @@ export async function createCharacter(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const characterId = randomUUID();
 
-  const organizationFieldTouched =
-    formData.get("organization_field_present") === "true" ||
-    formData.has("organization_roles") ||
-    formData.has("organization_ids") ||
-    formData.has("organization_id");
+  const groupFieldTouched =
+    formData.get("group_field_present") === "true" ||
+    formData.has("group_roles") ||
+    formData.has("group_ids") ||
+    formData.has("group_id");
 
-  const selectedOrganizationIds = extractOrganizationIds(formData);
+  const selectedGroupIds = extractGroupIds(formData);
   const selectedCampaignIds = getIdList(formData, "campaign_ids");
 
   const imageFile = getFile(formData, "image");
@@ -163,17 +156,17 @@ export async function createCharacter(formData: FormData): Promise<void> {
     throw new Error("Validation failed");
   }
 
-  let organizationAffiliations: CharacterOrganizationAffiliationInput[] = selectedOrganizationIds.map(
-    (organizationId) => ({
-      organizationId,
+  let groupAffiliations: CharacterGroupAffiliationInput[] = selectedGroupIds.map(
+    (groupId) => ({
+      groupId,
       role: result.data.player_type,
     })
   );
 
-  if (organizationAffiliations.length === 0 && !organizationFieldTouched) {
-    const fallbackOrganizationIds = await resolveOrganizationIds(supabase, []);
-    organizationAffiliations = fallbackOrganizationIds.map((organizationId) => ({
-      organizationId,
+  if (groupAffiliations.length === 0 && !groupFieldTouched) {
+    const fallbackGroupIds = await resolveGroupIds(supabase, []);
+    groupAffiliations = fallbackGroupIds.map((groupId) => ({
+      groupId,
       role: result.data.player_type,
     }));
   }
@@ -190,16 +183,16 @@ export async function createCharacter(formData: FormData): Promise<void> {
     throw new Error(error.message);
   }
 
-  if (organizationAffiliations.length > 0 || organizationFieldTouched) {
-    const touchedOrganizationIds = await setCharacterOrganizations(
+  if (groupAffiliations.length > 0 || groupFieldTouched) {
+    const touchedGroupIds = await setCharacterGroups(
       supabase,
       characterId,
-      organizationAffiliations
+      groupAffiliations
     );
-    if (touchedOrganizationIds.length > 0) {
-      revalidatePath("/organizations");
-      Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
-        revalidatePath(`/organizations/${organizationId}`);
+    if (touchedGroupIds.length > 0) {
+      revalidatePath("/groups");
+      Array.from(new Set(touchedGroupIds)).forEach((groupId) => {
+        revalidatePath(`/groups/${groupId}`);
       });
     }
   }
@@ -278,7 +271,7 @@ export async function createCharacter(formData: FormData): Promise<void> {
 
 export async function createCharacterInline(
   name: string,
-  organizationIds?: string[]
+  groupIds?: string[]
 ): Promise<{
   id: string;
   name: string;
@@ -310,27 +303,27 @@ export async function createCharacterInline(
     throw new Error(error.message);
   }
 
-  // Only assign organizations if explicitly provided
-  const desiredOrganizationIds = Array.isArray(organizationIds) && organizationIds.length > 0
-    ? organizationIds
+  // Only assign groups if explicitly provided
+  const desiredGroupIds = Array.isArray(groupIds) && groupIds.length > 0
+    ? groupIds
     : [];
 
-  // Don't call resolveOrganizationIds for fallback - just use what's explicitly provided
-  if (desiredOrganizationIds.length > 0) {
-    const affiliations = desiredOrganizationIds.map((organizationId) => ({
-      organizationId,
-      role: "npc" as CharacterOrganizationAffiliationInput["role"],
+  // Don't call resolveGroupIds for fallback - just use what's explicitly provided
+  if (desiredGroupIds.length > 0) {
+    const affiliations = desiredGroupIds.map((groupId) => ({
+      groupId,
+      role: "npc" as CharacterGroupAffiliationInput["role"],
     }));
 
-    const touchedOrganizationIds = await setCharacterOrganizations(
+    const touchedGroupIds = await setCharacterGroups(
       supabase,
       characterId,
       affiliations
     );
-    if (touchedOrganizationIds.length > 0) {
-      revalidatePath("/organizations");
-      Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
-        revalidatePath(`/organizations/${organizationId}`);
+    if (touchedGroupIds.length > 0) {
+      revalidatePath("/groups");
+      Array.from(new Set(touchedGroupIds)).forEach((groupId) => {
+        revalidatePath(`/groups/${groupId}`);
       });
     }
   }
@@ -349,13 +342,13 @@ export async function updateCharacter(
 ): Promise<void> {
   const supabase = await createClient();
 
-  const organizationFieldTouched =
-    formData.get("organization_field_present") === "true" ||
-    formData.has("organization_roles") ||
-    formData.has("organization_ids") ||
-    formData.has("organization_id");
+  const groupFieldTouched =
+    formData.get("group_field_present") === "true" ||
+    formData.has("group_roles") ||
+    formData.has("group_ids") ||
+    formData.has("group_id");
 
-  const selectedOrganizationIds = extractOrganizationIds(formData);
+  const selectedGroupIds = extractGroupIds(formData);
   const selectedCampaignIds = getIdList(formData, "campaign_ids");
 
   const { data: existing, error: fetchError } = await supabase
@@ -465,9 +458,9 @@ export async function updateCharacter(
     throw new Error("Validation failed");
   }
 
-  const organizationAffiliations: CharacterOrganizationAffiliationInput[] = selectedOrganizationIds.map(
-    (organizationId) => ({
-      organizationId,
+  const groupAffiliations: CharacterGroupAffiliationInput[] = selectedGroupIds.map(
+    (groupId) => ({
+      groupId,
       role: result.data.player_type,
     })
   );
@@ -481,19 +474,19 @@ export async function updateCharacter(
     throw new Error(error.message);
   }
 
-  if (organizationFieldTouched || organizationAffiliations.length > 0) {
-    const touchedOrganizationIds = await setCharacterOrganizations(
+  if (groupFieldTouched || groupAffiliations.length > 0) {
+    const touchedGroupIds = await setCharacterGroups(
       supabase,
       id,
-      organizationAffiliations
+      groupAffiliations
     );
-    if (touchedOrganizationIds.length > 0) {
-      revalidatePath("/organizations");
-      Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
-        revalidatePath(`/organizations/${organizationId}`);
+    if (touchedGroupIds.length > 0) {
+      revalidatePath("/groups");
+      Array.from(new Set(touchedGroupIds)).forEach((groupId) => {
+        revalidatePath(`/groups/${groupId}`);
       });
 
-      // Sync organizations to ALL sessions this character is in
+      // Sync groups to ALL sessions this character is in
       const { data: characterSessions } = await supabase
         .from('session_characters')
         .select('session_id')
@@ -504,7 +497,7 @@ export async function updateCharacter(
       if (sessionIds.length > 0) {
         revalidatePath("/sessions");
         for (const sessionId of sessionIds) {
-          await syncSessionOrganizationsFromCharacters(supabase, sessionId);
+          await syncSessionGroupsFromCharacters(supabase, sessionId);
           revalidatePath(`/sessions/${sessionId}`);
         }
       }
@@ -555,7 +548,7 @@ export async function updateCharacter(
   if (newlyLinkedSessions.length > 0) {
     revalidatePath("/sessions");
     for (const { id: sessionId, campaign_id } of newlyLinkedSessions) {
-      await syncSessionOrganizationsFromCharacters(supabase, sessionId);
+      await syncSessionGroupsFromCharacters(supabase, sessionId);
       revalidatePath(`/sessions/${sessionId}`);
       if (campaign_id) {
         revalidatePath(`/campaigns/${campaign_id}`);
@@ -647,10 +640,10 @@ export async function updateCharacterSessions(
   revalidatePath(`/characters/${id}`);
   revalidatePath("/sessions");
 
-  // Sync organizations for all affected sessions
+  // Sync groups for all affected sessions
   const sessionsToRevalidate = new Set([...previousSessionIds, ...sessionIds]);
   for (const sessionId of sessionsToRevalidate) {
-    await syncSessionOrganizationsFromCharacters(supabase, sessionId);
+    await syncSessionGroupsFromCharacters(supabase, sessionId);
     revalidatePath(`/sessions/${sessionId}`);
   }
 }
