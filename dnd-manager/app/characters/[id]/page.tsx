@@ -495,7 +495,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
                   <CharacterSessionCard
                     key={session.id}
                     session={session}
-                    mentionTargets={mentionTargets}
                     sessionNumber={sessionNumber}
                   />
                 )

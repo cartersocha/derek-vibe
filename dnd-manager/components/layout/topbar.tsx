@@ -109,10 +109,10 @@ export default function Topbar() {
       ]);
 
       const results = [
-        ...campaigns.data?.map(item => ({ ...item, type: 'campaign', url: `/campaigns/${item.id}` })) || [],
-        ...sessions.data?.map(item => ({ ...item, type: 'session', url: `/sessions/${item.id}` })) || [],
-        ...characters.data?.map(item => ({ ...item, type: 'character', url: `/characters/${item.id}` })) || [],
-        ...groups.data?.map(item => ({ ...item, type: 'group', url: `/groups/${item.id}` })) || []
+        ...campaigns.data?.map(item => ({ id: item.id, name: item.name, type: 'campaign', href: `/campaigns/${item.id}` })) || [],
+        ...sessions.data?.map(item => ({ id: item.id, name: item.name, type: 'session', href: `/sessions/${item.id}` })) || [],
+        ...characters.data?.map(item => ({ id: item.id, name: item.name, type: 'character', href: `/characters/${item.id}` })) || [],
+        ...groups.data?.map(item => ({ id: item.id, name: item.name, type: 'group', href: `/groups/${item.id}` })) || []
       ];
 
       console.log('Desktop search query:', query);
@@ -387,7 +387,7 @@ export default function Topbar() {
                   return (
                     <button
                       key={`${result.type}-${result.id}-${index}`}
-                      onClick={() => handleResultClick(result.url, result.name)}
+                      onClick={() => handleResultClick(result.href, result.name)}
                       className={`w-full px-4 py-3 text-left hover:bg-[var(--cyber-cyan)]/10 hover:border-[var(--cyber-cyan)]/30 transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
                     >
                       <div className="flex items-center space-x-3">
@@ -553,7 +553,7 @@ export default function Topbar() {
                   return (
                     <button
                       key={`${result.type}-${result.id}-${index}`}
-                      onClick={() => handleResultClick(result.url, result.name)}
+                      onClick={() => handleResultClick(result.href, result.name)}
                       className={`w-full px-3 py-2 text-left hover:bg-[var(--cyber-cyan)]/10 transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
                     >
                       <div className="flex flex-col space-y-1">

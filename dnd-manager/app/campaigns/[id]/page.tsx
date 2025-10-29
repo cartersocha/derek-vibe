@@ -358,7 +358,6 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
                   <CampaignSessionCard
                     key={session.id}
                     session={session}
-                    mentionTargets={mentionTargets}
                     sessionNumber={session.sessionNumber}
                     campaignRelation={{ id: campaign.id, name: campaign.name }}
                   />

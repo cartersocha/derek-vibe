@@ -200,5 +200,5 @@ export default async function SessionsPage() {
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
   })()
 
-  return <SessionsIndex sessions={enrichedSessions} mentionTargets={mentionTargets} />
+  return <SessionsIndex sessions={enrichedSessions} />
 }

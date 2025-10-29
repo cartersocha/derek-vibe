@@ -72,7 +72,7 @@ export const getPillVariantClasses = (variant: PillVariant) => {
 export const getPillClasses = (variant: PillVariant = 'default', size: PillSize = 'tiny') => {
   return cn(
     getPillBaseClasses(size),
-    getPillVariantClasses(variant, size)
+    getPillVariantClasses(variant)
   )
 }
 
