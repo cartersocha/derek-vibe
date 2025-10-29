@@ -247,7 +247,7 @@ export function OrganizationForm({
   return (
     <form
       action={action}
-      className="space-y-6 rounded border border-[var(--cyber-cyan)]/20 bg-[var(--bg-dark)] p-6 shadow-[0_0_25px_rgba(0,255,255,0.08)]"
+      className="space-y-6 bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl p-6"
     >
       <div>
         <label
