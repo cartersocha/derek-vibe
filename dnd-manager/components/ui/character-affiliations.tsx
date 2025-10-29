@@ -23,15 +23,15 @@ export function CharacterAffiliations({ affiliations }: CharacterAffiliationsPro
           {affiliations.map((affiliation) => (
             <Link
               key={affiliation.id}
-              href={`/organizations/${affiliation.id}`}
-              className={getPillClasses('organization', 'small')}
+              href={`/groups/${affiliation.id}`}
+              className={getPillClasses('group', 'small')}
             >
               <span className="font-semibold">{affiliation.name}</span>
             </Link>
           ))}
         </div>
       ) : (
-        <p className="text-sm font-mono uppercase tracking-wider text-[var(--text-muted)]">No organization affiliations yet.</p>
+        <p className="text-sm font-mono uppercase tracking-wider text-[var(--text-muted)]">No group affiliations yet.</p>
       )}
     </section>
   );

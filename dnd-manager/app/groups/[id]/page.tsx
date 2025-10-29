@@ -1,14 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DeleteOrganizationButton } from "@/components/ui/delete-organization-button";
+import { DeleteGroupButton } from "@/components/ui/delete-group-button";
 import EditIcon from "@/components/ui/edit-icon";
-import { deleteOrganization } from "@/lib/actions/organizations";
+import { deleteGroup } from "@/lib/actions/groups";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateStringForDisplay, formatTimestampForDisplay, getPillClasses, cn } from "@/lib/utils";
+import { formatDateStringForDisplay, getPillClasses, cn } from "@/lib/utils";
 import { mapEntitiesToMentionTargets, mergeMentionTargets, renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 
-interface OrganizationRecord {
+interface GroupRecord {
   id: string;
   name: string;
   description: string | null;
@@ -42,7 +42,7 @@ interface CharacterSummary {
   role: CharacterRole;
 }
 
-export default async function OrganizationDetailPage({
+export default async function GroupDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -51,7 +51,7 @@ export default async function OrganizationDetailPage({
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from("organizations")
+    .from("groups")
     .select("id, name, description, logo_url, created_at")
     .eq("id", id)
     .single();
@@ -67,7 +67,7 @@ export default async function OrganizationDetailPage({
     notFound();
   }
 
-  const organization = data as OrganizationRecord;
+  const group = data as GroupRecord;
 
   const [
     { data: campaignData, error: campaignError },
@@ -75,21 +75,21 @@ export default async function OrganizationDetailPage({
     { data: characterData, error: characterError },
   ] = await Promise.all([
     supabase
-      .from("organization_campaigns")
+      .from("group_campaigns")
       .select("campaign:campaigns (id, name, created_at)")
-      .eq("organization_id", organization.id)
+      .eq("group_id", group.id)
       .order("created_at", { ascending: false }),
     supabase
-      .from("organization_sessions")
+      .from("group_sessions")
       .select(
         "session:sessions (id, name, session_date, created_at, campaign:campaigns (id, name))",
       )
-      .eq("organization_id", organization.id)
+      .eq("group_id", group.id)
       .order("created_at", { ascending: false }),
     supabase
-      .from("organization_characters")
+      .from("group_characters")
       .select("role, character:characters (id, name, player_type, status, image_url)")
-      .eq("organization_id", organization.id)
+      .eq("group_id", group.id)
       .order("created_at", { ascending: false }),
   ]);
 
@@ -181,12 +181,12 @@ export default async function OrganizationDetailPage({
     mapEntitiesToMentionTargets(characters, "character", (entry) => `/characters/${entry.id}`),
     mapEntitiesToMentionTargets(sessions, "session", (entry) => `/sessions/${entry.id}`),
     mapEntitiesToMentionTargets(campaigns, "campaign", (entry) => `/campaigns/${entry.id}`),
-    mapEntitiesToMentionTargets([organization], "organization", (entry) => `/organizations/${entry.id}`)
+    mapEntitiesToMentionTargets([group], "group", (entry) => `/groups/${entry.id}`)
   );
 
   async function handleDelete() {
     "use server";
-    await deleteOrganization(id);
+    await deleteGroup(id);
   }
 
   return (
@@ -194,46 +194,46 @@ export default async function OrganizationDetailPage({
       <div className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl pt-4 px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8 space-y-6 sm:space-y-8">
         <div className="flex flex-row flex-wrap items-center gap-3 justify-between">
           <Link
-            href="/organizations"
+            href="/groups"
             className="text-[var(--cyber-cyan)] hover-cyber font-mono uppercase tracking-wider text-sm sm:text-base"
           >
             ← Back to Groups
           </Link>
           <div className="flex flex-row flex-wrap items-center gap-2 ml-auto">
             <Link
-              href={`/organizations/${organization.id}/edit`}
+              href={`/groups/${group.id}/edit`}
               className="inline-flex self-start w-auto h-10 bg-[var(--cyber-magenta)] text-black px-4 text-sm sm:text-base rounded font-bold uppercase tracking-wider hover-brightness transition-all duration-200 shadow-lg shadow-[var(--cyber-magenta)]/50 text-center items-center justify-center"
             >
               <EditIcon size="sm" className="bg-black" />
             </Link>
             <form action={handleDelete}>
-              <DeleteOrganizationButton />
+              <DeleteGroupButton />
             </form>
           </div>
         </div>
         
         <header className="-mt-4">
           <h1 className="retro-title text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold uppercase tracking-widest text-[var(--text-primary)] drop-shadow-[0_0_8px_rgba(0,255,255,0.35)] break-words">
-            {organization.name}
+            {group.name}
           </h1>
         </header>
 
         <div className="space-y-6 md:space-y-0 md:flex md:flex-row-reverse md:items-stretch md:gap-8 -mt-2">
-          {organization.logo_url && (
+          {group.logo_url && (
             <aside className="md:flex md:flex-col md:w-80 md:max-w-sm md:self-stretch w-full max-w-sm mx-auto md:mx-0 rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-[var(--bg-dark)] shadow-lg shadow-[var(--cyber-cyan)]/20 font-mono text-sm text-[var(--text-primary)]">
               <div className="p-4 flex h-full flex-col">
                 <div className="space-y-3">
                   <div className="relative aspect-[5/6] overflow-hidden rounded border border-[var(--cyber-cyan)] border-opacity-30 bg-black">
                     <Image
-                      src={organization.logo_url}
-                      alt={`${organization.name} logo`}
+                      src={group.logo_url}
+                      alt={`${group.name} logo`}
                       fill
                       className="object-contain"
                       sizes="(max-width: 768px) 200px, 256px"
                     />
                   </div>
                   <p className="mt-2 px-4 text-center text-xs uppercase tracking-widest text-[var(--text-secondary)] break-words leading-tight">
-                    {organization.name}
+                    {group.name}
                   </p>
                 </div>
                 <div className="mt-auto" />
@@ -248,9 +248,9 @@ export default async function OrganizationDetailPage({
                 WebkitFontSmoothing: 'none',
                 fontSmoothing: 'never'
               } as React.CSSProperties}>Overview</h2>
-            {organization.description && (
+            {group.description && (
               <div className="whitespace-pre-wrap leading-relaxed break-words dynamic-text">
-                {renderNotesWithMentions(organization.description, mentionTargets)}
+                {renderNotesWithMentions(group.description, mentionTargets)}
               </div>
             )}
           </section>
@@ -293,11 +293,6 @@ export default async function OrganizationDetailPage({
           ) : (
             <div className="flex flex-wrap gap-2">
               {characters.map((character) => {
-                const isPlayer = character.player_type === "player";
-                const pillClasses = isPlayer
-                  ? "border border-[var(--cyber-cyan)] border-opacity-40 bg-[var(--bg-dark)] text-[var(--cyber-cyan)] hover-cyber focus-visible:ring-[var(--cyber-cyan)]"
-                  : "border border-[var(--cyber-magenta)] border-opacity-40 bg-[var(--cyber-magenta)]/10 text-[var(--cyber-magenta)] hover:text-[var(--cyber-cyan)] hover:border-[var(--cyber-cyan)]/70 hover:bg-[var(--cyber-cyan)]/10 focus-visible:ring-[var(--cyber-magenta)]";
-
                 return (
                   <Link
                     key={character.id}

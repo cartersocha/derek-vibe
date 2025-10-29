@@ -14,7 +14,7 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
     { data: allCharacters },
     { data: allSessions },
     { data: campaigns },
-    { data: organizations },
+    { data: groups },
     { data: locationRows },
     { data: raceRows },
     { data: classRows },
@@ -22,7 +22,7 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('sessions').select('id, name').order('name'),
     supabase.from('campaigns').select('id, name, created_at').order('created_at', { ascending: false }),
-    supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('groups').select('id, name').order('name'),
     supabase
       .from('characters')
       .select('last_known_location')
@@ -43,7 +43,7 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
   const mentionTargets = mergeMentionTargets(
     mapEntitiesToMentionTargets(allCharacters, 'character', (entry) => `/characters/${entry.id}`),
     mapEntitiesToMentionTargets(allSessions, 'session', (entry) => `/sessions/${entry.id}`),
-    mapEntitiesToMentionTargets(organizations, 'organization', (entry) => `/organizations/${entry.id}`)
+    mapEntitiesToMentionTargets(groups, 'group', (entry) => `/groups/${entry.id}`)
   )
 
   const redirectValue = params?.redirectTo
@@ -70,9 +70,9 @@ export default async function NewCharacterPage({ searchParams }: NewCharacterPag
       <NewCharacterForm
         redirectTo={redirectTo}
         mentionTargets={mentionTargets}
-        organizations={(organizations ?? []).map((organization) => ({
-          id: organization.id,
-          name: organization.name ?? 'Untitled Organization',
+        groups={(groups ?? []).map((group) => ({
+          id: group.id,
+          name: group.name ?? 'Untitled Group',
         }))}
         campaigns={(campaigns ?? []).map((campaign) => ({
           id: campaign.id,

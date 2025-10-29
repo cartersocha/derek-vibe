@@ -15,7 +15,6 @@ import {
   cn,
 } from '@/lib/utils'
 import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils'
-import { SessionParticipantPills } from '@/components/ui/session-participant-pills'
 import { CharacterSessionCard } from '@/components/ui/character-session-card'
 import type { SessionRow, SessionSummary } from '@/lib/types/sessions'
 
@@ -33,23 +32,23 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     notFound()
   }
 
-  const [{ data: mentionCharacters }, { data: organizationLinks }, { data: allOrganizations }] = await Promise.all([
+  const [{ data: mentionCharacters }, { data: groupLinks }, { data: allGroups }] = await Promise.all([
     supabase
       .from('characters')
       .select('id, name'),
     supabase
-      .from('organization_characters')
+      .from('group_characters')
       .select(`
-        organization_id,
+        group_id,
         role,
-        organizations (
+        groups (
           id,
           name
         )
       `)
       .eq('character_id', id),
     supabase
-      .from('organizations')
+      .from('groups')
       .select('id, name'),
   ])
 
@@ -87,31 +86,31 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
       .join(' ')
   }
 
-  const organizationAffiliationMap = new Map<string, { id: string; name: string; role: string | null; roleLabel: string | null }>()
+  const groupAffiliationMap = new Map<string, { id: string; name: string; role: string | null; roleLabel: string | null }>()
 
-  for (const link of organizationLinks ?? []) {
-    const organization = Array.isArray(link.organizations)
-      ? link.organizations[0]
-      : link.organizations
+  for (const link of groupLinks ?? []) {
+    const group = Array.isArray(link.groups)
+      ? link.groups[0]
+      : link.groups
 
-    const orgId = organization?.id ?? link.organization_id
+    const orgId = group?.id ?? link.group_id
     if (!orgId) {
       continue
     }
 
-    if (organizationAffiliationMap.has(orgId)) {
+    if (groupAffiliationMap.has(orgId)) {
       continue
     }
 
-    organizationAffiliationMap.set(orgId, {
+    groupAffiliationMap.set(orgId, {
       id: orgId,
-      name: organization?.name ?? 'Untitled Organization',
+      name: group?.name ?? 'Untitled Group',
       role: link.role ?? null,
       roleLabel: formatRoleLabel(link.role),
     })
   }
 
-  const organizationAffiliations = Array.from(organizationAffiliationMap.values()).sort((a, b) =>
+  const groupAffiliations = Array.from(groupAffiliationMap.values()).sort((a, b) =>
     a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
   )
 
@@ -143,13 +142,13 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
           race,
           level,
           player_type,
-          organization_memberships:organization_characters(
-            organizations(id, name)
+          group_memberships:group_characters(
+            groups(id, name)
           )
         )
       ),
-      session_organizations:organization_sessions(
-        organization:organizations(id, name)
+      session_groups:group_sessions(
+        group:groups(id, name)
       )
     `)
     .order('session_date', { ascending: false, nullsFirst: false })
@@ -173,19 +172,19 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
       ? extractPlayerSummaries(session.session_characters as SessionCharacterRelation[]) 
       : []
     
-    // Handle organizations data - only available in full SessionRow
-    const organizations = 'session_organizations' in session && session.session_organizations
-      ? (session.session_organizations as Array<{
-          organization:
+    // Handle groups data - only available in full SessionRow
+    const groups = 'session_groups' in session && session.session_groups
+      ? (session.session_groups as Array<{
+          group:
             | { id: string | null; name: string | null }
             | { id: string | null; name: string | null }[]
             | null
         }>)
           .map((link) => {
-            const organization = Array.isArray(link.organization)
-              ? link.organization[0]
-              : link.organization
-            return organization
+            const group = Array.isArray(link.group)
+              ? link.group[0]
+              : link.group
+            return group
           })
           .filter((org): org is { id: string; name: string } => 
             Boolean(org?.id && org?.name)
@@ -201,7 +200,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
       campaign_id: session.campaign_id,
       campaign,
       players,
-      organizations,
+      groups,
     }
   })
   const linkedSessions = allSessions.filter(session => linkedSessionIds.has(session.id))
@@ -274,7 +273,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
     kind: 'session' as const,
   }))
 
-  const organizationMentionTargets: MentionTarget[] = (allOrganizations ?? [])
+  const groupMentionTargets: MentionTarget[] = (allGroups ?? [])
     .flatMap((entry) => {
       if (!entry?.id || !entry?.name) {
         return []
@@ -282,15 +281,15 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
       return [{
         id: entry.id as string,
         name: entry.name as string,
-        href: `/organizations/${entry.id}`,
-        kind: 'organization' as const,
+        href: `/groups/${entry.id}`,
+        kind: 'group' as const,
       }]
     })
 
   const mentionTargets: MentionTarget[] = [
     ...characterMentionTargets,
     ...sessionMentionTargets,
-    ...organizationMentionTargets,
+    ...groupMentionTargets,
   ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 
   const deleteCharacterWithId = deleteCharacter.bind(null, id)
@@ -450,20 +449,20 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">Affiliations</h3>
             </div>
-            {organizationAffiliations.length > 0 ? (
+            {groupAffiliations.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {organizationAffiliations.map((affiliation) => (
+                {groupAffiliations.map((affiliation) => (
                   <Link
                     key={affiliation.id}
-                    href={`/organizations/${affiliation.id}`}
-                    className={cn(getPillClasses('organization', 'small'), 'whitespace-normal break-words sm:whitespace-nowrap')}
+                    href={`/groups/${affiliation.id}`}
+                    className={cn(getPillClasses('group', 'small'), 'whitespace-normal break-words sm:whitespace-nowrap')}
                   >
                     <span className="font-semibold">{affiliation.name}</span>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="text-sm font-mono uppercase tracking-wider text-[var(--gray-500)]">No organization affiliations yet.</p>
+              <p className="text-sm font-mono uppercase tracking-wider text-[var(--gray-500)]">No group affiliations yet.</p>
             )}
           </section>
         </div>
@@ -491,16 +490,11 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
           {linkedSessions.length > 0 ? (
             <div className="space-y-4">
               {linkedSessions.map((session) => {
-                const players = session.players
-                const groups = session.organizations
                 const sessionNumber = sessionNumberMap.get(session.id)
-                const campaignRelation = session.campaign
-                const sessionDateLabel = formatDateStringForDisplay(session.session_date)
                 return (
                   <CharacterSessionCard
                     key={session.id}
                     session={session}
-                    mentionTargets={mentionTargets}
                     sessionNumber={sessionNumber}
                   />
                 )

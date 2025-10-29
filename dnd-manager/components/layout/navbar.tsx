@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/providers/sidebar-provider";
@@ -12,7 +11,7 @@ const NAV_LINKS = [
   { href: "/campaigns", label: "Campaigns", icon: "/icons/campaigns-24.png", symbol: "⚔" },
   { href: "/sessions", label: "Sessions", icon: "/icons/sessions-24.png", symbol: "✎" },
   { href: "/characters", label: "Characters", icon: "/icons/characters-24.png", symbol: "♞" },
-  { href: "/organizations", label: "Groups", icon: "/icons/groups-24.png", symbol: "⚙" },
+  { href: "/groups", label: "Groups", icon: "/icons/groups-24.png", symbol: "⚙" },
 ];
 
 const DEFAULT_WIDTH = 200;
@@ -30,7 +29,7 @@ const clampWithMax = (value: number, maxWidth: number) => {
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { isCollapsed, setSidebarWidth, toggleSidebar } = useSidebar();
+  const { isCollapsed, setSidebarWidth } = useSidebar();
   const measurementRef = useRef<HTMLDivElement | null>(null);
   const [maxWidth, setMaxWidth] = useState(INITIAL_MAX_WIDTH);
   const [width, setWidth] = useState<number>(() => {
@@ -46,7 +45,6 @@ export default function Navbar() {
     return COLLAPSED_WIDTH;
   });
   // Drag-related state removed
-const widthFrameRef = useRef<number | null>(null);
 const hasCustomWidthRef = useRef(false);
 const measuredWidthRef = useRef(Math.max(DEFAULT_WIDTH, COLLAPSED_WIDTH));
 const lastExpandedWidthRef = useRef(DEFAULT_WIDTH);
@@ -54,41 +52,10 @@ const hasAppliedAutoWidthRef = useRef(false);
 
   const clampWidth = useCallback((value: number) => clampWithMax(value, maxWidth), [maxWidth]);
 
-  const updateWidth = useCallback(
-    (value: number) => {
-      // Don't update width if sidebar is collapsed
-      if (isCollapsed) {
-        return;
-      }
-      
-      const clamped = clampWidth(value);
-
-      if (typeof window === "undefined") {
-        setWidth(clamped);
-        return;
-      }
-
-      if (widthFrameRef.current !== null) {
-        cancelAnimationFrame(widthFrameRef.current);
-      }
-
-      widthFrameRef.current = window.requestAnimationFrame(() => {
-        widthFrameRef.current = null;
-        setWidth(clamped);
-      });
-    },
-    [clampWidth, isCollapsed]
-  );
-
   // Use provider's isCollapsed as the primary source, but also consider width
   const shouldShowIconsOnly = isCollapsed || width <= COLLAPSE_THRESHOLD;
 
   // Drag functionality removed - only hamburger button toggle is used
-
-  const toggleCollapse = useCallback(() => {
-    // Use the provider's toggle function instead of managing width directly
-    toggleSidebar();
-  }, [toggleSidebar]);
 
   // Handle hamburger menu collapse - sync with provider state
   useEffect(() => {
@@ -197,7 +164,7 @@ const hasAppliedAutoWidthRef = useRef(false);
   // Immediate sync on mount to ensure provider has correct initial width
   useEffect(() => {
     setSidebarWidth(width);
-  }, []); // Empty dependency array - runs once on mount
+  }, [setSidebarWidth, width]); // Include dependencies
 
   // Cleanup effect removed - no more drag event listeners
 

@@ -44,11 +44,11 @@ export default async function CharactersPage() {
   // Fetch relationships in parallel (following the pattern from other pages)
   const [orgsResult, sessionsResult, campaignsResult] = await Promise.all([
     supabase
-      .from('organization_characters')
+      .from('group_characters')
       .select(`
         character_id,
         role,
-        organization:organizations (id, name)
+        group:groups (id, name)
       `)
       .in('character_id', characterIds),
     supabase
@@ -81,18 +81,30 @@ export default async function CharactersPage() {
 
     return {
       ...character,
-      organization_characters: characterOrgs.sort((a: any, b: any) => {
-        const nameA = a.organization?.name || '';
-        const nameB = b.organization?.name || '';
+      group_characters: characterOrgs.sort((a: { group?: { id: string; name: string }[] }, b: { group?: { id: string; name: string }[] }) => {
+        const groupA = Array.isArray(a.group) ? a.group[0] : a.group;
+        const groupB = Array.isArray(b.group) ? b.group[0] : b.group;
+        const nameA = groupA?.name || '';
+        const nameB = groupB?.name || '';
         return nameA.localeCompare(nameB);
       }),
-      session_characters: characterSessions.map((s: any) => s.session),
+      session_characters: characterSessions.map((s: { session: { id: string; name: string; session_date: string; created_at: string; campaign: { id: string; name: string }[] }[] }) => {
+        const session = Array.isArray(s.session) ? s.session[0] : s.session;
+        return session;
+      }),
       campaign_characters: (() => {
-        const direct = characterCampaigns.map((c: any) => c.campaign).filter(Boolean);
+        const direct = characterCampaigns.map((c: { campaign: { id: string; name: string }[] }) => {
+          const campaign = Array.isArray(c.campaign) ? c.campaign[0] : c.campaign;
+          return campaign;
+        }).filter(Boolean);
         const viaSessions = characterSessions
-          .map((s: any) => s.session?.campaign)
+          .map((s: { session: { campaign: { id: string; name: string }[] }[] }) => {
+            const session = Array.isArray(s.session) ? s.session[0] : s.session;
+            const campaign = Array.isArray(session.campaign) ? session.campaign[0] : session.campaign;
+            return campaign;
+          })
           .filter(Boolean);
-        const byId = new Map<string, any>();
+        const byId = new Map<string, { id: string; name: string }>();
         for (const camp of [...direct, ...viaSessions]) {
           if (camp?.id && !byId.has(camp.id)) {
             byId.set(camp.id, { id: camp.id, name: camp.name });

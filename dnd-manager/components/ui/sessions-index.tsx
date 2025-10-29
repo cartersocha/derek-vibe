@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { formatDateStringForDisplay, type PlayerSummary, getPillClasses, getDashedPillClasses, cn } from "@/lib/utils";
-import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 import { SessionParticipantPills } from "@/components/ui/session-participant-pills";
 import { IndexEmptyState, IndexHeader } from "@/components/ui/index-utility";
 
@@ -12,7 +11,7 @@ type CampaignInfo = {
   name: string | null;
 };
 
-type SessionOrganization = {
+type SessionGroup = {
   id: string
   name: string
 }
@@ -27,15 +26,14 @@ type SessionRecord = {
   campaign: CampaignInfo | null;
   sessionNumber: number | null;
   players: PlayerSummary[];
-  organizations: SessionOrganization[];
+  groups: SessionGroup[];
 };
 
 type SessionsIndexProps = {
   sessions: SessionRecord[];
-  mentionTargets: MentionTarget[];
 };
 
-export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) {
+export function SessionsIndex({ sessions }: SessionsIndexProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const toggleSessionGroups = (sessionId: string) => {
@@ -69,7 +67,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
         <div className="space-y-4">
           {sessions.map((session) => {
             const players = session.players;
-            const groups = session.organizations;
+            const groups = session.groups;
             const sessionDateLabel = formatDateStringForDisplay(session.session_date);
 
             return (
@@ -128,7 +126,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                           sessionId={session.id}
                           players={players}
                           className=""
-                          showOrganizations={false}
+                          showGroups={false}
                         />
                       </div>
                     )}
@@ -141,21 +139,21 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                           {(expandedGroups.has(session.id) 
                             ? groups 
                             : groups.slice(0, 6)
-                          ).map((organization) => (
+                          ).map((group) => (
                             <Link
-                              key={organization.id}
-                              href={`/organizations/${organization.id}`}
+                              key={group.id}
+                              href={`/groups/${group.id}`}
                               prefetch
-                              className={getPillClasses('organization', 'small')}
+                              className={getPillClasses('group', 'small')}
                             >
-                              {organization.name}
+                              {group.name}
                             </Link>
                           ))}
                           {!expandedGroups.has(session.id) && groups.length > 6 && (
                             <button
                               onClick={() => toggleSessionGroups(session.id)}
-                              className={getDashedPillClasses('organization', 'small')}
-                              aria-label={`Show ${groups.length - 6} more organizations`}
+                              className={getDashedPillClasses('group', 'small')}
+                              aria-label={`Show ${groups.length - 6} more groups`}
                             >
                               +{groups.length - 6} more
                             </button>
@@ -164,7 +162,7 @@ export function SessionsIndex({ sessions, mentionTargets }: SessionsIndexProps) 
                           <button
                             onClick={() => toggleSessionGroups(session.id)}
                               className={getPillClasses('default', 'small')}
-                            aria-label="Show fewer organizations"
+                            aria-label="Show fewer groups"
                           >
                               Show less
                             </button>

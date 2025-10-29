@@ -1,13 +1,13 @@
-import { OrganizationForm } from "@/components/organizations/organization-form";
-import { createOrganization } from "@/lib/actions/organizations";
+import { GroupForm } from "@/components/groups/group-form";
+import { createGroup } from "@/lib/actions/groups";
 import { mapEntitiesToMentionTargets, mergeMentionTargets } from "@/lib/mention-utils";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateStringForDisplay } from "@/lib/utils";
 
-export default async function NewOrganizationPage() {
+export default async function NewGroupPage() {
   const supabase = await createClient();
 
-  const [campaignsResult, sessionsResult, charactersResult, organizationsResult] = await Promise.all([
+  const [campaignsResult, sessionsResult, charactersResult, groupsResult] = await Promise.all([
     supabase.from("campaigns").select("id, name, created_at").order("created_at", { ascending: false }),
     supabase
       .from("sessions")
@@ -17,7 +17,7 @@ export default async function NewOrganizationPage() {
       .from("characters")
       .select("id, name, player_type, status")
       .order("name"),
-    supabase.from("organizations").select("id, name").order("name"),
+    supabase.from("groups").select("id, name").order("name"),
   ]);
 
   const campaignOptions = (campaignsResult.data ?? []).map((campaign) => ({
@@ -52,7 +52,7 @@ export default async function NewOrganizationPage() {
   // Create mention targets for @ mentions
   const mentionTargets = mergeMentionTargets(
     mapEntitiesToMentionTargets(charactersResult.data, "character", (entry) => `/characters/${entry.id}`),
-    mapEntitiesToMentionTargets(organizationsResult.data, "organization", (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(groupsResult.data, "group", (entry) => `/groups/${entry.id}`),
     mapEntitiesToMentionTargets(campaignsResult.data, "campaign", (entry) => `/campaigns/${entry.id}`),
     mapEntitiesToMentionTargets(sessionsResult.data, "session", (entry) => `/sessions/${entry.id}`)
   );
@@ -65,9 +65,9 @@ export default async function NewOrganizationPage() {
         </h2>
       </div>
 
-      <OrganizationForm
-        action={createOrganization}
-        cancelHref="/organizations"
+      <GroupForm
+        action={createGroup}
+        cancelHref="/groups"
         submitLabel="Save Group"
         campaignOptions={campaignOptions}
         sessionOptions={sessionOptions}

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/providers/sidebar-provider";
@@ -17,14 +16,14 @@ const NAV_LINKS = [
   { href: "/campaigns", label: "Campaigns", icon: "/icons/campaigns-24.png", symbol: "⚔" },
   { href: "/sessions", label: "Sessions", icon: "/icons/sessions-24.png", symbol: "✎" },
   { href: "/characters", label: "Characters", icon: "/icons/characters-24.png", symbol: "♞" },
-  { href: "/organizations", label: "Groups", icon: "/icons/groups-24.png", symbol: "⚙" },
+  { href: "/groups", label: "Groups", icon: "/icons/groups-24.png", symbol: "⚙" },
 ];
 
 const CREATE_OPTIONS = [
   { href: "/campaigns/new", label: "New Campaign" },
   { href: "/sessions/new", label: "New Session" },
   { href: "/characters/new", label: "New Character" },
-  { href: "/organizations/new", label: "New Group" },
+  { href: "/groups/new", label: "New Group" },
 ];
 
 export default function Topbar() {
@@ -32,11 +31,11 @@ export default function Topbar() {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<{ id: string; name: string; type: string; href: string }[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
-  const { isCollapsed, toggleSidebar, sidebarWidth } = useSidebar();
+  const { isCollapsed, toggleSidebar } = useSidebar();
   const createMenuRef = useRef<HTMLDivElement>(null);
 
   // Search history management
@@ -86,7 +85,7 @@ export default function Topbar() {
     
     try {
       // Search across all entities
-      const [campaigns, sessions, characters, organizations] = await Promise.all([
+      const [campaigns, sessions, characters, groups] = await Promise.all([
         supabase
           .from('campaigns')
           .select('id, name, description')
@@ -103,17 +102,17 @@ export default function Topbar() {
           .or(`name.ilike.%${query}%,backstory.ilike.%${query}%,race.ilike.%${query}%,class.ilike.%${query}%`)
           .limit(5),
         supabase
-          .from('organizations')
+          .from('groups')
           .select('id, name, description')
           .ilike('name', `%${query}%`)
           .limit(5)
       ]);
 
       const results = [
-        ...campaigns.data?.map(item => ({ ...item, type: 'campaign', url: `/campaigns/${item.id}` })) || [],
-        ...sessions.data?.map(item => ({ ...item, type: 'session', url: `/sessions/${item.id}` })) || [],
-        ...characters.data?.map(item => ({ ...item, type: 'character', url: `/characters/${item.id}` })) || [],
-        ...organizations.data?.map(item => ({ ...item, type: 'organization', url: `/organizations/${item.id}` })) || []
+        ...campaigns.data?.map(item => ({ id: item.id, name: item.name, type: 'campaign', href: `/campaigns/${item.id}` })) || [],
+        ...sessions.data?.map(item => ({ id: item.id, name: item.name, type: 'session', href: `/sessions/${item.id}` })) || [],
+        ...characters.data?.map(item => ({ id: item.id, name: item.name, type: 'character', href: `/characters/${item.id}` })) || [],
+        ...groups.data?.map(item => ({ id: item.id, name: item.name, type: 'group', href: `/groups/${item.id}` })) || []
       ];
 
       console.log('Desktop search query:', query);
@@ -311,7 +310,7 @@ export default function Topbar() {
                           case 'campaign': return 'text-[var(--orange-400)]';
                           case 'session': return 'text-[var(--blue-400)]';
                           case 'character': return 'text-[var(--green-400)]';
-                          case 'organization': return 'text-[var(--purple-400)]';
+                          case 'group': return 'text-[var(--purple-400)]';
                           default: return 'text-[var(--cyber-magenta)]';
                         }
                       };
@@ -321,7 +320,7 @@ export default function Topbar() {
                           case 'campaign': return 'bg-[var(--orange-400)]/10 border-[var(--orange-400)]/20';
                           case 'session': return 'bg-[var(--blue-400)]/10 border-[var(--blue-400)]/20';
                           case 'character': return 'bg-[var(--green-400)]/10 border-[var(--green-400)]/20';
-                          case 'organization': return 'bg-[var(--purple-400)]/10 border-[var(--purple-400)]/20';
+                          case 'group': return 'bg-[var(--purple-400)]/10 border-[var(--purple-400)]/20';
                           default: return 'bg-[var(--cyber-magenta)]/10 border-[var(--cyber-magenta)]/20';
                         }
                       };
@@ -370,7 +369,7 @@ export default function Topbar() {
                       case 'campaign': return 'text-[var(--orange-400)]';
                       case 'session': return 'text-[var(--blue-400)]';
                       case 'character': return 'text-[var(--green-400)]';
-                      case 'organization': return 'text-[var(--purple-400)]';
+                      case 'group': return 'text-[var(--purple-400)]';
                       default: return 'text-[var(--cyber-magenta)]';
                     }
                   };
@@ -380,7 +379,7 @@ export default function Topbar() {
                       case 'campaign': return 'bg-[var(--orange-400)]/10 border-[var(--orange-400)]/20';
                       case 'session': return 'bg-[var(--blue-400)]/10 border-[var(--blue-400)]/20';
                       case 'character': return 'bg-[var(--green-400)]/10 border-[var(--green-400)]/20';
-                      case 'organization': return 'bg-[var(--purple-400)]/10 border-[var(--purple-400)]/20';
+                      case 'group': return 'bg-[var(--purple-400)]/10 border-[var(--purple-400)]/20';
                       default: return 'bg-[var(--cyber-magenta)]/10 border-[var(--cyber-magenta)]/20';
                     }
                   };
@@ -388,7 +387,7 @@ export default function Topbar() {
                   return (
                     <button
                       key={`${result.type}-${result.id}-${index}`}
-                      onClick={() => handleResultClick(result.url, result.name)}
+                      onClick={() => handleResultClick(result.href, result.name)}
                       className={`w-full px-4 py-3 text-left hover:bg-[var(--cyber-cyan)]/10 hover:border-[var(--cyber-cyan)]/30 transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
                     >
                       <div className="flex items-center space-x-3">
@@ -538,7 +537,7 @@ export default function Topbar() {
                       case 'campaign': return 'text-[var(--orange-400)]';
                       case 'session': return 'text-[var(--blue-400)]';
                       case 'character': return 'text-[var(--green-400)]';
-                      case 'organization': return 'text-[var(--purple-400)]';
+                      case 'group': return 'text-[var(--purple-400)]';
                       default: return 'text-[var(--cyber-magenta)]';
                     }
                   };
@@ -547,14 +546,14 @@ export default function Topbar() {
                       case 'campaign': return 'bg-[var(--orange-400)]/10 border-[var(--orange-400)]/20';
                       case 'session': return 'bg-[var(--blue-400)]/10 border-[var(--blue-400)]/20';
                       case 'character': return 'bg-[var(--green-400)]/10 border-[var(--green-400)]/20';
-                      case 'organization': return 'bg-[var(--purple-400)]/10 border-[var(--purple-400)]/20';
+                      case 'group': return 'bg-[var(--purple-400)]/10 border-[var(--purple-400)]/20';
                       default: return 'bg-[var(--cyber-magenta)]/10 border-[var(--cyber-magenta)]/20';
                     }
                   };
                   return (
                     <button
                       key={`${result.type}-${result.id}-${index}`}
-                      onClick={() => handleResultClick(result.url, result.name)}
+                      onClick={() => handleResultClick(result.href, result.name)}
                       className={`w-full px-3 py-2 text-left hover:bg-[var(--cyber-cyan)]/10 transition-colors border-b border-[var(--cyber-cyan)] border-opacity-10 last:border-b-0 ${getTypeBgColor(result.type)}`}
                     >
                       <div className="flex flex-col space-y-1">

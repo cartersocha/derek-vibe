@@ -17,8 +17,8 @@ import {
   validateName,
   validateDescription
 } from '@/lib/utils/form-data'
-import { resolveOrganizationIds, setCampaignOrganizations } from '@/lib/actions/organizations'
-import { extractOrganizationIds } from '@/lib/organizations/helpers'
+import { resolveGroupIds, setCampaignGroups } from '@/lib/actions/groups'
+import { extractGroupIds } from '@/lib/groups/helpers'
 
 // List campaigns with pagination
 export async function getCampaignsList(
@@ -51,7 +51,7 @@ const isMissingCampaignCharactersTable = (error: { message?: string | null; code
 export async function createCampaignInline(
   name: string,
   description?: string | null,
-  organizationIds?: string[]
+  groupIds?: string[]
 ): Promise<{ id: string; name: string }> {
   const supabase = await createClient()
 
@@ -90,23 +90,23 @@ export async function createCampaignInline(
     throw new Error('Failed to create campaign')
   }
 
-  const desiredOrganizationIds = Array.isArray(organizationIds) ? organizationIds : []
-  const resolvedOrganizationIds = await resolveOrganizationIds(
+  const desiredGroupIds = Array.isArray(groupIds) ? groupIds : []
+  const resolvedGroupIds = await resolveGroupIds(
     supabase,
-    desiredOrganizationIds
+    desiredGroupIds
   )
 
-  const touchedOrganizationIds = await setCampaignOrganizations(
+  const touchedGroupIds = await setCampaignGroups(
     supabase,
     created.id,
-    resolvedOrganizationIds
+    resolvedGroupIds
   )
 
   revalidatePath('/campaigns')
-  if (touchedOrganizationIds.length > 0) {
-    revalidatePath('/organizations')
-    Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
-      revalidatePath(`/organizations/${organizationId}`)
+  if (touchedGroupIds.length > 0) {
+    revalidatePath('/groups')
+    Array.from(new Set(touchedGroupIds)).forEach((groupId) => {
+      revalidatePath(`/groups/${groupId}`)
     })
   }
   return created
@@ -115,7 +115,7 @@ export async function createCampaignInline(
 export async function createCampaign(formData: FormData): Promise<void> {
   const supabase = await createClient()
 
-  const discoveredOrganizationIds = extractOrganizationIds(formData)
+  const discoveredGroupIds = extractGroupIds(formData)
   const sessionIds = getIdList(formData, 'session_ids')
   const characterIds = getIdList(formData, 'character_ids')
   const createdAtOverride = getDateValue(formData, 'created_at')
@@ -164,11 +164,11 @@ export async function createCampaign(formData: FormData): Promise<void> {
     throw new Error(error.message)
   }
 
-  const resolvedOrganizationIds = Array.from(new Set(discoveredOrganizationIds))
-  const touchedOrganizationIds = await setCampaignOrganizations(
+  const resolvedGroupIds = Array.from(new Set(discoveredGroupIds))
+  const touchedGroupIds = await setCampaignGroups(
     supabase,
     campaignId,
-    resolvedOrganizationIds
+    resolvedGroupIds
   )
 
   const { sessionIds: touchedSessionIds, previousCampaignIds } = await setCampaignSessions(
@@ -183,10 +183,10 @@ export async function createCampaign(formData: FormData): Promise<void> {
     characterIds
   )
 
-  if (touchedOrganizationIds.length > 0) {
-    revalidatePath('/organizations')
-    Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
-      revalidatePath(`/organizations/${organizationId}`)
+  if (touchedGroupIds.length > 0) {
+    revalidatePath('/groups')
+    Array.from(new Set(touchedGroupIds)).forEach((groupId) => {
+      revalidatePath(`/groups/${groupId}`)
     })
   }
 
@@ -217,7 +217,7 @@ export async function createCampaign(formData: FormData): Promise<void> {
 export async function updateCampaign(id: string, formData: FormData): Promise<void> {
   const supabase = await createClient()
 
-  const discoveredOrganizationIds = extractOrganizationIds(formData)
+  const discoveredGroupIds = extractGroupIds(formData)
   const sessionIds = getIdList(formData, 'session_ids')
   const characterIds = getIdList(formData, 'character_ids')
   const createdAtOverride = getDateValue(formData, 'created_at')
@@ -255,11 +255,11 @@ export async function updateCampaign(id: string, formData: FormData): Promise<vo
     throw new Error(error.message)
   }
 
-  const resolvedOrganizationIds = Array.from(new Set(discoveredOrganizationIds))
-  const touchedOrganizationIds = await setCampaignOrganizations(
+  const resolvedGroupIds = Array.from(new Set(discoveredGroupIds))
+  const touchedGroupIds = await setCampaignGroups(
     supabase,
     id,
-    resolvedOrganizationIds
+    resolvedGroupIds
   )
 
   const { sessionIds: touchedSessionIds, previousCampaignIds } = await setCampaignSessions(
@@ -274,10 +274,10 @@ export async function updateCampaign(id: string, formData: FormData): Promise<vo
     characterIds
   )
 
-  if (touchedOrganizationIds.length > 0) {
-    revalidatePath('/organizations')
-    Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
-      revalidatePath(`/organizations/${organizationId}`)
+  if (touchedGroupIds.length > 0) {
+    revalidatePath('/groups')
+    Array.from(new Set(touchedGroupIds)).forEach((groupId) => {
+      revalidatePath(`/groups/${groupId}`)
     })
   }
 

@@ -37,54 +37,54 @@ export default async function SessionEditPage({
 
   const characterIds = sessionCharacters?.map(sc => sc.character_id) || []
 
-  // Fetch organizations linked to this session
-  const { data: sessionOrganizations } = await supabase
-    .from('organization_sessions')
-    .select('organization_id')
+  // Fetch groups linked to this session
+  const { data: sessionGroups } = await supabase
+    .from('group_sessions')
+    .select('group_id')
     .eq('session_id', id)
 
-  const organizationIds = sessionOrganizations?.map(so => so.organization_id) || []
+  const groupIds = sessionGroups?.map(so => so.group_id) || []
 
   // Fetch all campaigns and characters for the form
-  const [{ data: campaigns }, { data: allCharacters }, { data: allSessions }, { data: organizations }] = await Promise.all([
+  const [{ data: campaigns }, { data: allCharacters }, { data: allSessions }, { data: groups }] = await Promise.all([
     supabase.from('campaigns').select('id, name, created_at').order('created_at', { ascending: false }),
     supabase.from('characters').select(`
       id,
       name,
       race,
       class,
-      organization_memberships:organization_characters(
-        organizations(id, name)
+      group_memberships:group_characters(
+        groups(id, name)
       )
     `).order('name'),
     supabase.from('sessions').select('id, name').order('name'),
-    supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('groups').select('id, name').order('name'),
   ])
 
   const updateSessionWithId = updateSession.bind(null, id)
 
   const newCharacterId = typeof query?.newCharacterId === 'string' ? query.newCharacterId : undefined
 
-  // Transform character data to include organizations
+  // Transform character data to include groups
   type CharacterRow = {
     id: string
     name: string
     race: string | null
     class: string | null
-    organization_memberships: Array<{
-      organizations: { id: string; name: string } | Array<{ id: string; name: string }>
+    group_memberships: Array<{
+      groups: { id: string; name: string } | Array<{ id: string; name: string }>
     }> | null
   }
 
   const charactersWithOrgs = (allCharacters as CharacterRow[] | null)?.map((character) => {
-    const organizations: Array<{ id: string; name: string }> = []
+    const groups: Array<{ id: string; name: string }> = []
     
-    if (character.organization_memberships) {
-      character.organization_memberships.forEach((membership) => {
-        const orgData = membership.organizations
+    if (character.group_memberships) {
+      character.group_memberships.forEach((membership) => {
+        const orgData = membership.groups
         const org = Array.isArray(orgData) ? orgData[0] : orgData
         if (org?.id && org?.name) {
-          organizations.push({ id: org.id, name: org.name })
+          groups.push({ id: org.id, name: org.name })
         }
       })
     }
@@ -94,14 +94,14 @@ export default async function SessionEditPage({
       name: character.name,
       race: character.race,
       class: character.class,
-      organizations,
+      groups,
     }
   }) || []
 
   const mentionTargets = mergeMentionTargets(
     mapEntitiesToMentionTargets(charactersWithOrgs, 'character', (entry) => `/characters/${entry.id}`),
     mapEntitiesToMentionTargets(allSessions, 'session', (entry) => `/sessions/${entry.id}`),
-    mapEntitiesToMentionTargets(organizations, 'organization', (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(groups, 'group', (entry) => `/groups/${entry.id}`),
     mapEntitiesToMentionTargets(campaigns, 'campaign', (entry) => `/campaigns/${entry.id}`)
   )
 
@@ -124,11 +124,11 @@ export default async function SessionEditPage({
           notes: session.notes,
           header_image_url: session.header_image_url,
           characterIds: characterIds,
-          organizationIds: organizationIds,
+          groupIds: groupIds,
         }}
         campaigns={campaigns || []}
         characters={charactersWithOrgs}
-        organizations={organizations || []}
+        groups={groups || []}
         submitLabel="Save Changes"
         cancelHref={`/sessions/${id}`}
         draftKey={`session-notes:${id}`}

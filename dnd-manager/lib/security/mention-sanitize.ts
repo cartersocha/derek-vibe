@@ -56,7 +56,7 @@ export function validateMentionTarget(target: string): boolean {
   return !dangerousPatterns.some(pattern => pattern.test(target));
 }
 
-// Sanitize mention targets (character names, organization names, etc.)
+// Sanitize mention targets (character names, group names, etc.)
 export function sanitizeMentionTarget(target: string): string {
   if (!target || typeof target !== 'string') {
     return '';
@@ -109,7 +109,7 @@ export function sanitizeMentionQuery(query: string): string {
   }
 
   // Remove dangerous content
-  let sanitized = query
+  const sanitized = query
     .replace(/<[^>]*>/g, '') // Remove HTML tags
     .replace(/javascript:/gi, '') // Remove javascript: protocols
     .replace(/vbscript:/gi, '') // Remove vbscript: protocols

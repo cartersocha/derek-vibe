@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils';
 import { SessionParticipantPills } from '@/components/ui/session-participant-pills';
 import { extractPlayerSummaries, formatDateStringForDisplay, type SessionCharacterRelation, getPillClasses, getDashedPillClasses, cn } from '@/lib/utils';
 
@@ -14,16 +13,14 @@ type CampaignSessionCardProps = {
     session_date: string | null;
     created_at: string | null;
     session_characters: SessionCharacterRelation[] | null;
-    organizations: Array<{ id: string; name: string }>;
+    groups: Array<{ id: string; name: string }>;
   };
-  mentionTargets: MentionTarget[];
   sessionNumber?: number | null;
   campaignRelation?: { id: string; name: string } | null;
 };
 
 export function CampaignSessionCard({ 
   session, 
-  mentionTargets, 
   sessionNumber, 
   campaignRelation 
 }: CampaignSessionCardProps) {
@@ -90,7 +87,7 @@ export function CampaignSessionCard({
           </div>
           
           {players.length > 0 && (
-            <div className={`pointer-events-auto ${session.organizations.length > 0 ? 'mt-3' : 'mt-3'}`}>
+            <div className={`pointer-events-auto ${session.groups.length > 0 ? 'mt-3' : 'mt-3'}`}>
               <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                 Participants
               </div>
@@ -98,37 +95,37 @@ export function CampaignSessionCard({
                 sessionId={session.id}
                 players={players}
                 className=""
-                showOrganizations={false}
+                showGroups={false}
               />
             </div>
           )}
-          {session.organizations.length > 0 && (
+          {session.groups.length > 0 && (
             <div className={`pointer-events-auto ${players.length > 0 ? 'mt-2' : 'mt-3'}`}>
               <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                 Groups
               </div>
               <div className="flex flex-wrap gap-2">
                 {(expandedGroups.has(session.id) 
-                  ? session.organizations 
-                  : session.organizations.slice(0, 4)
-                ).map((organization) => (
+                  ? session.groups 
+                  : session.groups.slice(0, 4)
+                ).map((group) => (
                   <Link
-                    key={organization.id}
-                    href={`/organizations/${organization.id}`}
-                    className={getPillClasses('organization', 'small')}
+                    key={group.id}
+                    href={`/groups/${group.id}`}
+                    className={getPillClasses('group', 'small')}
                   >
-                    {organization.name}
+                    {group.name}
                   </Link>
                 ))}
-                {!expandedGroups.has(session.id) && session.organizations.length > 4 && (
+                {!expandedGroups.has(session.id) && session.groups.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className={getDashedPillClasses('organization', 'small')}
+                    className={getDashedPillClasses('group', 'small')}
                   >
-                    +{session.organizations.length - 4} more
+                    +{session.groups.length - 4} more
                   </button>
                 )}
-                {expandedGroups.has(session.id) && session.organizations.length > 4 && (
+                {expandedGroups.has(session.id) && session.groups.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
                     className={getPillClasses('default', 'small')}

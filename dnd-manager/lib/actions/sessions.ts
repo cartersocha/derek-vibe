@@ -20,10 +20,10 @@ import {
 import { STORAGE_BUCKETS } from '@/lib/utils/storage'
 import { toTitleCase } from '@/lib/utils'
 import {
-  resolveOrganizationIds,
-  setSessionOrganizations,
-} from '@/lib/actions/organizations'
-import { extractOrganizationIds } from '@/lib/organizations/helpers'
+  resolveGroupIds,
+  setSessionGroups,
+} from '@/lib/actions/groups'
+import { extractGroupIds } from '@/lib/groups/helpers'
 
 // List sessions with pagination
 export async function getSessionsList(
@@ -43,7 +43,7 @@ const SESSION_BUCKET = STORAGE_BUCKETS.SESSIONS
 
 type CreateSessionInlineOptions = {
   campaignId?: string | null
-  organizationIds?: string[]
+  groupIds?: string[]
 }
 
 const getTodayDateString = (): string => {
@@ -63,7 +63,7 @@ export async function createSessionInline(
 
   const normalizedName = toTitleCase(sanitized)
   const campaignId = options?.campaignId ?? null
-  const desiredOrganizationIds = Array.isArray(options?.organizationIds) ? options.organizationIds : []
+  const desiredGroupIds = Array.isArray(options?.groupIds) ? options.groupIds : []
   await assertUniqueValue(supabase, {
     table: 'sessions',
     column: 'name',
@@ -88,15 +88,15 @@ export async function createSessionInline(
     throw new Error(error.message)
   }
 
-  if (desiredOrganizationIds.length > 0) {
-    const resolvedOrganizationIds = await resolveOrganizationIds(supabase, desiredOrganizationIds)
-    if (resolvedOrganizationIds.length > 0) {
-      const touchedOrganizationIds = await setSessionOrganizations(supabase, sessionId, resolvedOrganizationIds)
-      if (touchedOrganizationIds.length > 0) {
-        revalidatePath('/organizations')
-        Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
-          if (organizationId) {
-            revalidatePath(`/organizations/${organizationId}`)
+  if (desiredGroupIds.length > 0) {
+    const resolvedGroupIds = await resolveGroupIds(supabase, desiredGroupIds)
+    if (resolvedGroupIds.length > 0) {
+      const touchedGroupIds = await setSessionGroups(supabase, sessionId, resolvedGroupIds)
+      if (touchedGroupIds.length > 0) {
+        revalidatePath('/groups')
+        Array.from(new Set(touchedGroupIds)).forEach((groupId) => {
+          if (groupId) {
+            revalidatePath(`/groups/${groupId}`)
           }
         })
       }
@@ -117,11 +117,11 @@ export async function createSession(formData: FormData): Promise<void> {
   const supabase = await createClient()
   const sessionId = randomUUID()
 
-  const organizationFieldProvided =
-    formData.has('organization_ids_field_provided') || 
-    formData.has('organization_ids') || 
-    formData.has('organization_id')
-  const directOrganizationIds = extractOrganizationIds(formData)
+  const groupFieldProvided =
+    formData.has('group_ids_field_provided') || 
+    formData.has('group_ids') || 
+    formData.has('group_id')
+  const directGroupIds = extractGroupIds(formData)
 
   const headerImageFile = getFile(formData, 'header_image')
 
@@ -207,29 +207,29 @@ export async function createSession(formData: FormData): Promise<void> {
     }
   }
 
-  // Determine which organizations to save (frontend handles character org syncing)
-  let preferredOrganizationIds = Array.from(new Set(directOrganizationIds))
+  // Determine which groups to save (frontend handles character org syncing)
+  let preferredGroupIds = Array.from(new Set(directGroupIds))
 
-  if (preferredOrganizationIds.length === 0 && !organizationFieldProvided) {
-    preferredOrganizationIds = await resolveOrganizationIds(supabase, [])
+  if (preferredGroupIds.length === 0 && !groupFieldProvided) {
+    preferredGroupIds = await resolveGroupIds(supabase, [])
   }
 
-  const finalOrganizationIds = preferredOrganizationIds
+  const finalGroupIds = preferredGroupIds
 
   if (
-    organizationFieldProvided ||
-    finalOrganizationIds.length > 0
+    groupFieldProvided ||
+    finalGroupIds.length > 0
   ) {
-    const touchedOrganizationIds = await setSessionOrganizations(
+    const touchedGroupIds = await setSessionGroups(
       supabase,
       sessionId,
-      finalOrganizationIds
+      finalGroupIds
     )
-    if (touchedOrganizationIds.length > 0) {
-      revalidatePath('/organizations')
-      Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
-        if (organizationId) {
-          revalidatePath(`/organizations/${organizationId}`)
+    if (touchedGroupIds.length > 0) {
+      revalidatePath('/groups')
+      Array.from(new Set(touchedGroupIds)).forEach((groupId) => {
+        if (groupId) {
+          revalidatePath(`/groups/${groupId}`)
         }
       })
     }
@@ -257,11 +257,11 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
     throw new Error('Session not found')
   }
 
-  const organizationFieldProvided =
-    formData.has('organization_ids_field_provided') || 
-    formData.has('organization_ids') || 
-    formData.has('organization_id')
-  const directOrganizationIds = extractOrganizationIds(formData)
+  const groupFieldProvided =
+    formData.has('group_ids_field_provided') || 
+    formData.has('group_ids') || 
+    formData.has('group_id')
+  const directGroupIds = extractGroupIds(formData)
 
   const headerImageFile = getFile(formData, 'header_image')
   const removeHeader = formData.get('header_image_remove') === 'true'
@@ -385,42 +385,42 @@ export async function updateSession(id: string, formData: FormData): Promise<voi
     })
   }
 
-  // Determine which organizations to save
-  let preferredOrganizationIds: string[]
+  // Determine which groups to save
+  let preferredGroupIds: string[]
 
-  if (organizationFieldProvided) {
-    preferredOrganizationIds = Array.from(new Set(directOrganizationIds))
+  if (groupFieldProvided) {
+    preferredGroupIds = Array.from(new Set(directGroupIds))
   } else {
-    const { data: existingSessionOrganizations, error: existingOrgError } = await supabase
-      .from('organization_sessions')
-      .select('organization_id')
+    const { data: existingSessionGroups, error: existingOrgError } = await supabase
+      .from('group_sessions')
+      .select('group_id')
       .eq('session_id', id)
 
     if (existingOrgError) {
       throw new Error(existingOrgError.message)
     }
 
-    preferredOrganizationIds = Array.from(
-      new Set(existingSessionOrganizations?.map((row) => row.organization_id) ?? [])
+    preferredGroupIds = Array.from(
+      new Set(existingSessionGroups?.map((row) => row.group_id) ?? [])
     )
 
-    if (preferredOrganizationIds.length === 0) {
-      preferredOrganizationIds = await resolveOrganizationIds(supabase, [])
+    if (preferredGroupIds.length === 0) {
+      preferredGroupIds = await resolveGroupIds(supabase, [])
     }
   }
 
-  const finalOrganizationIds = preferredOrganizationIds
+  const finalGroupIds = preferredGroupIds
 
-  const touchedOrganizationIds = await setSessionOrganizations(
+  const touchedGroupIds = await setSessionGroups(
     supabase,
     id,
-    finalOrganizationIds
+    finalGroupIds
   )
-  if (touchedOrganizationIds.length > 0) {
-    revalidatePath('/organizations')
-    Array.from(new Set(touchedOrganizationIds)).forEach((organizationId) => {
-      if (organizationId) {
-        revalidatePath(`/organizations/${organizationId}`)
+  if (touchedGroupIds.length > 0) {
+    revalidatePath('/groups')
+    Array.from(new Set(touchedGroupIds)).forEach((groupId) => {
+      if (groupId) {
+        revalidatePath(`/groups/${groupId}`)
       }
     })
   }
@@ -457,13 +457,13 @@ export async function deleteSession(id: string): Promise<void> {
     throw new Error(fetchError.message)
   }
 
-  const { data: linkedOrganizations, error: organizationError } = await supabase
-    .from('organization_sessions')
-    .select('organization_id')
+  const { data: linkedGroups, error: groupError } = await supabase
+    .from('group_sessions')
+    .select('group_id')
     .eq('session_id', id)
 
-  if (organizationError) {
-    throw new Error(organizationError.message)
+  if (groupError) {
+    throw new Error(groupError.message)
   }
 
   const { data: linkedCharacters, error: charactersError } = await supabase
@@ -475,10 +475,10 @@ export async function deleteSession(id: string): Promise<void> {
     throw new Error(charactersError.message)
   }
 
-  const touchedOrganizationIds = Array.from(
+  const touchedGroupIds = Array.from(
     new Set(
-      (linkedOrganizations ?? [])
-        .map((entry) => entry?.organization_id)
+      (linkedGroups ?? [])
+        .map((entry) => entry?.group_id)
         .filter((value): value is string => Boolean(value))
     )
   )
@@ -491,6 +491,26 @@ export async function deleteSession(id: string): Promise<void> {
     )
   )
 
+  // Delete related records first
+  const { error: groupSessionsError } = await supabase
+    .from('group_sessions')
+    .delete()
+    .eq('session_id', id)
+
+  if (groupSessionsError) {
+    throw new Error(groupSessionsError.message)
+  }
+
+  const { error: sessionCharactersError } = await supabase
+    .from('session_characters')
+    .delete()
+    .eq('session_id', id)
+
+  if (sessionCharactersError) {
+    throw new Error(sessionCharactersError.message)
+  }
+
+  // Delete the session
   const { error } = await supabase
     .from('sessions')
     .delete()
@@ -514,10 +534,10 @@ export async function deleteSession(id: string): Promise<void> {
     revalidatePath(`/campaigns/${existing.campaign_id}`)
   }
 
-  if (touchedOrganizationIds.length > 0) {
-    revalidatePath('/organizations')
-    touchedOrganizationIds.forEach((organizationId) => {
-      revalidatePath(`/organizations/${organizationId}`)
+  if (touchedGroupIds.length > 0) {
+    revalidatePath('/groups')
+    touchedGroupIds.forEach((groupId) => {
+      revalidatePath(`/groups/${groupId}`)
     })
   }
 

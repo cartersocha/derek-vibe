@@ -7,7 +7,6 @@ interface HamburgerIconProps {
 }
 
 export default function HamburgerIcon({ 
-  isOpen = false, 
   size = 'md',
   className = '' 
 }: HamburgerIconProps) {

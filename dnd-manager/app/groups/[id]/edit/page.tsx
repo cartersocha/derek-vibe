@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { OrganizationForm } from "@/components/organizations/organization-form";
-import { updateOrganization } from "@/lib/actions/organizations";
+import { GroupForm } from "@/components/groups/group-form";
+import { updateGroup } from "@/lib/actions/groups";
 import { mapEntitiesToMentionTargets, mergeMentionTargets } from "@/lib/mention-utils";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateStringForDisplay } from "@/lib/utils";
 
-export default async function EditOrganizationPage({
+export default async function EditGroupPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -15,7 +15,7 @@ export default async function EditOrganizationPage({
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from("organizations")
+    .from("groups")
     .select("id, name, description, logo_url")
     .eq("id", id)
     .single();
@@ -31,17 +31,17 @@ export default async function EditOrganizationPage({
     notFound();
   }
 
-  const organization = data;
+  const group = data;
 
-  const [campaignsResult, sessionsResult, charactersResult, organizationsResult, campaignLinksResult, sessionLinksResult, characterLinksResult] =
+  const [campaignsResult, sessionsResult, charactersResult, groupsResult, campaignLinksResult, sessionLinksResult, characterLinksResult] =
     await Promise.all([
       supabase.from("campaigns").select("id, name, created_at").order("created_at", { ascending: false }),
       supabase.from("sessions").select("id, name, session_date").order("session_date", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }),
       supabase.from("characters").select("id, name, player_type, status").order("name"),
-      supabase.from("organizations").select("id, name").order("name"),
-      supabase.from("organization_campaigns").select("campaign_id").eq("organization_id", id),
-      supabase.from("organization_sessions").select("session_id").eq("organization_id", id),
-      supabase.from("organization_characters").select("character_id").eq("organization_id", id),
+      supabase.from("groups").select("id, name").order("name"),
+      supabase.from("group_campaigns").select("campaign_id").eq("group_id", id),
+      supabase.from("group_sessions").select("session_id").eq("group_id", id),
+      supabase.from("group_characters").select("character_id").eq("group_id", id),
     ]);
 
   const campaignOptions = (campaignsResult.data ?? []).map((campaign) => ({
@@ -74,7 +74,7 @@ export default async function EditOrganizationPage({
   // Create mention targets for @ mentions
   const mentionTargets = mergeMentionTargets(
     mapEntitiesToMentionTargets(charactersResult.data, "character", (entry) => `/characters/${entry.id}`),
-    mapEntitiesToMentionTargets(organizationsResult.data, "organization", (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(groupsResult.data, "group", (entry) => `/groups/${entry.id}`),
     mapEntitiesToMentionTargets(campaignsResult.data, "campaign", (entry) => `/campaigns/${entry.id}`),
     mapEntitiesToMentionTargets(sessionsResult.data, "session", (entry) => `/sessions/${entry.id}`)
   );
@@ -82,14 +82,14 @@ export default async function EditOrganizationPage({
 
   async function handleUpdate(formData: FormData) {
     "use server";
-    await updateOrganization(id, formData);
+    await updateGroup(id, formData);
   }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Link
-          href={`/organizations/${id}`}
+          href={`/groups/${id}`}
           className="text-[var(--cyber-cyan)] hover:text-[var(--cyber-magenta)] font-mono uppercase tracking-wider"
         >
           ← Back to Group
@@ -100,11 +100,11 @@ export default async function EditOrganizationPage({
         <h2 className="text-xl sm:text-2xl font-bold text-[var(--cyber-cyan)] uppercase tracking-wider break-words">Edit Group</h2>
       </div>
 
-      <OrganizationForm
+      <GroupForm
         action={handleUpdate}
-        cancelHref={`/organizations/${id}`}
-        defaultValues={{ name: organization.name, description: organization.description }}
-        logoUrl={organization.logo_url}
+        cancelHref={`/groups/${id}`}
+        defaultValues={{ name: group.name, description: group.description }}
+        logoUrl={group.logo_url}
         campaignOptions={campaignOptions}
         sessionOptions={sessionOptions}
         characterOptions={characterOptions}

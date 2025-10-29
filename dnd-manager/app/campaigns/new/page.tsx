@@ -7,8 +7,8 @@ import { mapEntitiesToMentionTargets, mergeMentionTargets } from '@/lib/mention-
 export default async function NewCampaignPage() {
   const supabase = await createClient()
 
-  const [{ data: organizations }, { data: sessions }, { data: characters }, { data: campaigns }] = await Promise.all([
-    supabase.from('organizations').select('id, name').order('name'),
+  const [{ data: groups }, { data: sessions }, { data: characters }, { data: campaigns }] = await Promise.all([
+    supabase.from('groups').select('id, name').order('name'),
     supabase
       .from('sessions')
       .select(`
@@ -16,7 +16,7 @@ export default async function NewCampaignPage() {
         name,
         campaign:campaigns(name),
         session_characters:session_characters(character_id),
-        organization_sessions:organization_sessions(organization_id)
+        group_sessions:group_sessions(group_id)
       `)
       .order('name'),
     supabase
@@ -26,9 +26,9 @@ export default async function NewCampaignPage() {
     supabase.from('campaigns').select('id, name').order('name'),
   ])
 
-  const organizationOptions = (organizations ?? []).map((organization) => ({
-    id: organization.id,
-    name: organization.name ?? 'Untitled Group',
+  const groupOptions = (groups ?? []).map((group) => ({
+    id: group.id,
+    name: group.name ?? 'Untitled Group',
   }))
 
   type SessionRow = {
@@ -36,7 +36,7 @@ export default async function NewCampaignPage() {
     name: string | null
     campaign?: { name?: string } | Array<{ name?: string }>
     session_characters?: Array<{ character_id: string }> | null
-    organization_sessions?: Array<{ organization_id: string }> | null
+    group_sessions?: Array<{ group_id: string }> | null
   }
 
   const sessionRows = (sessions as SessionRow[] | null) ?? []
@@ -51,9 +51,9 @@ export default async function NewCampaignPage() {
       .map((sc) => sc.character_id)
       .filter(Boolean)
 
-    // Extract organization IDs from this session
-    const organizationIds = (session.organization_sessions ?? [])
-      .map((os) => os.organization_id)
+    // Extract group IDs from this session
+    const groupIds = (session.group_sessions ?? [])
+      .map((os) => os.group_id)
       .filter(Boolean)
 
     return {
@@ -61,7 +61,7 @@ export default async function NewCampaignPage() {
       name: session.name ?? 'Untitled Session',
       hint: campaignName ? `Assigned to ${campaignName}` : null,
       characterIds,
-      organizationIds,
+      groupIds,
     }
   })
 
@@ -76,7 +76,7 @@ export default async function NewCampaignPage() {
 
   const mentionTargets = mergeMentionTargets(
     mapEntitiesToMentionTargets(characters, 'character', (entry) => `/characters/${entry.id}`),
-    mapEntitiesToMentionTargets(organizations, 'organization', (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(groups, 'group', (entry) => `/groups/${entry.id}`),
     mapEntitiesToMentionTargets(sessionRows, 'session', (entry) => `/sessions/${entry.id}`),
     mapEntitiesToMentionTargets(campaigns, 'campaign', (entry) => `/campaigns/${entry.id}`)
   )
@@ -94,7 +94,7 @@ export default async function NewCampaignPage() {
         cancelHref="/campaigns"
         submitLabel="Create Campaign"
         defaultValues={{ createdAt: today }}
-        organizations={organizationOptions}
+        groups={groupOptions}
         sessions={sessionOptions}
         characters={characterOptions}
         mentionTargets={mentionTargets}

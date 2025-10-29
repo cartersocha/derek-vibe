@@ -15,7 +15,7 @@ import {
 import { createPortal } from "react-dom"
 import AutoResizeTextarea, { type AutoResizeTextareaProps } from "@/components/ui/auto-resize-textarea"
 import { createCharacterInline } from "@/lib/actions/characters"
-import { createOrganizationInline } from "@/lib/actions/organizations"
+import { createGroupInline } from "@/lib/actions/groups"
 import { createSessionInline } from "@/lib/actions/sessions"
 import { createCampaignInline } from "@/lib/actions/campaigns"
 import { cn } from "@/lib/utils"
@@ -29,7 +29,7 @@ type MentionableTextareaProps = Omit<AutoResizeTextareaProps, "defaultValue" | "
   onValueChange?: (value: string) => void
   onMentionInsert?: (target: MentionTarget) => void
   onMentionCreate?: (target: MentionTarget) => void
-  linkOrganizationIds?: string[]
+  linkGroupIds?: string[]
   linkCampaignId?: string
 }
 
@@ -46,8 +46,8 @@ function MentionKindLabel({ kind }: MentionKindLabelProps) {
         return "Character"
       case "session":
         return "Session"
-      case "organization":
-        return "Organization"
+      case "group":
+        return "Group"
       case "campaign":
         return "Campaign"
       default:
@@ -61,7 +61,7 @@ function MentionKindLabel({ kind }: MentionKindLabelProps) {
         return "border-[var(--cyber-cyan)] text-[var(--cyber-cyan)]"
       case "session":
         return "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)]"
-      case "organization":
+      case "group":
         return "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)]"
       case "campaign":
         return "border-[var(--orange-400)] text-[var(--orange-400)]"
@@ -88,7 +88,7 @@ export default function MentionableTextarea({
   onValueChange,
   onMentionInsert,
   onMentionCreate,
-  linkOrganizationIds,
+  linkGroupIds,
   linkCampaignId,
   className,
   ...rest
@@ -141,7 +141,7 @@ export default function MentionableTextarea({
 
   const mentionOptions = useMemo(() => {
     const MAX_OPTIONS = 12
-    const priorityOrder: Array<MentionOption["kind"]> = ["character", "organization", "session"]
+    const priorityOrder: Array<MentionOption["kind"]> = ["character", "group", "session"]
 
     const entries = normalizedMentionQuery
       ? sortedTargets.filter((target) => target.name.toLowerCase().includes(normalizedMentionQuery))
@@ -196,8 +196,8 @@ export default function MentionableTextarea({
     [sortedTargets]
   )
 
-  const organizationTargets = useMemo(
-    () => sortedTargets.filter((target) => target.kind === "organization"),
+  const groupTargets = useMemo(
+    () => sortedTargets.filter((target) => target.kind === "group"),
     [sortedTargets]
   )
 
@@ -216,9 +216,9 @@ export default function MentionableTextarea({
     [characterTargets, normalizedMentionQuery]
   )
 
-  const hasExactOrganizationMatch = useMemo(
-    () => organizationTargets.some((target) => target.name.toLowerCase() === normalizedMentionQuery),
-    [organizationTargets, normalizedMentionQuery]
+  const hasExactGroupMatch = useMemo(
+    () => groupTargets.some((target) => target.name.toLowerCase() === normalizedMentionQuery),
+    [groupTargets, normalizedMentionQuery]
   )
 
   const hasExactSessionMatch = useMemo(
@@ -232,11 +232,11 @@ export default function MentionableTextarea({
   )
 
   const showCreateCharacterOption = trimmedMentionQuery.length > 0 && !hasExactCharacterMatch
-  const showCreateOrganizationOption = trimmedMentionQuery.length > 0 && !hasExactOrganizationMatch
+  const showCreateGroupOption = trimmedMentionQuery.length > 0 && !hasExactGroupMatch
   const showCreateSessionOption = trimmedMentionQuery.length > 0 && !hasExactSessionMatch
   const showCreateCampaignOption = trimmedMentionQuery.length > 0 && !hasExactCampaignMatch
 
-  const createOptionsCount = (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0) + (showCreateCampaignOption ? 1 : 0)
+  const createOptionsCount = (showCreateCharacterOption ? 1 : 0) + (showCreateGroupOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0) + (showCreateCampaignOption ? 1 : 0)
 
   const totalMentionChoices = useMemo(
     () => mentionOptions.length + createOptionsCount,
@@ -572,7 +572,7 @@ export default function MentionableTextarea({
     setMentionCreationError(null)
 
     try {
-      const result = await createCharacterInline(trimmedMentionQuery, linkOrganizationIds)
+      const result = await createCharacterInline(trimmedMentionQuery, linkGroupIds)
       const newTarget: MentionOption = {
         id: result.id,
         name: result.name,
@@ -596,14 +596,14 @@ export default function MentionableTextarea({
     } finally {
       setIsCreatingMentionCharacter(false)
     }
-  }, [hasExactCharacterMatch, insertMention, isCreatingMentionCharacter, linkOrganizationIds, onMentionCreate, trimmedMentionQuery])
+  }, [hasExactCharacterMatch, insertMention, isCreatingMentionCharacter, linkGroupIds, onMentionCreate, trimmedMentionQuery])
 
-  const handleCreateOrganization = useCallback(async () => {
+  const handleCreateGroup = useCallback(async () => {
     if (isCreatingMentionCharacter) {
       return
     }
 
-    if (!trimmedMentionQuery || hasExactOrganizationMatch) {
+    if (!trimmedMentionQuery || hasExactGroupMatch) {
       return
     }
 
@@ -611,12 +611,12 @@ export default function MentionableTextarea({
     setMentionCreationError(null)
 
     try {
-      const result = await createOrganizationInline(trimmedMentionQuery)
+      const result = await createGroupInline(trimmedMentionQuery)
       const newTarget: MentionOption = {
         id: result.id,
         name: result.name,
-        href: `/organizations/${result.id}`,
-        kind: "organization",
+        href: `/groups/${result.id}`,
+        kind: "group",
       }
 
       setAvailableTargets((previous) => {
@@ -630,12 +630,12 @@ export default function MentionableTextarea({
       onMentionCreate?.(newTarget)
       insertMention(newTarget)
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to create organization"
+      const message = error instanceof Error ? error.message : "Failed to create group"
       setMentionCreationError(message)
     } finally {
       setIsCreatingMentionCharacter(false)
     }
-  }, [hasExactOrganizationMatch, insertMention, isCreatingMentionCharacter, onMentionCreate, trimmedMentionQuery])
+  }, [hasExactGroupMatch, insertMention, isCreatingMentionCharacter, onMentionCreate, trimmedMentionQuery])
 
   const handleCreateSession = useCallback(async () => {
     if (isCreatingMentionCharacter) {
@@ -652,7 +652,7 @@ export default function MentionableTextarea({
     try {
       const result = await createSessionInline(trimmedMentionQuery, {
         campaignId: linkCampaignId,
-        organizationIds: linkOrganizationIds,
+        groupIds: linkGroupIds,
       })
       const newTarget: MentionOption = {
         id: result.id,
@@ -677,7 +677,7 @@ export default function MentionableTextarea({
     } finally {
       setIsCreatingMentionCharacter(false)
     }
-  }, [hasExactSessionMatch, insertMention, isCreatingMentionCharacter, linkCampaignId, linkOrganizationIds, onMentionCreate, trimmedMentionQuery])
+  }, [hasExactSessionMatch, insertMention, isCreatingMentionCharacter, linkCampaignId, linkGroupIds, onMentionCreate, trimmedMentionQuery])
 
   const handleCreateCampaign = useCallback(async () => {
     if (isCreatingMentionCharacter) {
@@ -692,7 +692,7 @@ export default function MentionableTextarea({
     setMentionCreationError(null)
 
     try {
-      const result = await createCampaignInline(trimmedMentionQuery, undefined, linkOrganizationIds)
+      const result = await createCampaignInline(trimmedMentionQuery, undefined, linkGroupIds)
       const newTarget: MentionOption = {
         id: result.id,
         name: result.name,
@@ -716,7 +716,7 @@ export default function MentionableTextarea({
     } finally {
       setIsCreatingMentionCharacter(false)
     }
-  }, [hasExactCampaignMatch, insertMention, isCreatingMentionCharacter, linkOrganizationIds, onMentionCreate, trimmedMentionQuery])
+  }, [hasExactCampaignMatch, insertMention, isCreatingMentionCharacter, linkGroupIds, onMentionCreate, trimmedMentionQuery])
 
 
   const handleTextareaKeyDown = useCallback(
@@ -765,9 +765,9 @@ export default function MentionableTextarea({
             }
             currentIndex++
           }
-          if (showCreateOrganizationOption) {
+          if (showCreateGroupOption) {
             if (createIndex === currentIndex) {
-              void handleCreateOrganization()
+              void handleCreateGroup()
               return
             }
             currentIndex++
@@ -794,7 +794,7 @@ export default function MentionableTextarea({
         closeMentionMenu()
       }
     },
-    [closeMentionMenu, handleCreateCharacter, handleCreateOrganization, handleCreateSession, handleCreateCampaign, insertMention, isMentionMenuOpen, mentionHighlightIndex, mentionOptions, showCreateCharacterOption, showCreateOrganizationOption, showCreateSessionOption, showCreateCampaignOption, totalMentionChoices]
+    [closeMentionMenu, handleCreateCharacter, handleCreateGroup, handleCreateSession, handleCreateCampaign, insertMention, isMentionMenuOpen, mentionHighlightIndex, mentionOptions, showCreateCharacterOption, showCreateGroupOption, showCreateSessionOption, showCreateCampaignOption, totalMentionChoices]
   )
 
   const handleMentionClick = useCallback(
@@ -825,8 +825,8 @@ export default function MentionableTextarea({
     if (showCreateCharacterOption) {
       labels.push(`Create "${trimmedMentionQuery}" (Character)`)
     }
-    if (showCreateOrganizationOption) {
-      labels.push(`Create "${trimmedMentionQuery}" (Organization)`)
+    if (showCreateGroupOption) {
+      labels.push(`Create "${trimmedMentionQuery}" (Group)`)
     }
     if (showCreateSessionOption) {
       labels.push(`Create "${trimmedMentionQuery}" (Session)`)
@@ -835,7 +835,7 @@ export default function MentionableTextarea({
       labels.push(`Create "${trimmedMentionQuery}" (Campaign)`)
     }
     return labels
-  }, [mentionOptions, showCreateCharacterOption, showCreateOrganizationOption, showCreateSessionOption, showCreateCampaignOption, trimmedMentionQuery])
+  }, [mentionOptions, showCreateCharacterOption, showCreateGroupOption, showCreateSessionOption, showCreateCampaignOption, trimmedMentionQuery])
 
   useEffect(() => {
     if (!isMentionMenuOpen) {
@@ -920,7 +920,7 @@ export default function MentionableTextarea({
               zIndex: 2147483647,
             }}
           >
-          {mentionOptions.length === 0 && !showCreateCharacterOption && !showCreateOrganizationOption && !showCreateSessionOption && !showCreateCampaignOption ? (
+          {mentionOptions.length === 0 && !showCreateCharacterOption && !showCreateGroupOption && !showCreateSessionOption && !showCreateCampaignOption ? (
             <p className="px-3 py-2 text-xs font-mono uppercase tracking-widest text-[var(--text-muted)]">
               No matches
             </p>
@@ -940,7 +940,7 @@ export default function MentionableTextarea({
                         baseTextColor: "text-[var(--cyber-magenta)]",
                         activeTextColor: "text-[var(--cyber-magenta)]",
                       }
-                    case "organization":
+                    case "group":
                       return {
                         baseTextColor: "text-[var(--cyber-magenta)]",
                         activeTextColor: "text-[var(--cyber-magenta)]",
@@ -998,13 +998,13 @@ export default function MentionableTextarea({
                   </span>
                 </button>
               ) : null}
-              {showCreateOrganizationOption ? (
+              {showCreateGroupOption ? (
                 <button
                   type="button"
                   role="option"
                   aria-selected={mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0))}
                   onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => void handleCreateOrganization()}
+                  onClick={() => void handleCreateGroup()}
                   onMouseEnter={() => handleMentionHover(mentionOptions.length + (showCreateCharacterOption ? 1 : 0))}
                   disabled={isCreatingMentionCharacter}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
@@ -1017,7 +1017,7 @@ export default function MentionableTextarea({
                     {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
                   </span>
                   <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--cyber-magenta)]">
-                    New Organization
+                    New Group
                   </span>
                 </button>
               ) : null}
@@ -1025,13 +1025,13 @@ export default function MentionableTextarea({
                 <button
                   type="button"
                   role="option"
-                  aria-selected={mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0))}
+                  aria-selected={mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateGroupOption ? 1 : 0))}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => void handleCreateSession()}
-                  onMouseEnter={() => handleMentionHover(mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0))}
+                  onMouseEnter={() => handleMentionHover(mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateGroupOption ? 1 : 0))}
                   disabled={isCreatingMentionCharacter}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
-                    mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0))
+                    mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateGroupOption ? 1 : 0))
                       ? "bg-[var(--bg-card)] text-[var(--cyber-magenta)]"
                       : "text-[var(--cyber-magenta)] hover:bg-[var(--bg-dark)]"
                   } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
@@ -1048,13 +1048,13 @@ export default function MentionableTextarea({
                 <button
                   type="button"
                   role="option"
-                  aria-selected={mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0))}
+                  aria-selected={mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateGroupOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0))}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => void handleCreateCampaign()}
-                  onMouseEnter={() => handleMentionHover(mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0))}
+                  onMouseEnter={() => handleMentionHover(mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateGroupOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0))}
                   disabled={isCreatingMentionCharacter}
                   className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
-                    mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateOrganizationOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0))
+                    mentionHighlightIndex === (mentionOptions.length + (showCreateCharacterOption ? 1 : 0) + (showCreateGroupOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0))
                       ? "bg-[var(--bg-card)] text-[var(--cyber-magenta)]"
                       : "text-[var(--cyber-magenta)] hover:bg-[var(--bg-dark)]"
                   } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}

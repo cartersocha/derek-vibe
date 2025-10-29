@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { renderNotesWithMentions, type MentionTarget } from '@/lib/mention-utils';
 import { formatDateStringForDisplay, getPillClasses, getDashedPillClasses, cn } from '@/lib/utils';
 
 type CharacterSessionCardProps = {
@@ -17,15 +16,14 @@ type CharacterSessionCardProps = {
     players: Array<{
       id: string;
       name: string;
-      organizations: Array<{ id: string; name: string }>;
+      groups: Array<{ id: string; name: string }>;
     }>;
-    organizations: Array<{ id: string; name: string }>;
+    groups: Array<{ id: string; name: string }>;
   };
-  mentionTargets: MentionTarget[];
   sessionNumber?: number | null;
 };
 
-export function CharacterSessionCard({ session, mentionTargets, sessionNumber }: CharacterSessionCardProps) {
+export function CharacterSessionCard({ session, sessionNumber }: CharacterSessionCardProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const toggleSessionGroups = (sessionId: string) => {
@@ -41,7 +39,7 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
   };
 
   const players = session.players;
-  const groups = session.organizations;
+  const groups = session.groups;
 
   const sessionDateLabel = session.session_date 
     ? formatDateStringForDisplay(session.session_date) 
@@ -115,19 +113,19 @@ export function CharacterSessionCard({ session, mentionTargets, sessionNumber }:
                 {(expandedGroups.has(session.id) 
                   ? groups 
                   : groups.slice(0, 4)
-                ).map((organization) => (
+                ).map((group) => (
                   <Link
-                    key={organization.id}
-                    href={`/organizations/${organization.id}`}
-                    className={getPillClasses('organization', 'small')}
+                    key={group.id}
+                    href={`/groups/${group.id}`}
+                    className={getPillClasses('group', 'small')}
                   >
-                    {organization.name}
+                    {group.name}
                   </Link>
                 ))}
                 {!expandedGroups.has(session.id) && groups.length > 4 && (
                   <button
                     onClick={() => toggleSessionGroups(session.id)}
-                    className={getDashedPillClasses('organization', 'small')}
+                    className={getDashedPillClasses('group', 'small')}
                   >
                     +{groups.length - 4} more
                   </button>

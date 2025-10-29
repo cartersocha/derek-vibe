@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { setCacheHeaders } from '@/lib/edge-cache'
 
@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 export const revalidate = 240 // 4 minutes
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createClient()
     

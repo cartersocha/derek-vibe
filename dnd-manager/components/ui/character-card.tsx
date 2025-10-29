@@ -18,9 +18,9 @@ interface CharacterCardProps {
       id: string;
       name: string;
     }>;
-    organization_characters: Array<{
+    group_characters: Array<{
       role: string;
-      organization: {
+      group: {
         id: string;
         name: string;
       };
@@ -144,38 +144,38 @@ export function CharacterCard({ character }: CharacterCardProps) {
             </div>
           )}
 
-          {/* Organizations */}
-          {character.organization_characters && character.organization_characters.length > 0 && (
+          {/* Groups */}
+          {character.group_characters && character.group_characters.length > 0 && (
             <div className="mb-2 pointer-events-auto">
               <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">Groups</div>
               <div className="flex flex-wrap gap-2">
                 {(isExpanded 
-                  ? character.organization_characters 
-                  : character.organization_characters.slice(0, 3)
+                  ? character.group_characters 
+                  : character.group_characters.slice(0, 3)
                 ).map((org, index) => (
                   <Link
                     key={index}
-                    href={`/organizations/${org.organization?.id}`}
+                    href={`/groups/${org.group?.id}`}
                     prefetch
-                    className={getPillClasses('organization', 'small')}
+                    className={getPillClasses('group', 'small')}
                   >
-                    {org.organization?.name || 'Unknown Org'}
+                    {org.group?.name || 'Unknown Org'}
                   </Link>
                 ))}
-                {!isExpanded && character.organization_characters.length > 3 && (
+                {!isExpanded && character.group_characters.length > 3 && (
                   <button
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       toggleExpansion();
                     }}
-                    className={getDashedPillClasses('organization', 'small')}
-                    aria-label={`Show ${character.organization_characters.length - 3} more organizations`}
+                    className={getDashedPillClasses('group', 'small')}
+                    aria-label={`Show ${character.group_characters.length - 3} more groups`}
                   >
-                    +{character.organization_characters.length - 3} more
+                    +{character.group_characters.length - 3} more
                   </button>
                 )}
-                {isExpanded && character.organization_characters.length > 3 && (
+                {isExpanded && character.group_characters.length > 3 && (
                   <button
                     onClick={(e) => {
                       e.preventDefault();
@@ -183,7 +183,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                       toggleExpansion();
                     }}
                     className={getPillClasses('default', 'small')}
-                    aria-label="Show fewer organizations"
+                    aria-label="Show fewer groups"
                   >
                     Show less
                   </button>

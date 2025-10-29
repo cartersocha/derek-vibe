@@ -22,9 +22,9 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
   const [
     { data: allCharacters },
     { data: allSessions },
-    { data: organizations },
+    { data: groups },
     { data: campaigns },
-    { data: organizationLinks },
+    { data: groupLinks },
     { data: campaignLinks },
     { data: sessionDerivedCampaigns },
     { data: locationRows },
@@ -33,11 +33,11 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
   ] = await Promise.all([
     supabase.from('characters').select('id, name').order('name'),
     supabase.from('sessions').select('id, name').order('name'),
-    supabase.from('organizations').select('id, name').order('name'),
+    supabase.from('groups').select('id, name').order('name'),
     supabase.from('campaigns').select('id, name').order('name'),
     supabase
-      .from('organization_characters')
-      .select('organization_id, role')
+      .from('group_characters')
+      .select('group_id, role')
       .eq('character_id', id),
     supabase
       .from('campaign_characters')
@@ -67,7 +67,7 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
   const mentionTargets = mergeMentionTargets(
     mapEntitiesToMentionTargets(allCharacters, 'character', (entry) => `/characters/${entry.id}`),
     mapEntitiesToMentionTargets(allSessions, 'session', (entry) => `/sessions/${entry.id}`),
-    mapEntitiesToMentionTargets(organizations, 'organization', (entry) => `/organizations/${entry.id}`)
+    mapEntitiesToMentionTargets(groups, 'group', (entry) => `/groups/${entry.id}`)
   )
 
   const updateCharacterWithId = updateCharacter.bind(null, id)
@@ -99,15 +99,15 @@ export default async function CharacterEditPage({ params }: { params: Promise<{ 
         character={character}
         cancelHref={`/characters/${id}`}
         mentionTargets={mentionTargets}
-        organizations={(organizations ?? []).map((organization) => ({
-          id: organization.id,
-          name: organization.name ?? 'Untitled Organization',
+        groups={(groups ?? []).map((group) => ({
+          id: group.id,
+          name: group.name ?? 'Untitled Group',
         }))}
         campaigns={(campaigns ?? []).map((campaign) => ({
           id: campaign.id,
           name: campaign.name ?? 'Untitled Campaign',
         }))}
-        organizationAffiliations={(organizationLinks ?? []).map((entry) => entry.organization_id)}
+        groupAffiliations={(groupLinks ?? []).map((entry) => entry.group_id)}
         campaignAffiliations={Array.from(new Set([
           ...((campaignLinks ?? []).map((entry) => entry.campaign_id).filter(Boolean) as string[]),
           ...((sessionDerivedCampaigns ?? []).map((row) => row.campaign_id).filter(Boolean) as string[]),

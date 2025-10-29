@@ -5,7 +5,7 @@ import { cn } from '../utils'
  */
 
 export type PillSize = 'tiny' | 'small' | 'medium' | 'large'
-export type PillVariant = 'default' | 'player' | 'npc' | 'organization' | 'session' | 'date' | 'campaign'
+export type PillVariant = 'default' | 'player' | 'npc' | 'group' | 'session' | 'date' | 'campaign'
 
 /**
  * Base pill classes that all pills should use
@@ -29,7 +29,7 @@ export const getPillBaseClasses = (size: PillSize = 'tiny') => {
 /**
  * Pill variant classes for different types of content
  */
-export const getPillVariantClasses = (variant: PillVariant, size: PillSize = 'small') => {
+export const getPillVariantClasses = (variant: PillVariant) => {
   const radiusClass = ''
   
   const variantClasses = {
@@ -45,7 +45,7 @@ export const getPillVariantClasses = (variant: PillVariant, size: PillSize = 'sm
       'border border-[var(--cyber-magenta)]/40 bg-[var(--bg-dark)] text-[var(--cyber-magenta)] transition hover:text-[var(--cyber-magenta)] hover:border-[var(--cyber-magenta)]/50 hover:bg-[var(--cyber-magenta)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] hover-glow',
       radiusClass
     ),
-    organization: cn(
+    group: cn(
       'border border-[var(--cyber-magenta)]/40 bg-[var(--bg-dark)] text-[var(--cyber-magenta)] transition hover:text-[var(--cyber-magenta)] hover:border-[var(--cyber-magenta)]/50 hover:bg-[var(--cyber-magenta)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] hover-glow',
       radiusClass
     ),
@@ -72,7 +72,7 @@ export const getPillVariantClasses = (variant: PillVariant, size: PillSize = 'sm
 export const getPillClasses = (variant: PillVariant = 'default', size: PillSize = 'tiny') => {
   return cn(
     getPillBaseClasses(size),
-    getPillVariantClasses(variant, size)
+    getPillVariantClasses(variant)
   )
 }
 
@@ -95,7 +95,7 @@ export const getDashedPillClasses = (variant: PillVariant = 'default', size: Pil
       'border border-dashed border-[var(--cyber-magenta)]/50 text-[var(--cyber-magenta)] transition hover:text-[var(--cyber-magenta)] hover:border-[var(--cyber-magenta)]/60 hover:bg-[var(--cyber-magenta)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] hover-glow',
       radiusClass
     ),
-    organization: cn(
+    group: cn(
       'border border-dashed border-[var(--cyber-magenta)]/50 text-[var(--cyber-magenta)] transition hover:text-[var(--cyber-magenta)] hover:border-[var(--cyber-magenta)]/60 hover:bg-[var(--cyber-magenta)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-magenta)] hover-glow',
       radiusClass
     ),

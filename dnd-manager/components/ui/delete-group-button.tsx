@@ -6,7 +6,7 @@ import { useFormStatus } from 'react-dom'
 import ConfirmDialog from './confirm-dialog'
 import TrashIcon from './trash-icon'
 
-export function DeleteOrganizationButton() {
+export function DeleteGroupButton() {
   const { pending } = useFormStatus()
   const [open, setOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
@@ -43,7 +43,7 @@ export function DeleteOrganizationButton() {
       </button>
       <ConfirmDialog
         open={open}
-        title="Delete organization?"
+        title="Delete group?"
         description="You sure about that?"
         confirmLabel="Delete"
         cancelLabel="Cancel"

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import ImageUpload from '@/components/ui/image-upload'
 import CreatableSelect from '@/components/ui/creatable-select'
 import SynthwaveDropdown from '@/components/ui/synthwave-dropdown'
-import OrganizationMultiSelect from '@/components/ui/organization-multi-select'
+import GroupMultiSelect from '@/components/ui/group-multi-select'
 import {
   CHARACTER_STATUS_OPTIONS,
   CLASS_OPTIONS,
@@ -36,10 +36,10 @@ interface CharacterEditFormProps {
   character: Character
   cancelHref?: string
   mentionTargets: MentionTarget[]
-  organizations: { id: string; name: string }[]
+  groups: { id: string; name: string }[]
   campaigns?: { id: string; name: string }[]
   campaignAffiliations?: string[]
-  organizationAffiliations?: string[]
+  groupAffiliations?: string[]
   locationSuggestions?: string[]
   raceSuggestions?: string[]
   classSuggestions?: string[]
@@ -54,10 +54,10 @@ export default function CharacterEditForm({
   character,
   cancelHref,
   mentionTargets,
-  organizations,
+  groups,
   campaigns = [],
   campaignAffiliations = [],
-  organizationAffiliations,
+  groupAffiliations,
   locationSuggestions = [],
   raceSuggestions = [],
   classSuggestions = [],
@@ -155,13 +155,13 @@ export default function CharacterEditForm({
   const [characterClass, setCharacterClass] = useState(() => toTitleCase(character.class ?? ''))
   const [lastKnownLocation, setLastKnownLocation] = useState(() => toTitleCase(character.last_known_location ?? ''))
   const [status, setStatus] = useState<CharacterStatus>(character.status ?? 'alive')
-  const [organizationList, setOrganizationList] = useState(() => [...organizations])
+  const [groupList, setGroupList] = useState(() => [...groups])
   const [campaignList, setCampaignList] = useState(() => [...campaigns])
-  const allowedOrganizationIds = useMemo(() => {
-    const allowed = new Set(organizationList.map((organization) => organization.id))
-    return (organizationAffiliations ?? []).filter((organizationId) => allowed.has(organizationId))
-  }, [organizationAffiliations, organizationList])
-  const [organizationIds, setOrganizationIds] = useState<string[]>(allowedOrganizationIds)
+  const allowedGroupIds = useMemo(() => {
+    const allowed = new Set(groupList.map((group) => group.id))
+    return (groupAffiliations ?? []).filter((groupId) => allowed.has(groupId))
+  }, [groupAffiliations, groupList])
+  const [groupIds, setGroupIds] = useState<string[]>(allowedGroupIds)
 
   const allowedCampaignIds = useMemo(() => {
     const allowed = new Set(campaignList.map((campaign) => campaign.id))
@@ -169,36 +169,36 @@ export default function CharacterEditForm({
   }, [campaignAffiliations, campaignList])
   const [campaignIds, setCampaignIds] = useState<string[]>(allowedCampaignIds)
 
-  const organizationMentionTargets = useMemo(() => {
-    return organizationList
-      .filter((organization) => Boolean(organization.name))
-      .map((organization) => ({
-        id: organization.id,
-        name: organization.name,
-        href: `/organizations/${organization.id}`,
-        kind: 'organization' as const,
+  const groupMentionTargets = useMemo(() => {
+    return groupList
+      .filter((group) => Boolean(group.name))
+      .map((group) => ({
+        id: group.id,
+        name: group.name,
+        href: `/groups/${group.id}`,
+        kind: 'group' as const,
       }))
-  }, [organizationList])
+  }, [groupList])
 
   const baseMentionTargets = useMemo(() => {
     const merged = new Map<string, MentionTarget>()
     mentionTargets.forEach((target) => {
       merged.set(target.id, target)
     })
-    organizationMentionTargets.forEach((target) => {
+    groupMentionTargets.forEach((target) => {
       merged.set(target.id, target)
     })
     return Array.from(merged.values())
-  }, [mentionTargets, organizationMentionTargets])
+  }, [mentionTargets, groupMentionTargets])
 
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(baseMentionTargets)
 
   useEffect(() => {
-    setOrganizationList((previous) => {
-      const merged = new Map(previous.map((organization) => [organization.id, organization]))
-      organizations.forEach((organization) => {
-        if (organization?.id) {
-          merged.set(organization.id, { id: organization.id, name: organization.name })
+    setGroupList((previous) => {
+      const merged = new Map(previous.map((group) => [group.id, group]))
+      groups.forEach((group) => {
+        if (group?.id) {
+          merged.set(group.id, { id: group.id, name: group.name })
         }
       })
       const next = Array.from(merged.values()).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
@@ -210,7 +210,7 @@ export default function CharacterEditForm({
       }
       return next
     })
-  }, [organizations])
+  }, [groups])
 
   useEffect(() => {
     setCampaignList((previous) => {
@@ -260,10 +260,10 @@ export default function CharacterEditForm({
   }, [campaignAffiliations])
 
   useEffect(() => {
-    setOrganizationIds((prev) => {
+    setGroupIds((prev) => {
       const merged = new Set(prev)
       let updated = false
-      for (const id of allowedOrganizationIds) {
+      for (const id of allowedGroupIds) {
         if (!merged.has(id)) {
           merged.add(id)
           updated = true
@@ -271,7 +271,7 @@ export default function CharacterEditForm({
       }
       return updated ? Array.from(merged) : prev
     })
-  }, [allowedOrganizationIds])
+  }, [allowedGroupIds])
 
   useEffect(() => {
     setCampaignIds((prev) => {
@@ -302,12 +302,12 @@ export default function CharacterEditForm({
     })
   }, [baseMentionTargets])
 
-  const organizationOptions = useMemo(() => {
-    return organizationList.map((organization) => ({
-      value: organization.id,
-      label: organization.name || 'Untitled Organization',
+  const groupOptions = useMemo(() => {
+    return groupList.map((group) => ({
+      value: group.id,
+      label: group.name || 'Untitled Group',
     }))
-  }, [organizationList])
+  }, [groupList])
 
   const campaignOptions = useMemo(() => {
     return campaignList.map((campaign) => ({
@@ -328,7 +328,7 @@ export default function CharacterEditForm({
     setLastKnownLocation(next ? toTitleCase(next) : '')
   }, [toTitleCase])
 
-  const handleOrganizationCreated = useCallback((option: { value: string; label: string }) => {
+  const handleGroupCreated = useCallback((option: { value: string; label: string }) => {
     setMentionableTargets((previous) => {
       if (previous.some((target) => target.id === option.value)) {
         return previous
@@ -338,8 +338,8 @@ export default function CharacterEditForm({
         {
           id: option.value,
           name: option.label,
-          href: `/organizations/${option.value}`,
-          kind: 'organization' as const,
+          href: `/groups/${option.value}`,
+          kind: 'group' as const,
         },
       ]
     })
@@ -354,9 +354,9 @@ export default function CharacterEditForm({
         return [...previous, target]
       })
 
-      if (target.kind === 'organization') {
-        // Add organization to the list if not already present
-        setOrganizationList((prev) => {
+      if (target.kind === 'group') {
+        // Add group to the list if not already present
+        setGroupList((prev) => {
           if (prev.some((org) => org.id === target.id)) {
             return prev
           }
@@ -364,8 +364,8 @@ export default function CharacterEditForm({
           return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
         })
 
-        // Auto-assign the organization to the character
-        setOrganizationIds((prev) => {
+        // Auto-assign the group to the character
+        setGroupIds((prev) => {
           if (prev.includes(target.id)) {
             return prev
           }
@@ -397,7 +397,7 @@ export default function CharacterEditForm({
       action={action}
       className="bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl p-6 space-y-8"
     >
-      <input type="hidden" name="organization_field_present" value="true" />
+      <input type="hidden" name="group_field_present" value="true" />
       <ImageUpload
         name="image"
         label="Character Portrait"
@@ -515,17 +515,17 @@ export default function CharacterEditForm({
           />
         </div>
         <div className="space-y-2">
-          <label htmlFor="organization_ids" className="block text-sm font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">
+          <label htmlFor="group_ids" className="block text-sm font-bold text-[var(--cyber-cyan)] uppercase tracking-wider">
             Group Affiliation
           </label>
-          <OrganizationMultiSelect
-            id="organization_ids"
-            name="organization_ids"
-            value={organizationIds}
-            onChange={setOrganizationIds}
-            options={organizationOptions}
+          <GroupMultiSelect
+            id="group_ids"
+            name="group_ids"
+            value={groupIds}
+            onChange={setGroupIds}
+            options={groupOptions}
             placeholder="Select groups"
-            onCreateOption={handleOrganizationCreated}
+            onCreateOption={handleGroupCreated}
           />
         </div>
         <div className="space-y-2">

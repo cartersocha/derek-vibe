@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { cn, formatTimestampForDisplay, getPillClasses, getDashedPillClasses } from "@/lib/utils";
 import { renderNotesWithMentions, type MentionTarget } from "@/lib/mention-utils";
 import { IndexEmptyState, IndexHeader } from "@/components/ui/index-utility";
@@ -11,7 +11,7 @@ type CampaignRecord = {
   name: string;
   description: string | null;
   created_at: string;
-  organizations: { id: string; name: string }[];
+  groups: { id: string; name: string }[];
   sessions: { id: string; name: string }[];
   allSessions: { id: string; name: string }[];
   characters: { id: string; name: string; player_type: string | null }[];
@@ -134,34 +134,34 @@ export function CampaignsIndex({ campaigns, mentionTargets }: CampaignsIndexProp
                       </div>
                     </div>
                   )}
-                  {campaign.organizations.length > 0 && (
+                  {campaign.groups.length > 0 && (
                     <div className="pointer-events-auto">
                       <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.35em] text-[var(--text-secondary)]">
                         Groups
                       </div>
                       <div className="flex flex-wrap gap-1 sm:gap-2">
                         {(expandedGroups.has(campaign.id) 
-                          ? campaign.organizations 
-                          : campaign.organizations.slice(0, 6)
-                        ).map((organization) => (
+                          ? campaign.groups 
+                          : campaign.groups.slice(0, 6)
+                        ).map((group) => (
                           <Link
-                            key={`${campaign.id}-org-${organization.id}`}
-                            href={`/organizations/${organization.id}`}
+                            key={`${campaign.id}-org-${group.id}`}
+                            href={`/groups/${group.id}`}
                             prefetch
-                            className={getPillClasses('organization', 'small')}
+                            className={getPillClasses('group', 'small')}
                           >
-                            {organization.name}
+                            {group.name}
                           </Link>
                         ))}
-                        {!expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
+                        {!expandedGroups.has(campaign.id) && campaign.groups.length > 6 && (
                           <button
                             onClick={() => toggleCampaignGroups(campaign.id)}
-                            className={getDashedPillClasses('organization', 'small')}
+                            className={getDashedPillClasses('group', 'small')}
                           >
-                            +{campaign.organizations.length - 6} more
+                            +{campaign.groups.length - 6} more
                           </button>
                         )}
-                        {expandedGroups.has(campaign.id) && campaign.organizations.length > 6 && (
+                        {expandedGroups.has(campaign.id) && campaign.groups.length > 6 && (
                           <button
                             onClick={() => toggleCampaignGroups(campaign.id)}
                           className={cn(getPillClasses('default', 'small'), 'whitespace-nowrap')}

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import MentionableTextarea from '@/components/ui/mentionable-textarea'
 import ImageUpload from '@/components/ui/image-upload'
 import CharacterMultiSelect, { type CharacterOption } from '@/components/ui/character-multi-select'
-import OrganizationMultiSelect, { type OrganizationOption } from '@/components/ui/organization-multi-select'
+import GroupMultiSelect, { type GroupOption } from '@/components/ui/group-multi-select'
 import { collectMentionTargets, type MentionTarget } from '@/lib/mention-utils'
 import { getTodayDateInputValue } from '@/lib/utils'
 import { createCampaignInline } from '@/lib/actions/campaigns'
@@ -27,7 +27,7 @@ interface Character {
   name: string
   race: string | null
   class: string | null
-  organizations?: Array<{ id: string; name: string }>
+  groups?: Array<{ id: string; name: string }>
 }
 
 function sortCampaignsByName(list: Campaign[]): Campaign[] {
@@ -43,11 +43,11 @@ interface SessionFormProps {
     notes?: string | null
     header_image_url?: string | null
     characterIds?: string[]
-    organizationIds?: string[]
+    groupIds?: string[]
   }
   campaigns: Campaign[]
   characters: Character[]
-  organizations: { id: string; name: string }[]
+  groups: { id: string; name: string }[]
   defaultCampaignId?: string
   submitLabel?: string
   cancelHref?: string
@@ -61,7 +61,7 @@ export default function SessionForm({
   initialData,
   campaigns,
   characters,
-  organizations,
+  groups,
   defaultCampaignId,
   submitLabel = 'Create Session',
   cancelHref = '/sessions',
@@ -77,7 +77,7 @@ export default function SessionForm({
   const [notesDraft, setNotesDraft] = useState(initialNotes)
   const [headerImageDraft, setHeaderImageDraft] = useState<{ dataUrl: string; name?: string | null } | null>(null)
   const [characterList, setCharacterList] = useState(characters)
-const [organizationList, setOrganizationList] = useState(() => [...organizations])
+const [groupList, setGroupList] = useState(() => [...groups])
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(mentionTargets)
   const [campaignList, setCampaignList] = useState(() => sortCampaignsByName(campaigns))
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>(() => {
@@ -87,8 +87,8 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
   })
   const [selectedGroups, setSelectedGroups] = useState<string[]>(() => {
     // For new sessions, start with empty array
-    // For editing sessions, use the existing organizationIds
-    return initialData?.organizationIds ?? []
+    // For editing sessions, use the existing groupIds
+    return initialData?.groupIds ?? []
   })
   const [campaignId, setCampaignId] = useState(() => initialData?.campaign_id || defaultCampaignId || '')
   const manuallySelectedOrgsRef = useRef<Set<string>>(new Set())
@@ -160,12 +160,12 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     return [...base, ...mapped]
   }, [campaignList])
 
-  const organizationSelectOptions = useMemo(() => {
-    return organizationList.map((organization) => ({
-      value: organization.id,
-      label: organization.name || 'Untitled Group',
+  const groupSelectOptions = useMemo(() => {
+    return groupList.map((group) => ({
+      value: group.id,
+      label: group.name || 'Untitled Group',
     }))
-  }, [organizationList])
+  }, [groupList])
 
   useEffect(() => {
     setCharacterList((previous) => {
@@ -185,14 +185,14 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
   }, [characters, sortCharactersByName])
 
   useEffect(() => {
-    setOrganizationList((previous) => {
+    setGroupList((previous) => {
       const merged = new Map<string, { id: string; name: string }>()
       previous.forEach((entry) => {
         if (entry?.id) {
           merged.set(entry.id, entry)
         }
       })
-      organizations.forEach((entry) => {
+      groups.forEach((entry) => {
         if (entry?.id) {
           merged.set(entry.id, entry)
         }
@@ -201,7 +201,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
         (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' })
       )
     })
-  }, [organizations])
+  }, [groups])
 
   useEffect(() => {
     setMentionableTargets((previous) => {
@@ -228,7 +228,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
 
   useEffect(() => {
     const snapshot = JSON.stringify({
-      orgs: initialData?.organizationIds ?? null,
+      orgs: initialData?.groupIds ?? null,
       chars: initialData?.characterIds ?? null,
     })
 
@@ -237,7 +237,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
       return
     }
 
-    const initialOrgIds = Array.from(new Set(initialData?.organizationIds ?? []))
+    const initialOrgIds = Array.from(new Set(initialData?.groupIds ?? []))
     const initialCharIds = Array.from(new Set(initialData?.characterIds ?? []))
 
     // Defer initialization until we have character data when editing existing sessions
@@ -247,7 +247,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
 
     initialAssociationsSnapshotRef.current = snapshot
 
-    if (initialData?.organizationIds === undefined) {
+    if (initialData?.groupIds === undefined) {
       // New session – keep whatever the user has manually selected so far
       setSelectedGroups(Array.from(manuallySelectedOrgsRef.current))
       syncedCharactersRef.current = new Set(initialCharIds)
@@ -259,8 +259,8 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     const orgsFromCharacters = new Set<string>()
     initialCharIds.forEach((characterId) => {
       const character = characters.find((c) => c.id === characterId)
-      if (character?.organizations) {
-        character.organizations.forEach((org) => {
+      if (character?.groups) {
+        character.groups.forEach((org) => {
           orgsFromCharacters.add(org.id)
         })
       }
@@ -275,7 +275,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
 
     manuallySelectedOrgsRef.current = manuallySelected
     syncedCharactersRef.current = new Set(initialCharIds)
-  }, [characters, initialData?.characterIds, initialData?.organizationIds])
+  }, [characters, initialData?.characterIds, initialData?.groupIds])
 
   useEffect(() => {
     if (!isCampaignCreatorOpen) {
@@ -596,9 +596,9 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
           const next = [...prev, { id: target.id, name: target.name, race: null, class: null }]
           return sortCharactersByName(next)
         })
-      } else if (target.kind === 'organization') {
-        // Add organization to the list if not already present
-        setOrganizationList((prev) => {
+      } else if (target.kind === 'group') {
+        // Add group to the list if not already present
+        setGroupList((prev) => {
           if (prev.some((org) => org.id === target.id)) {
             return prev
           }
@@ -658,16 +658,16 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     [sortCharactersByName]
   )
 
-  const handleOrganizationCreated = useCallback((option: OrganizationOption) => {
-    setOrganizationList((prev) => {
-      if (prev.some((organization) => organization.id === option.value)) {
+  const handleGroupCreated = useCallback((option: GroupOption) => {
+    setGroupList((prev) => {
+      if (prev.some((group) => group.id === option.value)) {
         return prev
       }
       const next = [...prev, { id: option.value, name: option.label }]
       return next.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }))
     })
 
-    // Mark newly created organizations as manually selected
+    // Mark newly created groups as manually selected
     manuallySelectedOrgsRef.current.add(option.value)
     setSelectedGroups((prev) => {
       if (prev.includes(option.value)) {
@@ -685,8 +685,8 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
         {
           id: option.value,
           name: option.label,
-          href: `/organizations/${option.value}`,
-          kind: 'organization' as const,
+          href: `/groups/${option.value}`,
+          kind: 'group' as const,
         },
       ]
     })
@@ -731,7 +731,7 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     })
   }, [mentionableTargets, notesDraft, sortCharactersByName])
 
-  // One-time auto-sync organizations only when characters are newly added
+  // One-time auto-sync groups only when characters are newly added
   useEffect(() => {
     const newlyAddedCharacters = selectedCharacterIds.filter(
       charId => !syncedCharactersRef.current.has(charId)
@@ -739,13 +739,13 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     
     if (newlyAddedCharacters.length === 0) return
     
-    // Get organizations from newly added characters only
-    const newOrganizationIds = new Set<string>()
+    // Get groups from newly added characters only
+    const newGroupIds = new Set<string>()
     newlyAddedCharacters.forEach((characterId) => {
       const character = characterList.find((c) => c.id === characterId)
-      if (character?.organizations) {
-        character.organizations.forEach((org) => {
-          newOrganizationIds.add(org.id)
+      if (character?.groups) {
+        character.groups.forEach((org) => {
+          newGroupIds.add(org.id)
         })
       }
     })
@@ -755,10 +755,10 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
       syncedCharactersRef.current.add(charId)
     })
     
-    // Add new organizations to selected groups (only if they don't already exist)
-    if (newOrganizationIds.size > 0) {
+    // Add new groups to selected groups (only if they don't already exist)
+    if (newGroupIds.size > 0) {
       setSelectedGroups(prev => {
-        const combined = new Set([...prev, ...newOrganizationIds])
+        const combined = new Set([...prev, ...newGroupIds])
         return Array.from(combined)
       })
     }
@@ -777,14 +777,14 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     }
   }, [selectedCharacterIds])
 
-  // Create a wrapped handler for organization selection changes
-  const handleOrganizationSelectionChange = useCallback((newSelectedIds: string[]) => {
-    // Calculate which organizations come from characters
+  // Create a wrapped handler for group selection changes
+  const handleGroupSelectionChange = useCallback((newSelectedIds: string[]) => {
+    // Calculate which groups come from characters
     const orgsFromCharacters = new Set<string>()
     selectedCharacterIds.forEach((characterId) => {
       const character = characterList.find((c) => c.id === characterId)
-      if (character?.organizations) {
-        character.organizations.forEach((org) => {
+      if (character?.groups) {
+        character.groups.forEach((org) => {
           orgsFromCharacters.add(org.id)
         })
       }
@@ -793,17 +793,17 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
     const prevSet = new Set(selectedGroups)
     const newSet = new Set(newSelectedIds)
 
-    // Update manually selected organizations
+    // Update manually selected groups
     const manuallySelected = manuallySelectedOrgsRef.current
     
-    // Find newly added organizations (not from characters)
+    // Find newly added groups (not from characters)
     newSet.forEach((orgId) => {
       if (!prevSet.has(orgId) && !orgsFromCharacters.has(orgId)) {
         manuallySelected.add(orgId)
       }
     })
     
-    // Find removed organizations that were manually added
+    // Find removed groups that were manually added
     prevSet.forEach((orgId) => {
       if (!newSet.has(orgId) && manuallySelected.has(orgId)) {
         manuallySelected.delete(orgId)
@@ -1033,14 +1033,14 @@ const [organizationList, setOrganizationList] = useState(() => [...organizations
               Related Groups
             </label>
           </div>
-          <OrganizationMultiSelect
+          <GroupMultiSelect
             id="session-groups"
-            name="organization_ids"
-            options={organizationSelectOptions}
+            name="group_ids"
+            options={groupSelectOptions}
             value={selectedGroups}
-            onChange={handleOrganizationSelectionChange}
-            placeholder={organizationSelectOptions.length ? 'Select groups' : 'No groups available'}
-            onCreateOption={handleOrganizationCreated}
+            onChange={handleGroupSelectionChange}
+            placeholder={groupSelectOptions.length ? 'Select groups' : 'No groups available'}
+            onCreateOption={handleGroupCreated}
           />
         </div>
       </div>

@@ -19,8 +19,8 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
     notFound()
   }
 
-  const [organizationLinksResult, sessionQueryResult, characterLinksResult] = await Promise.all([
-    supabase.from('organization_campaigns').select('organization_id').eq('campaign_id', id),
+  const [groupLinksResult, sessionQueryResult, characterLinksResult] = await Promise.all([
+    supabase.from('group_campaigns').select('group_id').eq('campaign_id', id),
     supabase
       .from('sessions')
       .select(`
@@ -29,7 +29,7 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
         campaign_id,
         campaign:campaigns(name),
         session_characters:session_characters(character_id),
-        organization_sessions:organization_sessions(organization_id)
+        group_sessions:group_sessions(group_id)
       `)
       .order('name'),
     supabase.from('campaign_characters').select('character_id').eq('campaign_id', id),
@@ -49,14 +49,14 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
     return message.includes('campaign_characters')
   }
 
-  const [{ data: organizations }, { data: characters }, { data: campaigns }] = await Promise.all([
-    supabase.from('organizations').select('id, name').order('name'),
+  const [{ data: groups }, { data: characters }, { data: campaigns }] = await Promise.all([
+    supabase.from('groups').select('id, name').order('name'),
     supabase.from('characters').select('id, name, player_type, status').order('name'),
     supabase.from('campaigns').select('id, name').order('name'),
   ])
 
-  const defaultOrganizationIds = (organizationLinksResult.data ?? [])
-    .map((entry) => entry.organization_id)
+  const defaultGroupIds = (groupLinksResult.data ?? [])
+    .map((entry) => entry.group_id)
     .filter((value): value is string => Boolean(value))
 
   const sessionRows = sessionQueryResult.data ?? []
@@ -76,9 +76,9 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
     .map((entry) => entry.character_id)
     .filter((value): value is string => Boolean(value))
 
-  const organizationOptions = (organizations ?? []).map((organization) => ({
-    id: organization.id,
-    name: organization.name ?? 'Untitled Group',
+  const groupOptions = (groups ?? []).map((group) => ({
+    id: group.id,
+    name: group.name ?? 'Untitled Group',
   }))
 
   type SessionRow = {
@@ -87,7 +87,7 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
     campaign_id: string | null
     campaign?: { name?: string } | Array<{ name?: string }>
     session_characters?: Array<{ character_id: string }> | null
-    organization_sessions?: Array<{ organization_id: string }> | null
+    group_sessions?: Array<{ group_id: string }> | null
   }
 
   const sessionOptions = (sessionRows as SessionRow[]).map((session) => {
@@ -101,9 +101,9 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
       .map((sc) => sc.character_id)
       .filter(Boolean)
 
-    // Extract organization IDs from this session
-    const organizationIds = (session.organization_sessions ?? [])
-      .map((os) => os.organization_id)
+    // Extract group IDs from this session
+    const groupIds = (session.group_sessions ?? [])
+      .map((os) => os.group_id)
       .filter(Boolean)
 
     return {
@@ -111,7 +111,7 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
       name: session.name ?? 'Untitled Session',
       hint: campaignName && session.campaign_id !== id ? `Assigned to ${campaignName}` : null,
       characterIds,
-      organizationIds,
+      groupIds,
     }
   })
 
@@ -126,7 +126,7 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
 
   const mentionTargets = mergeMentionTargets(
     mapEntitiesToMentionTargets(characters, 'character', (entry) => `/characters/${entry.id}`),
-    mapEntitiesToMentionTargets(organizations, 'organization', (entry) => `/organizations/${entry.id}`),
+    mapEntitiesToMentionTargets(groups, 'group', (entry) => `/groups/${entry.id}`),
     mapEntitiesToMentionTargets(sessionRows, 'session', (entry) => `/sessions/${entry.id}`),
     mapEntitiesToMentionTargets(campaigns, 'campaign', (entry) => `/campaigns/${entry.id}`)
   )
@@ -152,10 +152,10 @@ export default async function CampaignEditPage({ params }: { params: Promise<{ i
           description: campaign.description,
           createdAt: campaign.created_at,
         }}
-        organizations={organizationOptions}
+        groups={groupOptions}
         sessions={sessionOptions}
         characters={characterOptions}
-        defaultOrganizationIds={defaultOrganizationIds}
+        defaultGroupIds={defaultGroupIds}
         defaultSessionIds={defaultSessionIds}
         defaultCharacterIds={defaultCharacterIds}
         campaignId={id}

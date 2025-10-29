@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { coerceDateInputValue } from "@/lib/utils";
-import OrganizationMultiSelect from "@/components/ui/organization-multi-select";
+import GroupMultiSelect from "@/components/ui/group-multi-select";
 import CharacterMultiSelect, { type CharacterOption } from "@/components/ui/character-multi-select";
 import SessionMultiSelect, { type SessionOption } from "@/components/ui/session-multi-select";
 import MentionableTextarea from "@/components/ui/mentionable-textarea";
@@ -19,7 +19,7 @@ type OptionInput = {
 
 type SessionInput = OptionInput & {
   characterIds?: string[];
-  organizationIds?: string[];
+  groupIds?: string[];
 };
 
 interface CampaignFormProps {
@@ -31,10 +31,10 @@ interface CampaignFormProps {
     description?: string | null;
     createdAt?: string | null;
   };
-  organizations?: OptionInput[];
+  groups?: OptionInput[];
   sessions?: SessionInput[];
   characters?: OptionInput[];
-  defaultOrganizationIds?: string[];
+  defaultGroupIds?: string[];
   defaultSessionIds?: string[];
   defaultCharacterIds?: string[];
   campaignId?: string;
@@ -46,10 +46,10 @@ export function CampaignForm({
   cancelHref,
   submitLabel,
   defaultValues,
-  organizations = [],
+  groups = [],
   sessions = [],
   characters = [],
-  defaultOrganizationIds,
+  defaultGroupIds,
   defaultSessionIds,
   defaultCharacterIds,
   campaignId,
@@ -61,23 +61,23 @@ export function CampaignForm({
     []
   );
 
-  const [organizationIds, setOrganizationIds] = useState<string[]>(() => dedupe(defaultOrganizationIds));
+  const [groupIds, setGroupIds] = useState<string[]>(() => dedupe(defaultGroupIds));
   const [sessionIds, setSessionIds] = useState<string[]>(() => dedupe(defaultSessionIds));
   const [characterIds, setCharacterIds] = useState<string[]>(() => dedupe(defaultCharacterIds));
-  const [organizationList, setOrganizationList] = useState<OptionInput[]>(() => sortOptionInputs([...organizations]));
+  const [groupList, setGroupList] = useState<OptionInput[]>(() => sortOptionInputs([...groups]));
   const [sessionList, setSessionList] = useState<SessionInput[]>(() => sortOptionInputs([...sessions]));
   const [characterList, setCharacterList] = useState<OptionInput[]>(() => sortOptionInputs([...characters]));
   const defaultCreatedAtValue = useMemo(() => coerceDateInputValue(defaultValues?.createdAt ?? null), [defaultValues?.createdAt]);
   const [mentionableTargets, setMentionableTargets] = useState<MentionTarget[]>(mentionTargets);
 
-  // Track manually selected characters and organizations (not auto-added from sessions)
+  // Track manually selected characters and groups (not auto-added from sessions)
   const manuallySelectedCharsRef = useRef<Set<string>>(new Set());
   const manuallySelectedOrgsRef = useRef<Set<string>>(new Set());
   const defaultsAppliedSignatureRef = useRef<string | null>(null);
   const [manualSelectionTrigger, setManualSelectionTrigger] = useState(0);
 
   const defaultSelections = useMemo(() => {
-    const orgs = dedupe(defaultOrganizationIds);
+    const orgs = dedupe(defaultGroupIds);
     const sessionsSelection = dedupe(defaultSessionIds);
     const chars = dedupe(defaultCharacterIds);
     const signature = JSON.stringify({
@@ -86,7 +86,7 @@ export function CampaignForm({
       chars,
     });
     return { orgs, sessions: sessionsSelection, chars, signature };
-  }, [defaultCharacterIds, defaultOrganizationIds, defaultSessionIds]);
+  }, [defaultCharacterIds, defaultGroupIds, defaultSessionIds]);
 
   useEffect(() => {
     setMentionableTargets((previous) => {
@@ -105,8 +105,8 @@ export function CampaignForm({
   }, [mentionTargets]);
 
   useEffect(() => {
-    setOrganizationList(sortOptionInputs([...organizations]));
-  }, [organizations, sortOptionInputs]);
+    setGroupList(sortOptionInputs([...groups]));
+  }, [groups, sortOptionInputs]);
 
   useEffect(() => {
     setSessionList(sortOptionInputs([...sessions]));
@@ -116,7 +116,7 @@ export function CampaignForm({
     setCharacterList(sortOptionInputs([...characters]));
   }, [characters, sortOptionInputs]);
 
-  // Initialize manually selected characters and organizations from initial state
+  // Initialize manually selected characters and groups from initial state
   useEffect(() => {
     if (!defaultSelections.signature) {
       return;
@@ -127,7 +127,7 @@ export function CampaignForm({
 
     defaultsAppliedSignatureRef.current = defaultSelections.signature;
 
-    setOrganizationIds(defaultSelections.orgs);
+    setGroupIds(defaultSelections.orgs);
     setSessionIds(defaultSelections.sessions);
     setCharacterIds(defaultSelections.chars);
 
@@ -138,7 +138,7 @@ export function CampaignForm({
       const session = sessions.find((s) => s.id === sessionId);
       if (session) {
         session.characterIds?.forEach((cid) => charsFromSessions.add(cid));
-        session.organizationIds?.forEach((oid) => orgsFromSessions.add(oid));
+        session.groupIds?.forEach((oid) => orgsFromSessions.add(oid));
       }
     });
 
@@ -161,9 +161,9 @@ export function CampaignForm({
     setManualSelectionTrigger((prev) => prev + 1);
   }, [defaultSelections, sessions]);
 
-  // Auto-sync characters and organizations from selected sessions
+  // Auto-sync characters and groups from selected sessions
   useEffect(() => {
-    // Collect characters and organizations from selected sessions
+    // Collect characters and groups from selected sessions
     const charsFromSessions = new Set<string>();
     const orgsFromSessions = new Set<string>();
 
@@ -171,7 +171,7 @@ export function CampaignForm({
       const session = sessionList.find((s) => s.id === sessionId);
       if (session) {
         session.characterIds?.forEach((charId) => charsFromSessions.add(charId));
-        session.organizationIds?.forEach((orgId) => orgsFromSessions.add(orgId));
+        session.groupIds?.forEach((orgId) => orgsFromSessions.add(orgId));
       }
     });
 
@@ -202,8 +202,8 @@ export function CampaignForm({
       return prev;
     });
 
-    // Update organization IDs: combine session organizations with manually selected ones
-    setOrganizationIds((prev) => {
+    // Update group IDs: combine session groups with manually selected ones
+    setGroupIds((prev) => {
       const combined = new Set([
         ...orgsFromSessions,
         ...manuallySelectedOrgsRef.current,
@@ -230,12 +230,12 @@ export function CampaignForm({
     });
   }, [sessionIds, sessionList, manualSelectionTrigger]);
 
-  const applyOrganizationMention = useCallback((id: string, name: string) => {
+  const applyGroupMention = useCallback((id: string, name: string) => {
     if (!id) {
       return;
     }
 
-    setOrganizationList((prev) => {
+    setGroupList((prev) => {
       if (prev.some((entry) => entry.id === id)) {
         return prev;
       }
@@ -243,7 +243,7 @@ export function CampaignForm({
       return sortOptionInputs(next);
     });
 
-    setOrganizationIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setGroupIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
 
     if (!manuallySelectedOrgsRef.current.has(id)) {
       manuallySelectedOrgsRef.current.add(id);
@@ -288,8 +288,8 @@ export function CampaignForm({
     }
   }, [sortOptionInputs]);
 
-  const handleOrganizationCreated = useCallback((option: { value: string; label: string }) => {
-    setOrganizationList((prev) => {
+  const handleGroupCreated = useCallback((option: { value: string; label: string }) => {
+    setGroupList((prev) => {
       if (prev.some((entry) => entry.id === option.value)) {
         return prev;
       }
@@ -304,7 +304,7 @@ export function CampaignForm({
     }
 
     setMentionableTargets((previous) => {
-      const key = `organization:${option.value}`;
+      const key = `group:${option.value}`;
       if (previous.some((entry) => `${entry.kind}:${entry.id}` === key)) {
         return previous;
       }
@@ -313,8 +313,8 @@ export function CampaignForm({
         {
           id: option.value,
           name: option.label,
-          href: `/organizations/${option.value}`,
-          kind: "organization" as const,
+          href: `/groups/${option.value}`,
+          kind: "group" as const,
         },
       ];
     });
@@ -389,9 +389,9 @@ export function CampaignForm({
       return [...previous, target];
     });
 
-    if (target.kind === "organization") {
-      const existing = organizationList.find((entry) => entry.id === target.id);
-      applyOrganizationMention(target.id, existing?.name ?? target.name);
+    if (target.kind === "group") {
+      const existing = groupList.find((entry) => entry.id === target.id);
+      applyGroupMention(target.id, existing?.name ?? target.name);
     } else if (target.kind === "session") {
       const existing = sessionList.find((entry) => entry.id === target.id);
       applySessionMention(target.id, existing?.name ?? target.name, existing?.hint ?? null);
@@ -399,7 +399,7 @@ export function CampaignForm({
       const existing = characterList.find((entry) => entry.id === target.id);
       applyCharacterMention(target.id, existing?.name ?? target.name, existing?.hint ?? null);
     }
-  }, [applyCharacterMention, applyOrganizationMention, applySessionMention, characterList, organizationList, sessionList]);
+  }, [applyCharacterMention, applyGroupMention, applySessionMention, characterList, groupList, sessionList]);
 
   // Wrapped handler for character selection changes
   const handleCharacterIdsChange = useCallback((newCharacterIds: string[]) => {
@@ -438,21 +438,21 @@ export function CampaignForm({
     setCharacterIds(newCharacterIds);
   }, [characterIds, sessionIds, sessionList]);
 
-  // Wrapped handler for organization selection changes
-  const handleOrganizationIdsChange = useCallback((newOrganizationIds: string[]) => {
-    // Calculate which organizations come from sessions
+  // Wrapped handler for group selection changes
+  const handleGroupIdsChange = useCallback((newGroupIds: string[]) => {
+    // Calculate which groups come from sessions
     const orgsFromSessions = new Set<string>();
     sessionIds.forEach((sessionId) => {
       const session = sessionList.find((s) => s.id === sessionId);
-      session?.organizationIds?.forEach((orgId) => orgsFromSessions.add(orgId));
+      session?.groupIds?.forEach((orgId) => orgsFromSessions.add(orgId));
     });
 
-    const prevSet = new Set(organizationIds);
-    const newSet = new Set(newOrganizationIds);
+    const prevSet = new Set(groupIds);
+    const newSet = new Set(newGroupIds);
 
     let refChanged = false;
 
-    // Find newly added organizations (not from sessions) - mark as manual
+    // Find newly added groups (not from sessions) - mark as manual
     newSet.forEach((orgId) => {
       if (!prevSet.has(orgId) && !orgsFromSessions.has(orgId)) {
         manuallySelectedOrgsRef.current.add(orgId);
@@ -460,7 +460,7 @@ export function CampaignForm({
       }
     });
 
-    // Find removed organizations that were manually selected
+    // Find removed groups that were manually selected
     prevSet.forEach((orgId) => {
       if (!newSet.has(orgId) && manuallySelectedOrgsRef.current.has(orgId)) {
         manuallySelectedOrgsRef.current.delete(orgId);
@@ -472,14 +472,14 @@ export function CampaignForm({
       setManualSelectionTrigger((prev) => prev + 1);
     }
 
-    setOrganizationIds(newOrganizationIds);
-  }, [organizationIds, sessionIds, sessionList]);
+    setGroupIds(newGroupIds);
+  }, [groupIds, sessionIds, sessionList]);
 
-  const organizationOptions = useMemo(() => {
-    return organizationList
+  const groupOptions = useMemo(() => {
+    return groupList
       .filter((entry): entry is OptionInput & { id: string; name: string } => Boolean(entry?.id && entry?.name))
       .map((entry) => ({ value: entry.id, label: entry.name ?? "Untitled Group" }));
-  }, [organizationList]);
+  }, [groupList]);
 
   const sessionOptions = useMemo<SessionOption[]>(() => {
     return sessionList
@@ -498,7 +498,7 @@ export function CampaignForm({
       action={action}
       className="space-y-4 sm:space-y-6 bg-[var(--bg-card)] bg-opacity-50 backdrop-blur-sm rounded-lg border border-[var(--cyber-cyan)] border-opacity-20 shadow-2xl p-4 sm:p-6"
     >
-      <input type="hidden" name="organization_field_present" value="true" />
+      <input type="hidden" name="group_field_present" value="true" />
       <input type="hidden" name="session_field_present" value="true" />
       <input type="hidden" name="character_field_present" value="true" />
 
@@ -560,14 +560,14 @@ export function CampaignForm({
           <span className="text-xs sm:text-sm font-bold uppercase tracking-[0.35em] text-[var(--cyber-cyan)]">
             Groups
           </span>
-          <OrganizationMultiSelect
-            id="campaign-organizations"
-            name="organization_ids"
-            options={organizationOptions}
-            value={organizationIds}
-            onChange={handleOrganizationIdsChange}
-            placeholder={organizationOptions.length ? "Select groups" : "No groups available"}
-            onCreateOption={handleOrganizationCreated}
+          <GroupMultiSelect
+            id="campaign-groups"
+            name="group_ids"
+            options={groupOptions}
+            value={groupIds}
+            onChange={handleGroupIdsChange}
+            placeholder={groupOptions.length ? "Select groups" : "No groups available"}
+            onCreateOption={handleGroupCreated}
           />
         </section>
 

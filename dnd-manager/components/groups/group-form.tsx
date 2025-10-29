@@ -12,7 +12,7 @@ import MentionableTextarea from "@/components/ui/mentionable-textarea";
 import type { MentionTarget } from "@/lib/mention-utils";
 import { useConvertedOptions, dedupeList } from "@/lib/utils/form-optimization";
 
-interface OrganizationFormProps {
+interface GroupFormProps {
   action: (formData: FormData) => Promise<void>;
   cancelHref: string;
   defaultValues?: {
@@ -32,7 +32,7 @@ interface OrganizationFormProps {
   mentionTargets?: MentionTarget[];
 }
 
-export function OrganizationForm({
+export function GroupForm({
   action,
   cancelHref,
   defaultValues,
@@ -47,7 +47,7 @@ export function OrganizationForm({
   defaultSessionIds,
   defaultCharacterIds,
   mentionTargets = [],
-}: OrganizationFormProps) {
+}: GroupFormProps) {
   const [campaignIds, setCampaignIds] = useState<string[]>(() => dedupeList(defaultCampaignIds));
   const [sessionIds, setSessionIds] = useState<string[]>(() => dedupeList(defaultSessionIds));
   const [characterIds, setCharacterIds] = useState<string[]>(() => dedupeList(defaultCharacterIds));
@@ -224,8 +224,8 @@ export function OrganizationForm({
     } else if (target.kind === 'session') {
       // Add session to the list if not already present
       addSessionLink(target.id, target.name);
-    } else if (target.kind === 'organization') {
-      // For organizations, we don't auto-assign to avoid circular references
+    } else if (target.kind === 'group') {
+      // For groups, we don't auto-assign to avoid circular references
       // Just add to mentionable targets for future @ mentions
     }
   };
@@ -340,7 +340,7 @@ export function OrganizationForm({
                 </span>
               </div>
               <SimpleCampaignMultiSelect
-                id="organization-campaigns"
+                id="group-campaigns"
                 name="campaign_ids"
                 options={campaignOptionList}
                 value={campaignIds}
@@ -360,7 +360,7 @@ export function OrganizationForm({
                 </span>
               </div>
               <SimpleSessionMultiSelect
-                id="organization-sessions"
+                id="group-sessions"
                 name="session_ids"
                 options={sessionOptionList}
                 value={sessionIds}
@@ -380,7 +380,7 @@ export function OrganizationForm({
                 </span>
               </div>
               <SimpleCharacterMultiSelect
-                id="organization-characters"
+                id="group-characters"
                 name="character_ids"
                 options={characterOptionList}
                 value={characterIds}
