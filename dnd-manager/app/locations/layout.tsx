@@ -1,0 +1,25 @@
+"use client"
+
+import dynamic from 'next/dynamic'
+import { useSidebar } from '@/components/providers/sidebar-provider'
+
+const Navbar = dynamic(() => import('@/components/layout/navbar'), { ssr: false })
+
+export default function LocationsLayout({ children }: { children: React.ReactNode }) {
+  useSidebar()
+
+  return (
+    <div className="min-h-screen bg-[var(--bg-dark)] flex flex-col md:flex-row">
+      <Navbar />
+      <main
+        className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-6 md:p-6 md:pt-2 relative z-40"
+        style={{
+          marginTop: '4.5rem',
+          paddingTop: '0.25rem',
+        }}
+      >
+        {children}
+      </main>
+    </div>
+  )
+}

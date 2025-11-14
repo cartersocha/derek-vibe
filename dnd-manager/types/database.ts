@@ -6,6 +6,7 @@ export interface Campaign {
   description: string | null
   created_at: string
   updated_at: string
+  map_id: string | null
 }
 
 export interface Session {
@@ -19,6 +20,7 @@ export interface Session {
   updated_at: string
   campaign?: Campaign
   characters?: Character[]
+  locations?: Location[]
 }
 
 export interface Character {
@@ -35,6 +37,7 @@ export interface Character {
   created_at: string
   updated_at: string
   sessions?: Session[]
+  locations?: Location[]
 }
 
 export interface SessionCharacter {
@@ -42,4 +45,57 @@ export interface SessionCharacter {
   session_id: string
   character_id: string
   created_at: string
+}
+
+export interface Location {
+  id: string
+  name: string
+  summary: string | null
+  description: string | null
+  primary_campaign_id: string | null
+  map_marker_icon: string | null
+  created_at: string
+  updated_at: string
+  campaigns?: Campaign[]
+  sessions?: Session[]
+  characters?: Character[]
+  groups?: Group[]
+}
+
+export interface Group {
+  id: string
+  name: string
+  description: string | null
+  logo_url: string | null
+  created_at: string
+  updated_at: string
+  campaigns?: Campaign[]
+  sessions?: Session[]
+  characters?: Character[]
+  locations?: Location[]
+}
+
+export interface MapRecord {
+  id: string
+  name: string
+  description: string | null
+  image_url: string
+  natural_width: number | null
+  natural_height: number | null
+  created_at: string
+  updated_at: string
+  campaigns?: Campaign[]
+  pins?: MapPin[]
+}
+
+export interface MapPin {
+  id: string
+  map_id: string
+  location_id: string
+  x_percent: number
+  y_percent: number
+  label: string | null
+  created_at: string
+  updated_at: string
+  location?: Location
 }

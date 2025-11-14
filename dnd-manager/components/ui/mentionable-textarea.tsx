@@ -18,6 +18,7 @@ import { createCharacterInline } from "@/lib/actions/characters"
 import { createGroupInline } from "@/lib/actions/groups"
 import { createSessionInline } from "@/lib/actions/sessions"
 import { createCampaignInline } from "@/lib/actions/campaigns"
+import { createLocationInline } from "@/lib/actions/locations"
 import { cn } from "@/lib/utils"
 import { isMentionBoundary, type MentionTarget } from "@/lib/mention-utils"
 import { mentionEndPattern } from "@/lib/mentions"
@@ -50,6 +51,8 @@ function MentionKindLabel({ kind }: MentionKindLabelProps) {
         return "Group"
       case "campaign":
         return "Campaign"
+      case "location":
+        return "Location"
       default:
         return "Mention"
     }
@@ -65,6 +68,8 @@ function MentionKindLabel({ kind }: MentionKindLabelProps) {
         return "border-[var(--cyber-magenta)] text-[var(--cyber-magenta)]"
       case "campaign":
         return "border-[var(--orange-400)] text-[var(--orange-400)]"
+      case "location":
+        return "border-[var(--cyber-lime)] text-[var(--cyber-lime)]"
       default:
         return "border-[var(--text-muted)] text-[var(--text-muted)]"
     }
@@ -141,7 +146,7 @@ export default function MentionableTextarea({
 
   const mentionOptions = useMemo(() => {
     const MAX_OPTIONS = 12
-    const priorityOrder: Array<MentionOption["kind"]> = ["character", "group", "session"]
+    const priorityOrder: Array<MentionOption["kind"]> = ["character", "group", "session", "location"]
 
     const entries = normalizedMentionQuery
       ? sortedTargets.filter((target) => target.name.toLowerCase().includes(normalizedMentionQuery))
@@ -211,6 +216,11 @@ export default function MentionableTextarea({
     [sortedTargets]
   )
 
+  const locationTargets = useMemo(
+    () => sortedTargets.filter((target) => target.kind === "location"),
+    [sortedTargets]
+  )
+
   const hasExactCharacterMatch = useMemo(
     () => characterTargets.some((target) => target.name.toLowerCase() === normalizedMentionQuery),
     [characterTargets, normalizedMentionQuery]
@@ -231,12 +241,23 @@ export default function MentionableTextarea({
     [campaignTargets, normalizedMentionQuery]
   )
 
+  const hasExactLocationMatch = useMemo(
+    () => locationTargets.some((target) => target.name.toLowerCase() === normalizedMentionQuery),
+    [locationTargets, normalizedMentionQuery]
+  )
+
   const showCreateCharacterOption = trimmedMentionQuery.length > 0 && !hasExactCharacterMatch
   const showCreateGroupOption = trimmedMentionQuery.length > 0 && !hasExactGroupMatch
   const showCreateSessionOption = trimmedMentionQuery.length > 0 && !hasExactSessionMatch
   const showCreateCampaignOption = trimmedMentionQuery.length > 0 && !hasExactCampaignMatch
+  const showCreateLocationOption = trimmedMentionQuery.length > 0 && !hasExactLocationMatch
 
-  const createOptionsCount = (showCreateCharacterOption ? 1 : 0) + (showCreateGroupOption ? 1 : 0) + (showCreateSessionOption ? 1 : 0) + (showCreateCampaignOption ? 1 : 0)
+  const createOptionsCount =
+    (showCreateCharacterOption ? 1 : 0) +
+    (showCreateGroupOption ? 1 : 0) +
+    (showCreateSessionOption ? 1 : 0) +
+    (showCreateCampaignOption ? 1 : 0) +
+    (showCreateLocationOption ? 1 : 0)
 
   const totalMentionChoices = useMemo(
     () => mentionOptions.length + createOptionsCount,
@@ -718,6 +739,45 @@ export default function MentionableTextarea({
     }
   }, [hasExactCampaignMatch, insertMention, isCreatingMentionCharacter, linkGroupIds, onMentionCreate, trimmedMentionQuery])
 
+  const handleCreateLocation = useCallback(async () => {
+    if (isCreatingMentionCharacter) {
+      return
+    }
+
+    if (!trimmedMentionQuery || hasExactLocationMatch) {
+      return
+    }
+
+    setIsCreatingMentionCharacter(true)
+    setMentionCreationError(null)
+
+    try {
+      const result = await createLocationInline(trimmedMentionQuery)
+      const newTarget: MentionOption = {
+        id: result.id,
+        name: result.name,
+        href: `/locations/${result.id}`,
+        kind: "location",
+      }
+
+      setAvailableTargets((previous) => {
+        const exists = previous.some((entry) => entry.id === newTarget.id)
+        if (exists) {
+          return previous
+        }
+        return [...previous, newTarget]
+      })
+
+      onMentionCreate?.(newTarget)
+      insertMention(newTarget)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to create location"
+      setMentionCreationError(message)
+    } finally {
+      setIsCreatingMentionCharacter(false)
+    }
+  }, [hasExactLocationMatch, insertMention, isCreatingMentionCharacter, onMentionCreate, trimmedMentionQuery])
+
 
   const handleTextareaKeyDown = useCallback(
     (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -784,6 +844,13 @@ export default function MentionableTextarea({
               void handleCreateCampaign()
               return
             }
+            currentIndex++
+          }
+          if (showCreateLocationOption) {
+            if (createIndex === currentIndex) {
+              void handleCreateLocation()
+              return
+            }
           }
         }
         return
@@ -794,7 +861,24 @@ export default function MentionableTextarea({
         closeMentionMenu()
       }
     },
-    [closeMentionMenu, handleCreateCharacter, handleCreateGroup, handleCreateSession, handleCreateCampaign, insertMention, isMentionMenuOpen, mentionHighlightIndex, mentionOptions, showCreateCharacterOption, showCreateGroupOption, showCreateSessionOption, showCreateCampaignOption, totalMentionChoices]
+    [
+      closeMentionMenu,
+      handleCreateCharacter,
+      handleCreateGroup,
+      handleCreateSession,
+      handleCreateCampaign,
+      handleCreateLocation,
+      insertMention,
+      isMentionMenuOpen,
+      mentionHighlightIndex,
+      mentionOptions,
+      showCreateCharacterOption,
+      showCreateGroupOption,
+      showCreateSessionOption,
+      showCreateCampaignOption,
+      showCreateLocationOption,
+      totalMentionChoices,
+    ]
   )
 
   const handleMentionClick = useCallback(
@@ -834,8 +918,11 @@ export default function MentionableTextarea({
     if (showCreateCampaignOption) {
       labels.push(`Create "${trimmedMentionQuery}" (Campaign)`)
     }
+    if (showCreateLocationOption) {
+      labels.push(`Create "${trimmedMentionQuery}" (Location)`)
+    }
     return labels
-  }, [mentionOptions, showCreateCharacterOption, showCreateGroupOption, showCreateSessionOption, showCreateCampaignOption, trimmedMentionQuery])
+  }, [mentionOptions, showCreateCharacterOption, showCreateGroupOption, showCreateSessionOption, showCreateCampaignOption, showCreateLocationOption, trimmedMentionQuery])
 
   useEffect(() => {
     if (!isMentionMenuOpen) {
@@ -920,7 +1007,7 @@ export default function MentionableTextarea({
               zIndex: 2147483647,
             }}
           >
-          {mentionOptions.length === 0 && !showCreateCharacterOption && !showCreateGroupOption && !showCreateSessionOption && !showCreateCampaignOption ? (
+          {mentionOptions.length === 0 && !showCreateCharacterOption && !showCreateGroupOption && !showCreateSessionOption && !showCreateCampaignOption && !showCreateLocationOption ? (
             <p className="px-3 py-2 text-xs font-mono uppercase tracking-widest text-[var(--text-muted)]">
               No matches
             </p>
@@ -949,6 +1036,11 @@ export default function MentionableTextarea({
                       return {
                         baseTextColor: "text-[var(--cyber-magenta)]",
                         activeTextColor: "text-[var(--cyber-magenta)]",
+                      }
+                    case "location":
+                      return {
+                        baseTextColor: "text-[var(--cyber-lime)]",
+                        activeTextColor: "text-[var(--cyber-lime)]",
                       }
                     default:
                       return {
@@ -1064,6 +1156,49 @@ export default function MentionableTextarea({
                   </span>
                   <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--cyber-magenta)]">
                     New Campaign
+                  </span>
+                </button>
+              ) : null}
+              {showCreateLocationOption ? (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={
+                    mentionHighlightIndex ===
+                    (mentionOptions.length +
+                      (showCreateCharacterOption ? 1 : 0) +
+                      (showCreateGroupOption ? 1 : 0) +
+                      (showCreateSessionOption ? 1 : 0) +
+                      (showCreateCampaignOption ? 1 : 0))
+                  }
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => void handleCreateLocation()}
+                  onMouseEnter={() =>
+                    handleMentionHover(
+                      mentionOptions.length +
+                        (showCreateCharacterOption ? 1 : 0) +
+                        (showCreateGroupOption ? 1 : 0) +
+                        (showCreateSessionOption ? 1 : 0) +
+                        (showCreateCampaignOption ? 1 : 0),
+                    )
+                  }
+                  disabled={isCreatingMentionCharacter}
+                  className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-mono text-sm transition-colors ${
+                    mentionHighlightIndex ===
+                    (mentionOptions.length +
+                      (showCreateCharacterOption ? 1 : 0) +
+                      (showCreateGroupOption ? 1 : 0) +
+                      (showCreateSessionOption ? 1 : 0) +
+                      (showCreateCampaignOption ? 1 : 0))
+                      ? "bg-[var(--bg-card)] text-[var(--cyber-lime)]"
+                      : "text-[var(--cyber-lime)] hover:bg-[var(--bg-dark)]"
+                  } ${isCreatingMentionCharacter ? "opacity-60" : ""}`}
+                >
+                  <span className="font-semibold">
+                    {isCreatingMentionCharacter ? "Creating…" : `Create "${trimmedMentionQuery}"`}
+                  </span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--cyber-lime)]">
+                    New Location
                   </span>
                 </button>
               ) : null}
