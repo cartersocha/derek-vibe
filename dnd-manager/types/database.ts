@@ -21,6 +21,15 @@ export interface Session {
   characters?: Character[]
 }
 
+export interface Location {
+  id: string
+  name: string
+  description: string | null
+  header_image_url: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface Character {
   id: string
   name: string
@@ -41,5 +50,29 @@ export interface SessionCharacter {
   id: string
   session_id: string
   character_id: string
+  created_at: string
+}
+
+export interface SessionLocation {
+  session_id: string
+  location_id: string
+  created_at: string
+}
+
+export interface CharacterLocation {
+  character_id: string
+  location_id: string
+  created_at: string
+}
+
+export interface GroupLocation {
+  group_id: string
+  location_id: string
+  created_at: string
+}
+
+export interface CampaignLocation {
+  campaign_id: string
+  location_id: string
   created_at: string
 }
