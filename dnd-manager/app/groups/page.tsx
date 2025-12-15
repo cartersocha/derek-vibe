@@ -2,53 +2,77 @@ import { createClient } from "@/lib/supabase/server";
 import { GroupsIndex, type GroupRecord } from "@/components/ui/groups-index";
 import { mapEntitiesToMentionTargets, mergeMentionTargets } from "@/lib/mention-utils";
 
-export const runtime = 'edge'
 export const revalidate = 300
 export const fetchCache = 'force-cache'
 
 export default async function GroupsPage() {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  const [groupsResult, charactersResult, sessionsResult, campaignsResult] = await Promise.all([
-    supabase
-      .from("groups")
-      .select(`
-        id, name, description, logo_url, created_at,
-        group_characters (
-          role,
-          character:characters (id, name, player_type, status, image_url)
-        ),
-        group_sessions (
-          session:sessions (
-            id,
-            name,
-            session_date,
-            created_at,
+    const [groupsResult, charactersResult, sessionsResult, campaignsResult] = await Promise.all([
+      supabase
+        .from("groups")
+        .select(`
+          id, name, description, logo_url, created_at,
+          group_characters (
+            role,
+            character:characters (id, name, player_type, status, image_url)
+          ),
+          group_sessions (
+            session:sessions (
+              id,
+              name,
+              session_date,
+              created_at,
+              campaign:campaigns (id, name)
+            )
+          ),
+          group_campaigns (
             campaign:campaigns (id, name)
           )
-        ),
-        group_campaigns (
-          campaign:campaigns (id, name)
-        )
-      `)
-      .order("name", { ascending: true }),
-    supabase.from("characters").select("id, name").order("name", { ascending: true }),
-    supabase.from("sessions").select("id, name").order("name", { ascending: true }),
-    supabase.from("campaigns").select("id, name").order("name", { ascending: true }),
-  ]);
+        `)
+        .order("name", { ascending: true }),
+      supabase.from("characters").select("id, name").order("name", { ascending: true }),
+      supabase.from("sessions").select("id, name").order("name", { ascending: true }),
+      supabase.from("campaigns").select("id, name").order("name", { ascending: true }),
+    ]);
 
-  if (groupsResult.error) {
-    throw new Error(groupsResult.error.message);
-  }
-  if (charactersResult.error) {
-    throw new Error(charactersResult.error.message);
-  }
-  if (sessionsResult.error) {
-    throw new Error(sessionsResult.error.message);
-  }
-  if (campaignsResult.error) {
-    throw new Error(campaignsResult.error.message);
-  }
+    if (groupsResult.error) {
+      console.error('Error fetching groups:', {
+        message: groupsResult.error.message,
+        details: groupsResult.error.details,
+        hint: groupsResult.error.hint,
+        code: groupsResult.error.code,
+      });
+      throw new Error(groupsResult.error.message || 'Failed to fetch groups');
+    }
+    if (charactersResult.error) {
+      console.error('Error fetching characters:', {
+        message: charactersResult.error.message,
+        details: charactersResult.error.details,
+        hint: charactersResult.error.hint,
+        code: charactersResult.error.code,
+      });
+      throw new Error(charactersResult.error.message || 'Failed to fetch characters');
+    }
+    if (sessionsResult.error) {
+      console.error('Error fetching sessions:', {
+        message: sessionsResult.error.message,
+        details: sessionsResult.error.details,
+        hint: sessionsResult.error.hint,
+        code: sessionsResult.error.code,
+      });
+      throw new Error(sessionsResult.error.message || 'Failed to fetch sessions');
+    }
+    if (campaignsResult.error) {
+      console.error('Error fetching campaigns:', {
+        message: campaignsResult.error.message,
+        details: campaignsResult.error.details,
+        hint: campaignsResult.error.hint,
+        code: campaignsResult.error.code,
+      });
+      throw new Error(campaignsResult.error.message || 'Failed to fetch campaigns');
+    }
 
   const groups = (groupsResult.data ?? []).map((groupEntry): GroupRecord => {
     const groupCharacters = Array.isArray(groupEntry?.group_characters)
@@ -140,12 +164,24 @@ export default async function GroupsPage() {
       group_campaigns: groupCampaigns,
     };
   });
-  const mentionTargets = mergeMentionTargets(
-    mapEntitiesToMentionTargets(groups, "group", (group) => `/groups/${group.id}`),
-    mapEntitiesToMentionTargets(charactersResult.data, "character", (character) => `/characters/${character.id}`),
-    mapEntitiesToMentionTargets(sessionsResult.data, "session", (session) => `/sessions/${session.id}`),
-    mapEntitiesToMentionTargets(campaignsResult.data, "campaign", (campaign) => `/campaigns/${campaign.id}`),
-  );
+    const mentionTargets = mergeMentionTargets(
+      mapEntitiesToMentionTargets(groups, "group", (group) => `/groups/${group.id}`),
+      mapEntitiesToMentionTargets(charactersResult.data, "character", (character) => `/characters/${character.id}`),
+      mapEntitiesToMentionTargets(sessionsResult.data, "session", (session) => `/sessions/${session.id}`),
+      mapEntitiesToMentionTargets(campaignsResult.data, "campaign", (campaign) => `/campaigns/${campaign.id}`),
+    );
 
-  return <GroupsIndex groups={groups} mentionTargets={mentionTargets} />;
+    return <GroupsIndex groups={groups} mentionTargets={mentionTargets} />;
+  } catch (err) {
+    console.error('Unexpected error in GroupsPage:', err);
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+    return (
+      <div className="max-w-5xl mx-auto p-4">
+        <h1 className="retro-title text-base sm:text-lg md:text-xl font-bold text-[var(--cyber-cyan)] break-words mb-4">Groups</h1>
+        <div className="text-[var(--cyber-cyan)]">
+          Error loading groups: {errorMessage}. Please check the console for details.
+        </div>
+      </div>
+    );
+  }
 }

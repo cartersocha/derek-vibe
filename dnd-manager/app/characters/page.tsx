@@ -1,30 +1,38 @@
 import { createClient } from '@/lib/supabase/server'
 import { CharacterCard } from '@/components/ui/character-card'
 
-export const runtime = 'edge'
 export const revalidate = 300
 export const fetchCache = 'force-cache'
 
 export default async function CharactersPage() {
-  const supabase = await createClient()
+  try {
+    const supabase = await createClient()
 
-  // Fetch basic character data first
-  const { data: characters, error } = await supabase
-            .from('characters')
-    .select('*')
-    .order('name')
+    // Fetch basic character data first
+    const { data: characters, error } = await supabase
+      .from('characters')
+      .select('*')
+      .order('name')
 
-  if (error) {
-    console.error('Error fetching characters:', error)
-    return (
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-6">
-          <h1 className="retro-title text-base sm:text-lg md:text-xl font-bold text-[var(--cyber-cyan)] break-words">Characters</h1>
+    if (error) {
+      console.error('Error fetching characters:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error))
+      })
+      return (
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-6">
+            <h1 className="retro-title text-base sm:text-lg md:text-xl font-bold text-[var(--cyber-cyan)] break-words">Characters</h1>
+          </div>
+          <div className="text-[var(--cyber-cyan)]">
+            Error loading characters: {error.message || 'Unknown error'}. Please try again.
+          </div>
         </div>
-        <div className="text-[var(--cyber-cyan)]">Error loading characters. Please try again.</div>
-      </div>
-    )
-  }
+      )
+    }
 
   // If no characters, show empty state
   if (!characters || characters.length === 0) {
@@ -130,4 +138,18 @@ export default async function CharactersPage() {
       </div>
     </div>
   )
+  } catch (err) {
+    console.error('Unexpected error in CharactersPage:', err)
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="mb-6">
+          <h1 className="retro-title text-base sm:text-lg md:text-xl font-bold text-[var(--cyber-cyan)] break-words">Characters</h1>
+        </div>
+        <div className="text-[var(--cyber-cyan)]">
+          Unexpected error: {errorMessage}. Please check the console for details.
+        </div>
+      </div>
+    )
+  }
 }
