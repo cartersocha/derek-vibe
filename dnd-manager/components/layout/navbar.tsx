@@ -10,6 +10,7 @@ import { useSidebar } from "@/components/providers/sidebar-provider";
 const NAV_LINKS = [
   { href: "/campaigns", label: "Campaigns", icon: "/icons/campaigns-24.png", symbol: "⚔" },
   { href: "/sessions", label: "Sessions", icon: "/icons/sessions-24.png", symbol: "✎" },
+  { href: "/locations", label: "Locations", icon: "/icons/dashboards-24.png", symbol: "⌖" },
   { href: "/characters", label: "Characters", icon: "/icons/characters-24.png", symbol: "♞" },
   { href: "/groups", label: "Groups", icon: "/icons/groups-24.png", symbol: "⚙" },
 ];

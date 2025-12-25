@@ -5,7 +5,7 @@ import { cn } from '../utils'
  */
 
 export type PillSize = 'tiny' | 'small' | 'medium' | 'large'
-export type PillVariant = 'default' | 'player' | 'npc' | 'group' | 'session' | 'date' | 'campaign'
+export type PillVariant = 'default' | 'player' | 'npc' | 'group' | 'session' | 'date' | 'campaign' | 'location'
 
 /**
  * Base pill classes that all pills should use
@@ -60,6 +60,10 @@ export const getPillVariantClasses = (variant: PillVariant) => {
     campaign: cn(
       'border border-[var(--orange-400)]/40 bg-[var(--bg-dark)] text-[var(--orange-400)] transition hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/40 hover:bg-[var(--orange-400)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] hover-glow',
       radiusClass
+    ),
+    location: cn(
+      'border border-[var(--cyber-lime)]/40 bg-[var(--bg-dark)] text-[var(--cyber-lime)] transition hover:text-[var(--cyber-lime)] hover:border-[var(--cyber-lime)]/50 hover:bg-[var(--cyber-lime)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-lime)] hover-glow',
+      radiusClass
     )
   }
 
@@ -109,6 +113,10 @@ export const getDashedPillClasses = (variant: PillVariant = 'default', size: Pil
     ),
     campaign: cn(
       'border border-dashed border-[var(--orange-400)]/50 text-[var(--orange-400)] transition hover:text-[var(--orange-500)] hover:border-[var(--orange-500)]/60 hover:bg-[var(--orange-400)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--orange-400)] hover-glow',
+      radiusClass
+    ),
+    location: cn(
+      'border border-dashed border-[var(--cyber-lime)]/50 text-[var(--cyber-lime)] transition hover:text-[var(--cyber-lime)] hover:border-[var(--cyber-lime)]/60 hover:bg-[var(--cyber-lime)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyber-lime)] hover-glow',
       radiusClass
     )
   }
